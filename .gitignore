@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+wheels/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# uv
+uv.lock
+
+# Testing / tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Model files
+*.onnx
+*.h5
+*.hdf5
+*.tflite
+*.pt
+*.pth
+temp_models/
+
+# Calibration / data
+*.npy
+*.npz
+
+# Deployment packages
+*.zip
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Uploads / working artifacts
+models/*
+!models/.gitkeep
+uploads/
+temp/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
