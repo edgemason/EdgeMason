@@ -14,10 +14,14 @@ from dataclasses import dataclass, asdict
 from typing import Optional
 
 
-# Strategy names
+# Strategy names — ONNX Runtime
 STRATEGY_FP32_BASELINE = "onnx_fp32_baseline"
 STRATEGY_DYNAMIC_INT8 = "onnx_dynamic_int8"
 STRATEGY_STATIC_INT8 = "onnx_static_int8"
+
+# Strategy names — TVM
+STRATEGY_TVM_OPT3 = "tvm_opt_level_3"
+STRATEGY_TVM_INT8 = "tvm_int8_quantized"
 
 
 # Rule thresholds
@@ -135,6 +139,31 @@ def generate_candidates(planner_input: PlannerInput) -> dict:
         rules_applied.append(
             f"max_latency_ms < {LATENCY_THRESHOLD_MS:.0f}ms -> try dynamic INT8."
         )
+
+    # Rule 4: Always include TVM opt-level-3 as a parallel candidate
+    candidates.append(
+        Candidate(
+            name=STRATEGY_TVM_OPT3,
+            framework="tvm",
+            quantization="none",
+            reason="TVM Relay opt-level-3 is always included to compare against the ONNX baseline.",
+            requires_calibration=False,
+        )
+    )
+    rules_applied.append("Always include TVM opt-level-3 candidate.")
+
+    # Rule 5: If calibration data is available, also try TVM INT8
+    if planner_input.has_calibration_data:
+        candidates.append(
+            Candidate(
+                name=STRATEGY_TVM_INT8,
+                framework="tvm",
+                quantization="int8",
+                reason="TVM Relay INT8 quantization is included because calibration data is available.",
+                requires_calibration=True,
+            )
+        )
+        rules_applied.append("Calibration data provided -> include TVM INT8 candidate.")
 
     # If static INT8 was not selected, record why
     has_static_int8 = any(c.name == STRATEGY_STATIC_INT8 for c in candidates)

@@ -101,6 +101,7 @@ async def deploy_model(
                 str(model_path),
                 cand["name"],
                 calibration_data_path=str(calib_path) if calib_path else None,
+                hardware_id=hardware_id,
             )
             
             # Benchmark it
