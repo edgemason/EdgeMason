@@ -164,78 +164,41 @@ def run_inference(
     return session.run([label_name], inputs)
 
 
+try:
+    from api.optimizer.benchmark_engine import BenchmarkEngine, benchmark as engine_benchmark
+except ImportError:
+    from optimizer.benchmark_engine import BenchmarkEngine, benchmark as engine_benchmark
+
+
 def benchmark(
     filename: str,
     input_data: dict | None = None,
     warmup_runs: int = 10,
     benchmark_runs: int = 100,
+    hardware_id: str = "x86_64",
+    batch_size: int = 1,
 ) -> str:
-    """Benchmark a model and return a JSON report.
+    """Benchmark an ONNX or TVM model and return a comprehensive JSON report.
 
-    Dispatches to the TVM benchmark path for .tar files and the ONNX Runtime
-    path for .onnx files so the rest of the pipeline needs no changes.
+    Measures latency percentiles, throughput (FPS), memory metrics, and model size.
 
     Args:
         filename       : Path to the .onnx or .tar model file.
-        input_data     : Optional dict of inputs (ONNX path only).
+        input_data     : Optional dict of inputs.
         warmup_runs    : Number of ignored warm-up inferences.
         benchmark_runs : Number of measured inferences.
+        hardware_id    : Target hardware ID for profile scaling.
+        batch_size     : Batch size for throughput calculation.
 
     Returns:
-        str : JSON string with latency and memory statistics.
+        str : Machine-readable JSON string with latency, throughput, memory, and model size.
     """
-    # ---------- Dispatch by file type ----------
-    if filename.endswith(".tar"):
-        return benchmark_tvm(filename, warmup_runs=warmup_runs, benchmark_runs=benchmark_runs)
+    return engine_benchmark(
+        filename=filename,
+        input_data=input_data,
+        warmup_runs=warmup_runs,
+        benchmark_runs=benchmark_runs,
+        hardware_id=hardware_id,
+        batch_size=batch_size,
+    )
 
-    # ---------- ONNX Runtime path ----------
-    try:
-        session = inference_session(filename)
-        inputs = input_data if input_data is not None else make_input(session)
-
-        for _ in range(warmup_runs):
-            run_inference(session, inputs)
-
-        latencies = []
-        process = psutil.Process()
-        memory_before = process.memory_info().rss
-
-        for _ in range(benchmark_runs):
-            start = time.perf_counter()
-            run_inference(session, inputs)
-            latencies.append((time.perf_counter() - start) * 1000)
-
-        memory_after = process.memory_info().rss
-
-        report = {
-            "model_path": filename,
-            "provider": PROVIDER,
-            "warmup_runs": warmup_runs,
-            "benchmark_runs": benchmark_runs,
-            "latency_ms": {
-                "avg": float(np.mean(latencies)),
-                "p50": float(np.percentile(latencies, 50)),
-                "p95": float(np.percentile(latencies, 95)),
-                "p99": float(np.percentile(latencies, 99)),
-            },
-            "memory_mb": {
-                "before": memory_before / (1024 * 1024),
-                "after": memory_after / (1024 * 1024),
-                "delta": (memory_after - memory_before) / (1024 * 1024),
-            },
-            "success": True,
-            "error": None,
-        }
-    except Exception as exc:  # noqa: BLE001
-        report = {
-            "model_path": filename,
-            "provider": PROVIDER,
-            "warmup_runs": warmup_runs,
-            "benchmark_runs": benchmark_runs,
-            "latency_ms": {"avg": 0.0, "p50": 0.0, "p95": 0.0, "p99": 0.0},
-            "memory_mb": {"before": 0.0, "after": 0.0, "delta": 0.0},
-            "success": False,
-            "error": str(exc),
-        }
-
-    return json.dumps(report, indent=2)

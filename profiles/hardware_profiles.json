@@ -1,0 +1,57 @@
+{
+  "rpi3": {
+    "name": "Raspberry Pi 3 Model B+",
+    "architecture": "aarch64",
+    "cpu": "Cortex-A53",
+    "cores": 4,
+    "clock_ghz": 1.4,
+    "ram_mb": 1024,
+    "latency_scaling_factor": 18.5,
+    "memory_overhead_scaling": 1.2,
+    "recommended_batch_size": 1
+  },
+  "rpi4": {
+    "name": "Raspberry Pi 4 Model B",
+    "architecture": "aarch64",
+    "cpu": "Cortex-A72",
+    "cores": 4,
+    "clock_ghz": 1.8,
+    "ram_mb": 4096,
+    "latency_scaling_factor": 11.8,
+    "memory_overhead_scaling": 1.1,
+    "recommended_batch_size": 1
+  },
+  "rpi5": {
+    "name": "Raspberry Pi 5",
+    "architecture": "aarch64",
+    "cpu": "Cortex-A76",
+    "cores": 4,
+    "clock_ghz": 2.4,
+    "ram_mb": 8192,
+    "latency_scaling_factor": 4.5,
+    "memory_overhead_scaling": 1.05,
+    "recommended_batch_size": 1
+  },
+  "jetson_nano": {
+    "name": "NVIDIA Jetson Nano",
+    "architecture": "aarch64",
+    "cpu": "Cortex-A57",
+    "cores": 4,
+    "clock_ghz": 1.43,
+    "ram_mb": 4096,
+    "latency_scaling_factor": 8.2,
+    "memory_overhead_scaling": 1.15,
+    "recommended_batch_size": 1
+  },
+  "x86_64": {
+    "name": "Standard x86_64 Host / Server",
+    "architecture": "x86_64",
+    "cpu": "x86_64 CPU",
+    "cores": 8,
+    "clock_ghz": 3.0,
+    "ram_mb": 16384,
+    "latency_scaling_factor": 1.0,
+    "memory_overhead_scaling": 1.0,
+    "recommended_batch_size": 1
+  }
+}

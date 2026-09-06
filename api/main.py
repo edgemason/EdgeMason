@@ -105,7 +105,12 @@ async def deploy_model(
             )
             
             # Benchmark it
-            bench_json = benchmark(quantized_path, warmup_runs=5, benchmark_runs=20)
+            bench_json = benchmark(
+                quantized_path,
+                warmup_runs=5,
+                benchmark_runs=20,
+                hardware_id=hardware_id,
+            )
             bench = json.loads(bench_json)
             
             results.append({
@@ -180,16 +185,25 @@ async def deploy_model(
         "all_results": [
             {
                 "name": r["candidate"]["name"],
-                "latency_p50_ms": r["benchmark"]["latency_ms"]["p50"],
-                "memory_delta_mb": r["benchmark"]["memory_mb"]["delta"],
-                "success": r["benchmark"]["success"],
+                "framework": r["candidate"].get("framework", "onnxruntime"),
+                "latency_p50_ms": r["benchmark"].get("latency_ms", {}).get("p50"),
+                "latency_avg_ms": r["benchmark"].get("latency_ms", {}).get("avg"),
+                "throughput_fps": r["benchmark"].get("throughput", {}).get("fps"),
+                "memory_delta_mb": r["benchmark"].get("memory_mb", {}).get("delta"),
+                "model_size_mb": r["benchmark"].get("model_size", {}).get("mb"),
+                "hardware_estimate": r["benchmark"].get("hardware_estimate"),
+                "success": r["benchmark"].get("success", False),
             }
             for r in results
         ],
         "winner": {
             "name": winner["candidate"]["name"] if winner else None,
-            "latency_p50_ms": winner["benchmark"]["latency_ms"]["p50"] if winner else None,
-            "memory_delta_mb": winner["benchmark"]["memory_mb"]["delta"] if winner else None,
+            "framework": winner["candidate"].get("framework", "onnxruntime") if winner else None,
+            "latency_p50_ms": winner["benchmark"].get("latency_ms", {}).get("p50") if winner else None,
+            "throughput_fps": winner["benchmark"].get("throughput", {}).get("fps") if winner else None,
+            "memory_delta_mb": winner["benchmark"].get("memory_mb", {}).get("delta") if winner else None,
+            "model_size_mb": winner["benchmark"].get("model_size", {}).get("mb") if winner else None,
+            "hardware_estimate": winner["benchmark"].get("hardware_estimate") if winner else None,
         },
         "download_url": "/download?path=" + zip_path if zip_path else None,
     }
