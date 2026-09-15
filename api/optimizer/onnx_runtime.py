@@ -34,33 +34,22 @@ def benchmark_tvm(
     Returns:
         str : JSON string with latency and memory statistics.
     """
-    try:
-        import tvm
-        from tvm.contrib import graph_executor
-    except ImportError as exc:
-        raise ImportError(
-            "Apache TVM is not installed. Run: pip install apache-tvm"
-        ) from exc
+    from api.optimizer.tvm_runtime import load_input_specs, load_vm, run_vm
 
     try:
-        # 1. Load the compiled module
-        lib = tvm.runtime.load_module(filename)
-        dev = tvm.cpu(0)
-        module = graph_executor.GraphModule(lib["default"](dev))
+        # 1. Load the compiled Relax VM module
+        specs = load_input_specs(filename)
+        order = [spec["name"] for spec in specs]
+        vm, dev = load_vm(filename)
 
-        # 2. Build a random input matching the module's declared shapes
-        #    get_input_info() returns (names, shapes, dtypes)
-        input_info = module.get_input_info()
+        # 2. Build a random input matching the compiled shapes
         inputs = {}
-        for i, name in enumerate(input_info[0]):
-            shape = input_info[1][i]
-            shape = [s if s > 0 else 1 for s in shape]  # replace dynamic dims
-            inputs[name] = np.random.rand(*shape).astype(np.float32)
+        for spec in specs:
+            shape = [s if s > 0 else 1 for s in spec["shape"]]
+            inputs[spec["name"]] = np.random.rand(*shape).astype(np.float32)
 
         def _run():
-            for name, arr in inputs.items():
-                module.set_input(name, tvm.nd.array(arr, dev))
-            module.run()
+            run_vm(vm, dev, inputs, order)
 
         # 3. Warm-up
         for _ in range(warmup_runs):
@@ -128,23 +117,30 @@ def inference_session(filename: str) -> rt.InferenceSession:
     return rt.InferenceSession(filename, providers=[PROVIDER])
 
 
-def make_input(session: rt.InferenceSession, batch_size: int = 1) -> dict:
-    """Build random float32 inputs matching the session's declared shapes.
+def make_input(session: rt.InferenceSession, batch_size: int = 1, sample_input: np.ndarray | None = None) -> dict:
+    """Build input matching the session's declared shapes.
 
-    Args:
-      session : The loaded inference session
-      batch_size : Value used for dynamic/unknown dimensions
-
-    Output:
-      dict : Mapping of input name -> numpy array
+    If sample_input is provided, use it (tiled to batch_size).
+    Else, build random float32 inputs.
     """
     inputs = {}
-    for inp in session.get_inputs():
-        dims = [
-            batch_size if not isinstance(d, int) or d <= 0 else d
-            for d in inp.shape
-        ]
-        inputs[inp.name] = np.random.rand(*dims).astype(np.float32)
+    for i in session.get_inputs():
+        shape = list(i.shape)
+        if shape[0] == "N" or shape[0] is None or shape[0] == -1:
+            shape[0] = batch_size
+
+        if sample_input is not None:
+            # Validate shape/dtype (simple check)
+            if sample_input.dtype != np.float32:
+                sample_input = sample_input.astype(np.float32)
+            # Tile to batch size if needed
+            if shape[0] > 1:
+                val = np.tile(sample_input, (shape[0], 1, 1, 1))
+            else:
+                val = sample_input
+            inputs[i.name] = val
+        else:
+            inputs[i.name] = np.random.rand(*shape).astype(np.float32)
     return inputs
 
 
@@ -165,9 +161,9 @@ def run_inference(
 
 
 try:
-    from api.optimizer.benchmark_engine import BenchmarkEngine, benchmark as engine_benchmark
+    from api.optimizer.benchmark_engine import benchmark as engine_benchmark
 except ImportError:
-    from optimizer.benchmark_engine import BenchmarkEngine, benchmark as engine_benchmark
+    from optimizer.benchmark_engine import benchmark as engine_benchmark
 
 
 def benchmark(
@@ -177,22 +173,19 @@ def benchmark(
     benchmark_runs: int = 100,
     hardware_id: str = "x86_64",
     batch_size: int = 1,
+    sample_path: str | None = None,
+    execution_provider: str = "auto",
 ) -> str:
-    """Benchmark an ONNX or TVM model and return a comprehensive JSON report.
+    """Benchmark an ONNX or TVM model."""
+    if input_data is None and sample_path and filename.endswith(".onnx"):
+        session = inference_session(filename)
+        sample_input = np.load(sample_path, allow_pickle=False)
+        input_data = make_input(
+            session,
+            batch_size=batch_size,
+            sample_input=sample_input,
+        )
 
-    Measures latency percentiles, throughput (FPS), memory metrics, and model size.
-
-    Args:
-        filename       : Path to the .onnx or .tar model file.
-        input_data     : Optional dict of inputs.
-        warmup_runs    : Number of ignored warm-up inferences.
-        benchmark_runs : Number of measured inferences.
-        hardware_id    : Target hardware ID for profile scaling.
-        batch_size     : Batch size for throughput calculation.
-
-    Returns:
-        str : Machine-readable JSON string with latency, throughput, memory, and model size.
-    """
     return engine_benchmark(
         filename=filename,
         input_data=input_data,
@@ -200,5 +193,5 @@ def benchmark(
         benchmark_runs=benchmark_runs,
         hardware_id=hardware_id,
         batch_size=batch_size,
+        execution_provider=execution_provider,
     )
-

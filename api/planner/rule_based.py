@@ -34,6 +34,7 @@ class PlannerInput:
     model_size_mb: float
     max_latency_ms: Optional[float] = None
     has_calibration_data: bool = False
+    include_tvm: bool = False
 
 
 @dataclass
@@ -77,42 +78,44 @@ def generate_candidates(planner_input: PlannerInput) -> dict:
     )
     rules_applied.append("Always include FP32 baseline.")
 
-    # Rule 2: If model > 50MB, try INT8
-    if planner_input.model_size_mb > SIZE_THRESHOLD_MB:
-        if planner_input.has_calibration_data:
-            candidates.append(
-                Candidate(
-                    name=STRATEGY_STATIC_INT8,
-                    framework="onnxruntime",
-                    quantization="static_int8",
-                    reason=(
-                        f"Model size is {planner_input.model_size_mb:.2f}MB, "
-                        f"which is greater than {SIZE_THRESHOLD_MB:.0f}MB. "
-                        "Static INT8 is selected because calibration data is available."
-                    ),
-                    requires_calibration=True,
-                )
+    # Calibration data enables a direct FP32/dynamic/static comparison.
+    if planner_input.has_calibration_data:
+        candidates.append(
+            Candidate(
+                name=STRATEGY_STATIC_INT8,
+                framework="onnxruntime",
+                quantization="static_int8",
+                reason="Static INT8 is selected because calibration data is available.",
+                requires_calibration=True,
             )
-            rules_applied.append(
-                f"model_size_mb > {SIZE_THRESHOLD_MB:.0f}MB -> try static INT8."
+        )
+        candidates.append(
+            Candidate(
+                name=STRATEGY_DYNAMIC_INT8,
+                framework="onnxruntime",
+                quantization="dynamic_int8",
+                reason="Dynamic INT8 is included for comparison with static INT8.",
+                requires_calibration=False,
             )
-        else:
-            candidates.append(
-                Candidate(
-                    name=STRATEGY_DYNAMIC_INT8,
-                    framework="onnxruntime",
-                    quantization="dynamic_int8",
-                    reason=(
-                        f"Model size is {planner_input.model_size_mb:.2f}MB, "
-                        f"which is greater than {SIZE_THRESHOLD_MB:.0f}MB. "
-                        "Dynamic INT8 is selected because calibration data is not available."
-                    ),
-                    requires_calibration=False,
-                )
+        )
+        rules_applied.append("Calibration data provided -> compare dynamic and static INT8.")
+    elif planner_input.model_size_mb > SIZE_THRESHOLD_MB:
+        candidates.append(
+            Candidate(
+                name=STRATEGY_DYNAMIC_INT8,
+                framework="onnxruntime",
+                quantization="dynamic_int8",
+                reason=(
+                    f"Model size is {planner_input.model_size_mb:.2f}MB, "
+                    f"which is greater than {SIZE_THRESHOLD_MB:.0f}MB. "
+                    "Dynamic INT8 is selected because calibration data is unavailable."
+                ),
+                requires_calibration=False,
             )
-            rules_applied.append(
-                f"model_size_mb > {SIZE_THRESHOLD_MB:.0f}MB -> try dynamic INT8."
-            )
+        )
+        rules_applied.append(
+            f"model_size_mb > {SIZE_THRESHOLD_MB:.0f}MB -> try dynamic INT8."
+        )
 
     # Rule 3: If latency constraint < 100ms, try dynamic quantization
     if (
@@ -140,30 +143,36 @@ def generate_candidates(planner_input: PlannerInput) -> dict:
             f"max_latency_ms < {LATENCY_THRESHOLD_MS:.0f}ms -> try dynamic INT8."
         )
 
-    # Rule 4: Always include TVM opt-level-3 as a parallel candidate
-    candidates.append(
-        Candidate(
-            name=STRATEGY_TVM_OPT3,
-            framework="tvm",
-            quantization="none",
-            reason="TVM Relay opt-level-3 is always included to compare against the ONNX baseline.",
-            requires_calibration=False,
-        )
-    )
-    rules_applied.append("Always include TVM opt-level-3 candidate.")
-
-    # Rule 5: If calibration data is available, also try TVM INT8
-    if planner_input.has_calibration_data:
+    if planner_input.include_tvm:
         candidates.append(
             Candidate(
-                name=STRATEGY_TVM_INT8,
+                name=STRATEGY_TVM_OPT3,
                 framework="tvm",
-                quantization="int8",
-                reason="TVM Relay INT8 quantization is included because calibration data is available.",
-                requires_calibration=True,
+                quantization="none",
+                reason="TVM Relax compiled baseline was explicitly requested.",
+                requires_calibration=False,
             )
         )
-        rules_applied.append("Calibration data provided -> include TVM INT8 candidate.")
+        rules_applied.append("TVM candidates explicitly enabled.")
+
+        if planner_input.has_calibration_data:
+            candidates.append(
+                Candidate(
+                    name=STRATEGY_TVM_INT8,
+                    framework="tvm",
+                    quantization="int8",
+                    reason="TVM INT8 is included because calibration data is available.",
+                    requires_calibration=True,
+                )
+            )
+            rules_applied.append("Calibration data provided -> include TVM INT8 candidate.")
+    else:
+        skipped.append(
+            {
+                "strategy": STRATEGY_TVM_OPT3,
+                "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+            }
+        )
 
     # If static INT8 was not selected, record why
     has_static_int8 = any(c.name == STRATEGY_STATIC_INT8 for c in candidates)
@@ -173,6 +182,17 @@ def generate_candidates(planner_input: PlannerInput) -> dict:
             {
                 "strategy": STRATEGY_STATIC_INT8,
                 "reason": "Static INT8 was skipped because either the model was not large enough or calibration data was unavailable.",
+            }
+        )
+
+    if not any(c.name == STRATEGY_TVM_INT8 for c in candidates):
+        skipped.append(
+            {
+                "strategy": STRATEGY_TVM_INT8,
+                "reason": (
+                    "TVM INT8 was skipped because TVM was not enabled or "
+                    "calibration data was unavailable."
+                ),
             }
         )
 

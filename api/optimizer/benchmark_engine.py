@@ -37,6 +37,34 @@ except ImportError:
 
 
 PROFILES_PATH = Path(__file__).resolve().parent.parent.parent / "profiles" / "hardware_profiles.json"
+MAX_INPUT_DIMENSION = 4096
+MAX_INPUT_ELEMENTS = 10_000_000
+EXECUTION_PROVIDERS = {
+    "cpu": "CPUExecutionProvider",
+    "cuda": "CUDAExecutionProvider",
+}
+
+
+def resolve_execution_provider(requested: str) -> str:
+    """Resolve auto/cpu/cuda to an installed ONNX Runtime provider."""
+    if requested not in {"auto", *EXECUTION_PROVIDERS}:
+        raise ValueError("execution_provider must be auto, cpu, or cuda")
+    available = set(rt.get_available_providers()) if rt is not None else set()
+    resolved = (
+        "CUDAExecutionProvider"
+        if requested == "auto" and "CUDAExecutionProvider" in available
+        else EXECUTION_PROVIDERS.get(requested, "CPUExecutionProvider")
+    )
+    if resolved not in available:
+        raise ValueError(f"{resolved} is not available")
+    return resolved
+
+
+def _preload_cuda_libraries(provider: str) -> None:
+    """Load pip-installed NVIDIA libraries when supported by ONNX Runtime."""
+    preload = getattr(rt, "preload_dlls", None)
+    if provider == "CUDAExecutionProvider" and preload is not None:
+        preload(directory="")
 
 
 def load_hardware_profiles() -> Dict[str, Any]:
@@ -149,6 +177,7 @@ class BenchmarkResult:
     warmup_runs: int
     benchmark_runs: int
     batch_size: int
+    provider: str
     latency_ms: Dict[str, float]
     throughput: Dict[str, Any]
     memory_mb: Dict[str, float]
@@ -171,8 +200,13 @@ class BenchmarkEngine:
     Measures latency percentiles, throughput, memory usage, and model size.
     """
 
-    def __init__(self, hardware_id: str = "x86_64"):
+    def __init__(
+        self,
+        hardware_id: str = "x86_64",
+        execution_provider: str = "auto",
+    ):
         self.hardware_id = hardware_id
+        self.execution_provider = execution_provider
         self.hardware_profiles = load_hardware_profiles()
         self.profile = self.hardware_profiles.get(hardware_id, self.hardware_profiles.get("x86_64", {}))
 
@@ -208,6 +242,10 @@ class BenchmarkEngine:
                 batch_size if (not isinstance(d, int) or d <= 0) else d
                 for d in inp.shape
             ]
+            if any(d > MAX_INPUT_DIMENSION for d in shape):
+                raise ValueError("model input dimension is too large")
+            if int(np.prod(shape, dtype=np.int64)) > MAX_INPUT_ELEMENTS:
+                raise ValueError("model input tensor is too large")
             inputs[inp.name] = np.random.rand(*shape).astype(np.float32)
         return inputs
 
@@ -225,9 +263,47 @@ class BenchmarkEngine:
 
         model_size = self.get_model_size(model_path)
         system_info = self.get_system_info()
+        provider = resolve_execution_provider(self.execution_provider)
+        _preload_cuda_libraries(provider)
 
         # Session creation
-        session = rt.InferenceSession(model_path, providers=["CPUExecutionProvider"])
+        def create_session(selected_provider: str):
+            options = rt.SessionOptions()
+            options.intra_op_num_threads = 1
+            options.inter_op_num_threads = 1
+            if selected_provider == "CUDAExecutionProvider":
+                options.add_session_config_entry("session.disable_cpu_ep_fallback", "1")
+            return rt.InferenceSession(
+                model_path,
+                sess_options=options,
+                providers=[selected_provider],
+            )
+
+        try:
+            session = create_session(provider)
+        except Exception:
+            if self.execution_provider != "auto" or provider != "CUDAExecutionProvider":
+                raise
+            provider = "CPUExecutionProvider"
+            session = create_session(provider)
+        if (
+            provider == "CUDAExecutionProvider"
+            and session.get_providers()[0] != "CUDAExecutionProvider"
+        ):
+            if self.execution_provider == "cuda":
+                raise RuntimeError("CUDAExecutionProvider failed to initialize")
+            provider = "CPUExecutionProvider"
+            if provider not in session.get_providers():
+                session = create_session(provider)
+        for model_input in session.get_inputs():
+            shape = [
+                batch_size if (not isinstance(d, int) or d <= 0) else d
+                for d in model_input.shape
+            ]
+            if any(d > MAX_INPUT_DIMENSION for d in shape):
+                raise ValueError("model input dimension is too large")
+            if int(np.prod(shape, dtype=np.int64)) > MAX_INPUT_ELEMENTS:
+                raise ValueError("model input tensor is too large")
         inputs = input_data if input_data is not None else self._generate_onnx_inputs(session, batch_size)
         output_name = session.get_outputs()[0].name
 
@@ -309,6 +385,7 @@ class BenchmarkEngine:
             warmup_runs=warmup_runs,
             benchmark_runs=benchmark_runs,
             batch_size=batch_size,
+            provider=provider,
             latency_ms=asdict(latency_metrics),
             throughput=asdict(throughput_metrics),
             memory_mb=asdict(memory_metrics),
@@ -326,28 +403,26 @@ class BenchmarkEngine:
         benchmark_runs: int = 100,
         batch_size: int = 1,
     ) -> BenchmarkResult:
-        """Benchmark a compiled TVM module (.tar / .so) using TVM GraphModule."""
-        if tvm is None or graph_executor is None:
-            raise ImportError("Apache TVM is not installed. Run: pip install apache-tvm")
+        """Benchmark a compiled TVM Relax VM module (.tar / .so)."""
+        from api.optimizer.tvm_runtime import load_input_specs, load_vm, run_vm
 
         model_size = self.get_model_size(model_path)
         system_info = self.get_system_info()
 
-        lib = tvm.runtime.load_module(model_path)
-        dev = tvm.cpu(0)
-        module = graph_executor.GraphModule(lib["default"](dev))
+        specs = load_input_specs(model_path)
+        vm, dev = load_vm(model_path)
 
-        input_info = module.get_input_info()
         inputs = {}
-        for i, name in enumerate(input_info[0]):
-            shape = input_info[1][i]
-            shape = [batch_size if (not isinstance(s, int) or s <= 0) else s for s in shape]
-            inputs[name] = np.random.rand(*shape).astype(np.float32)
+        for spec in specs:
+            shape = [
+                batch_size if (not isinstance(s, int) or s <= 0) else s
+                for s in spec["shape"]
+            ]
+            inputs[spec["name"]] = np.random.rand(*shape).astype(np.float32)
+        order = [spec["name"] for spec in specs]
 
         def _run():
-            for name, arr in inputs.items():
-                module.set_input(name, tvm.nd.array(arr, dev))
-            module.run()
+            run_vm(vm, dev, inputs, order)
 
         for _ in range(warmup_runs):
             _run()
@@ -424,6 +499,7 @@ class BenchmarkEngine:
             warmup_runs=warmup_runs,
             benchmark_runs=benchmark_runs,
             batch_size=batch_size,
+            provider="TVM/CPUDevice",
             latency_ms=asdict(latency_metrics),
             throughput=asdict(throughput_metrics),
             memory_mb=asdict(memory_metrics),
@@ -475,6 +551,16 @@ class BenchmarkEngine:
                 warmup_runs=warmup_runs,
                 benchmark_runs=benchmark_runs,
                 batch_size=batch_size,
+                provider=(
+                    EXECUTION_PROVIDERS.get(
+                        self.execution_provider,
+                        "CUDAExecutionProvider"
+                        if self.execution_provider == "auto"
+                        and rt is not None
+                        and "CUDAExecutionProvider" in rt.get_available_providers()
+                        else "CPUExecutionProvider",
+                    )
+                ),
                 latency_ms={"avg": 0.0, "min": 0.0, "max": 0.0, "std": 0.0, "p25": 0.0, "p50": 0.0, "p75": 0.0, "p90": 0.0, "p95": 0.0, "p99": 0.0},
                 throughput={"fps": 0.0, "total_inferences": 0, "total_time_ms": 0.0, "batch_size": batch_size},
                 memory_mb={"before_mb": 0.0, "after_mb": 0.0, "delta_mb": 0.0, "peak_rss_mb": 0.0, "peak_tracemalloc_mb": 0.0},
@@ -493,12 +579,16 @@ def benchmark(
     benchmark_runs: int = 100,
     hardware_id: str = "x86_64",
     batch_size: int = 1,
+    execution_provider: str = "auto",
 ) -> str:
     """
     Standard functional interface returning machine-readable JSON string.
     Backwards-compatible drop-in replacement.
     """
-    engine = BenchmarkEngine(hardware_id=hardware_id)
+    engine = BenchmarkEngine(
+        hardware_id=hardware_id,
+        execution_provider=execution_provider,
+    )
     res = engine.benchmark(
         model_path=filename,
         warmup_runs=warmup_runs,
@@ -507,7 +597,6 @@ def benchmark(
         input_data=input_data,
     )
     data = res.to_dict()
-    data["provider"] = "CPUExecutionProvider" if res.framework == "onnxruntime" else "TVM/CPUDevice"
     # Provide backward-compatibility key mapping
     data["memory_mb"] = {
         "before": data["memory_mb"]["before_mb"],

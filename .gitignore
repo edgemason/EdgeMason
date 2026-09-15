@@ -13,15 +13,18 @@ wheels/
 venv/
 env/
 
-# uv
-uv.lock
-
 # Testing / tooling
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.tox/
+.nox/
+.hypothesis/
+.ipynb_checkpoints/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
 
 # Model files
 *.onnx
@@ -30,7 +33,16 @@ htmlcov/
 *.tflite
 *.pt
 *.pth
+*.ckpt
+*.safetensors
+*.engine
+*.plan
+*.trt
+*.cubin
+*.ptx
+*.params
 temp_models/
+tvm_build/
 
 # Calibration / data
 *.npy
@@ -38,17 +50,89 @@ temp_models/
 
 # Deployment packages
 *.zip
+*.tar
+*.so
+artifacts/
+outputs/
+runs/
+wandb/
+mlruns/
 
 # Environment / secrets
 .env
 .env.*
 !.env.example
+!.env.*.example
+*.env
+.envrc
+.direnv/
+.secrets/
+secrets/
+
+# Keys / certificates / credential exports
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.kdbx
+*.der
+*.crt
+*.cer
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+credentials.json
+*-credentials.json
+service-account*.json
+service_account*.json
+client_secret*.json
+auth.json
+.netrc
+.npmrc
+.pypirc
+pip.conf
+
+# Cloud / infrastructure state
+.aws/
+.azure/
+.gcloud/
+.kube/
+kubeconfig*
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+
+# Local databases and logs
+*.db
+*.sqlite
+*.sqlite3
+*.log
+logs/
+core
+core.*
+
+# Raw benchmark/API captures may contain local paths or runtime details
+reports/*_deploy*.txt
+reports/*_analyze*.txt
 
 # Uploads / working artifacts
 models/*
 !models/.gitkeep
+!models/model_generators.py
 uploads/
 temp/
+tmp/
+
+# Local agent state
+.codex/auth.json
+.codex/history*
+.codex/sessions/
+.claude/settings.local.json
 
 # OS
 .DS_Store
@@ -58,3 +142,5 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+*.swo
+*~

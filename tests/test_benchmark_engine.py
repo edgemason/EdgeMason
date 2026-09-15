@@ -102,6 +102,7 @@ def test_functional_benchmark_interface():
             warmup_runs=3,
             benchmark_runs=10,
             hardware_id="x86_64",
+            execution_provider="cpu",
         )
         parsed = json.loads(json_out)
 
@@ -111,6 +112,107 @@ def test_functional_benchmark_interface():
         assert "memory_mb" in parsed
         assert "model_size" in parsed
         assert parsed["provider"] == "CPUExecutionProvider"
+
+
+def test_cuda_benchmark_fails_clearly_when_provider_is_unavailable(
+    tiny_onnx,
+    monkeypatch,
+):
+    from api.optimizer import benchmark_engine
+
+    monkeypatch.setattr(
+        benchmark_engine.rt,
+        "get_available_providers",
+        lambda: ["CPUExecutionProvider"],
+    )
+
+    parsed = json.loads(
+        benchmark(
+            filename=str(tiny_onnx),
+            warmup_runs=1,
+            benchmark_runs=1,
+            execution_provider="cuda",
+        )
+    )
+
+    assert parsed["success"] is False
+    assert parsed["provider"] == "CUDAExecutionProvider"
+    assert parsed["error"] == "CUDAExecutionProvider is not available"
+
+
+def test_auto_benchmark_reports_cpu_when_cuda_cannot_run_model(
+    tiny_onnx,
+    monkeypatch,
+):
+    from api.optimizer import benchmark_engine
+
+    real_session = benchmark_engine.rt.InferenceSession
+    requested_providers = []
+
+    def session_with_unsupported_cuda(*args, providers, **kwargs):
+        requested_providers.append(providers)
+        if providers == ["CUDAExecutionProvider"]:
+            raise RuntimeError("model has operators assigned to CPU")
+        return real_session(*args, providers=providers, **kwargs)
+
+    monkeypatch.setattr(
+        benchmark_engine.rt,
+        "get_available_providers",
+        lambda: ["CUDAExecutionProvider", "CPUExecutionProvider"],
+    )
+    monkeypatch.setattr(
+        benchmark_engine.rt,
+        "InferenceSession",
+        session_with_unsupported_cuda,
+    )
+
+    parsed = json.loads(
+        benchmark(
+            filename=str(tiny_onnx),
+            warmup_runs=1,
+            benchmark_runs=1,
+            execution_provider="auto",
+        )
+    )
+
+    assert parsed["success"] is True
+    assert parsed["provider"] == "CPUExecutionProvider"
+    assert requested_providers == [
+        ["CUDAExecutionProvider"],
+        ["CPUExecutionProvider"],
+    ]
+
+
+def test_cuda_benchmark_rejects_runtime_provider_fallback(tiny_onnx, monkeypatch):
+    from api.optimizer import benchmark_engine
+
+    class CpuFallbackSession:
+        def get_providers(self):
+            return ["CPUExecutionProvider"]
+
+    monkeypatch.setattr(
+        benchmark_engine.rt,
+        "get_available_providers",
+        lambda: ["CUDAExecutionProvider", "CPUExecutionProvider"],
+    )
+    monkeypatch.setattr(
+        benchmark_engine.rt,
+        "InferenceSession",
+        lambda *args, **kwargs: CpuFallbackSession(),
+    )
+
+    parsed = json.loads(
+        benchmark(
+            filename=str(tiny_onnx),
+            warmup_runs=1,
+            benchmark_runs=1,
+            execution_provider="cuda",
+        )
+    )
+
+    assert parsed["success"] is False
+    assert parsed["provider"] == "CUDAExecutionProvider"
+    assert parsed["error"] == "CUDAExecutionProvider failed to initialize"
 
 
 def test_batch_size_throughput_scaling():
@@ -140,6 +242,34 @@ def test_missing_model_file_error_handling():
     assert "not found" in result.error.lower()
 
 
+def test_benchmark_rejects_oversized_input_dimensions(tmp_path):
+    model_path = tmp_path / "oversized.onnx"
+    model_input = helper.make_tensor_value_info(
+        "input", TensorProto.FLOAT, [1, 5000]
+    )
+    model_output = helper.make_tensor_value_info(
+        "output", TensorProto.FLOAT, [1, 5000]
+    )
+    graph = helper.make_graph(
+        [helper.make_node("Relu", ["input"], ["output"])],
+        "oversized",
+        [model_input],
+        [model_output],
+    )
+    model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 13)])
+    model.ir_version = 9
+    onnx.save(model, model_path)
+
+    result = BenchmarkEngine().benchmark(
+        str(model_path),
+        warmup_runs=1,
+        benchmark_runs=1,
+    )
+
+    assert result.success is False
+    assert "dimension is too large" in result.error
+
+
 def test_hardware_profiles_scaling_differences():
     """Test that different edge targets apply their respective scaling factors."""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -151,4 +281,3 @@ def test_hardware_profiles_scaling_differences():
 
         assert rpi3_res.hardware_estimate["scaling_factor"] > rpi5_res.hardware_estimate["scaling_factor"]
         assert rpi3_res.hardware_estimate["estimated_latency_p50_ms"] > rpi5_res.hardware_estimate["estimated_latency_p50_ms"]
-

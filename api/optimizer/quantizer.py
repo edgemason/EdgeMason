@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 import onnx
+import onnxruntime as ort
 from onnxruntime.quantization import (
     quantize_dynamic,
     quantize_static,
@@ -9,18 +10,23 @@ from onnxruntime.quantization import (
 )
 import numpy as np
 
+from api.optimizer.validation import (
+    load_calibration_inputs,
+)
+
 # ---------------------------------------------------------------------------
-# TVM hardware target map
+# TVM hardware target map (dict form; CLI strings were removed in TVM 0.25+)
 # ---------------------------------------------------------------------------
 TVM_TARGETS: dict = {
-    "rpi4":   "llvm -mcpu=cortex-a72",
-    "rpi5":   "llvm -mcpu=cortex-a76",
-    "x86_64": "llvm -mcpu=core-avx2",
+    "rpi4": {"kind": "llvm", "mcpu": "cortex-a72"},
+    "rpi5": {"kind": "llvm", "mcpu": "cortex-a76"},
+    "x86_64": {"kind": "llvm", "mcpu": "core-avx2"},
 }
 
-def _tvm_target(hardware_id: str) -> str:
-    """Return a TVM target string for the given hardware_id."""
-    return TVM_TARGETS.get(hardware_id, "llvm")
+
+def _tvm_target(hardware_id: str) -> dict:
+    """Return a TVM target dict for the given hardware_id."""
+    return TVM_TARGETS.get(hardware_id, {"kind": "llvm"})
 
 
 class Quantizer:
@@ -40,7 +46,7 @@ class Quantizer:
         quantize_dynamic(
             model_input=model_path,
             model_output=str(out_path),
-            weight_type=QuantType.QInt8,
+            weight_type=QuantType.QUInt8,
         )
         return str(out_path)
 
@@ -48,17 +54,27 @@ class Quantizer:
         """Static INT8: both weights and activations quantized using calibration data."""
         out_path = self.output_dir / "model_static_int8.onnx"
 
-        # Build a CalibrationDataReader from the .npy file
-        # Expects shape: (N, C, H, W) or (N, seq_len) saved as npy
-        calib_data = np.load(calibration_data_path)
+        calib_data = load_calibration_inputs(calibration_data_path)
 
-        # Use the model's real input names instead of a hardcoded "input"
-        input_names = [inp.name for inp in onnx.load(model_path).graph.input]
+        session = ort.InferenceSession(
+            model_path,
+            providers=["CPUExecutionProvider"],
+        )
+        model_inputs = session.get_inputs()
+        if len(model_inputs) != 1:
+            raise ValueError("static quantization supports single-input models only")
+        input_name = model_inputs[0].name
+        expected_shape = model_inputs[0].shape[1:]
+        if calib_data.ndim - 1 != len(expected_shape):
+            raise ValueError("calibration data rank does not match model input")
+        for actual, expected in zip(calib_data.shape[1:], expected_shape):
+            if isinstance(expected, int) and expected > 0 and actual != expected:
+                raise ValueError("calibration data shape does not match model input")
 
         class NumpyDataReader(CalibrationDataReader):
-            def __init__(self, data, input_names):
+            def __init__(self, data, input_name):
                 self.data = data
-                self.input_names = input_names
+                self.input_name = input_name
                 self.idx = 0
 
             def get_next(self):
@@ -66,13 +82,15 @@ class Quantizer:
                     return {}
                 # ONNX Runtime expects a dict: {input_name: numpy_array}
                 item = {
-                    name: self.data[self.idx : self.idx + 1].astype(np.float32)
-                    for name in self.input_names
+                    self.input_name: np.asarray(
+                        self.data[self.idx : self.idx + 1],
+                        dtype=np.float32,
+                    )
                 }
                 self.idx += 1
                 return item
 
-        reader = NumpyDataReader(calib_data, input_names)
+        reader = NumpyDataReader(calib_data, input_name)
 
         quantize_static(
             model_input=model_path,
@@ -93,48 +111,21 @@ class Quantizer:
         hardware_id: str = "x86_64",
         opt_level: int = 3,
     ) -> str:
-        """Compile an ONNX model with TVM Relay and save as a .tar module.
+        """Compile an ONNX model with TVM Relax and save as a .tar module.
 
         Args:
             model_path     : Path to the source .onnx file.
             hardware_id    : Edge target ('rpi4', 'rpi5', 'x86_64').
-            opt_level      : TVM optimization level (0-4). Default 3.
+            opt_level      : Kept for API compatibility; Relax uses its
+                default optimization pipeline.
 
         Returns:
             str : Path to the exported '<output_dir>/model_tvm_opt{opt_level}.tar'.
         """
-        try:
-            import tvm
-            from tvm import relay
-            from tvm.contrib import cc  # noqa: F401
-        except ImportError as exc:
-            raise ImportError(
-                "Apache TVM is not installed. Run: pip install apache-tvm"
-            ) from exc
+        from api.optimizer.tvm_runtime import compile_onnx
 
         out_path = self.output_dir / f"model_tvm_opt{opt_level}.tar"
-
-        # 1. Load ONNX model and infer shapes
-        onnx_model = onnx.load(model_path)
-        # Build a shape dict from the first graph input; fall back to batch=1
-        shape_dict = {}
-        for inp in onnx_model.graph.input:
-            dims = []
-            for d in inp.type.tensor_type.shape.dim:
-                dims.append(d.dim_value if d.dim_value > 0 else 1)
-            shape_dict[inp.name] = dims
-
-        # 2. Import into Relay IR
-        mod, params = relay.frontend.from_onnx(onnx_model, shape=shape_dict)
-
-        # 3. Compile
-        target = tvm.target.Target(_tvm_target(hardware_id))
-        with tvm.transform.PassContext(opt_level=opt_level):
-            lib = relay.build(mod, target=target, params=params)
-
-        # 4. Export as a self-contained .tar module
-        lib.export_library(str(out_path))
-        return str(out_path)
+        return compile_onnx(out_path, model_path, _tvm_target(hardware_id))
 
     def create_tvm_int8(
         self,
@@ -142,49 +133,33 @@ class Quantizer:
         hardware_id: str = "x86_64",
         calibration_data_path: Optional[str] = None,
     ) -> str:
-        """Quantize an ONNX model to INT8 with TVM Relay and save as a .tar module.
+        """Compile an INT8-quantized ONNX model with TVM Relax.
+
+        The model is first statically quantized with ONNX Runtime using the
+        calibration data, then compiled to a Relax VM .tar module.
 
         Args:
             model_path             : Path to the source .onnx file.
             hardware_id            : Edge target ('rpi4', 'rpi5', 'x86_64').
-            calibration_data_path  : Optional path to a .npy calibration dataset.
+            calibration_data_path  : Path to a .npy/.npz calibration dataset.
 
         Returns:
             str : Path to the exported '<output_dir>/model_tvm_int8.tar'.
         """
-        try:
-            import tvm
-            from tvm import relay
-            from tvm.relay import quantize as qtz
-        except ImportError as exc:
-            raise ImportError(
-                "Apache TVM is not installed. Run: pip install apache-tvm"
-            ) from exc
+        from api.optimizer.tvm_runtime import compile_onnx
+
+        if calibration_data_path is None:
+            raise ValueError("TVM INT8 requires calibration data")
 
         out_path = self.output_dir / "model_tvm_int8.tar"
 
-        # 1. Load and import into Relay IR
-        onnx_model = onnx.load(model_path)
-        shape_dict = {}
-        for inp in onnx_model.graph.input:
-            dims = []
-            for d in inp.type.tensor_type.shape.dim:
-                dims.append(d.dim_value if d.dim_value > 0 else 1)
-            shape_dict[inp.name] = dims
+        # 1. Static INT8 quantization via ONNX Runtime (reuses calibration).
+        static_path = self.create_static_int8(model_path, calibration_data_path)
+        quantized_onnx = self.output_dir / "_tvm_int8_src.onnx"
+        quantized_onnx.write_bytes(Path(static_path).read_bytes())
 
-        mod, params = relay.frontend.from_onnx(onnx_model, shape=shape_dict)
-
-        # 2. Relay quantization
-        with relay.quantize.qconfig(calibrate_mode="global_scale", global_scale=8.0):
-            mod_q = qtz.quantize(mod, params=params)
-
-        # 3. Compile the quantized graph
-        target = tvm.target.Target(_tvm_target(hardware_id))
-        with tvm.transform.PassContext(opt_level=3):
-            lib = relay.build(mod_q, target=target, params=params)
-
-        lib.export_library(str(out_path))
-        return str(out_path)
+        # 2. Compile the quantized model with Relax.
+        return compile_onnx(out_path, str(quantized_onnx), _tvm_target(hardware_id))
 
     # -----------------------------------------------------------------------
     # Candidate router

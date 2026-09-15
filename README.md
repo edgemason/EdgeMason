@@ -87,6 +87,8 @@ Returns: filename + full analysis report (`model_size_mb`, `total_parameters`, `
 | `max_memory_mb`  | float (optional)| `None`  | Hard memory constraint (delta must be ≤ this)  |
 | `priority`       | string          | `latency` | Ranking: `latency`, `memory`, `balanced`    |
 | `calibration_file`| file (optional)| `None`  | `.npy` calibration data enabling static INT8    |
+| `execution_provider` | string | `auto` | Benchmark provider: `auto`, `cpu`, or `cuda` |
+| `include_tvm` | boolean | `false` | Include slower TVM compilation candidates |
 
 Returns: plan summary, per-candidate benchmark results, winner, and a `download_url` to the deployment ZIP.
 
@@ -115,7 +117,12 @@ Each candidate carries a `reason` string so the plan is self-documenting, plus a
 
 ## Benchmarking: estimate vs real hardware
 
-The backend currently benchmarks on the **server CPU** (x86, `CPUExecutionProvider`). For an edge target like a Raspberry Pi there are two strategies:
+The backend benchmarks ONNX models with the requested execution provider. `auto`
+prefers strict CUDA execution when available and falls back to CPU when a model
+contains operators that CUDA cannot execute. An explicit `cuda` request fails
+instead of silently using CPU. TVM candidates remain CPU-targeted and are opt-in.
+
+For an edge target like a Raspberry Pi there are two strategies:
 
 ### 1. Estimate from hardware profile (current model)
 The server measures each candidate on x86, then applies a per-hardware scaling factor from `profiles/` to **estimate** edge latency:
@@ -209,7 +216,7 @@ uv run python -m api.main   # sanity-check imports
 - `fastapi`, `uvicorn`, `pydantic`, `python-multipart`
 - `onnx`, `onnxruntime`
 - `numpy`, `psutil`
-- `tensorflow`, `keras`, `tf2onnx` (for converting `.h5` → `.onnx`)
+- `tensorflow`, `keras`
 
 ---
 
