@@ -10,7 +10,7 @@ import numpy as np
 import onnx
 import onnxruntime as ort
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from starlette.background import BackgroundTask
 
 from api.analyzer.model_analyzer import model_report
@@ -311,14 +311,32 @@ def _run_deploy(
     }
 
 
-@app.get("/")
+STATIC_INDEX = Path(__file__).resolve().parent / "static" / "index.html"
+
+
+@app.get("/", response_class=HTMLResponse)
 async def root():
+    if STATIC_INDEX.exists():
+        return HTMLResponse(content=STATIC_INDEX.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>EdgeForge API</h1>")
+
+
+@app.get("/ui", response_class=HTMLResponse)
+async def ui():
+    if STATIC_INDEX.exists():
+        return HTMLResponse(content=STATIC_INDEX.read_text(encoding="utf-8"))
+    return HTMLResponse("<h1>EdgeForge UI</h1>")
+
+
+@app.get("/api")
+async def api_info():
     return {"message": "EdgeMason API"}
 
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
 
 
 @app.post("/analyze")

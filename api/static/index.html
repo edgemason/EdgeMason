@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EdgeForge — Edge AI Deployment & Benchmark Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            },
+            dark: {
+              800: '#1e293b',
+              850: '#172033',
+              900: '#0f172a',
+              950: '#020617',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.6)); }
+    }
+    .animate-glow { animation: pulse-glow 2s infinite ease-in-out; }
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body class="bg-dark-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-brand-500 selection:text-white pb-20">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800/80 bg-dark-900/80 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-brand-500 to-purple-500 flex items-center justify-center shadow-lg shadow-brand-500/20">
+          <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">EdgeForge</span>
+          <span class="text-xs ml-2 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">v0.1.0</span>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="/docs" target="_blank" class="text-xs flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>Swagger Docs</span>
+        </a>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          API Online
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+
+    <!-- Hero Title -->
+    <div class="text-center max-w-3xl mx-auto space-y-2">
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+        Hardware-Aware <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Edge AI Deployment Planner</span>
+      </h1>
+      <p class="text-slate-400 text-sm sm:text-base">
+        Upload an ONNX model, pick your target edge device & constraints, and automatically quantize, compile with TVM & ONNX Runtime, benchmark, and package for deployment.
+      </p>
+    </div>
+
+    <!-- Form Section -->
+    <form id="pipelineForm" class="space-y-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Model Upload & Analyzer -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="glass rounded-2xl p-6 space-y-6">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-semibold text-white flex items-center space-x-2">
+                <i data-lucide="upload-cloud" class="w-5 h-5 text-indigo-400"></i>
+                <span>1. Model & Data Ingestion</span>
+              </h2>
+              <span class="text-xs text-slate-400">Required: .onnx</span>
+            </div>
+
+            <!-- ONNX Upload Dropzone -->
+            <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-xl p-6 text-center transition cursor-pointer bg-dark-900/40 hover:bg-dark-900/80 group">
+              <input type="file" id="modelFile" accept=".onnx" class="hidden" required>
+              <div class="flex flex-col items-center justify-center space-y-3">
+                <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition">
+                  <i data-lucide="file-code-2" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-slate-200" id="modelFileName">Drag & drop your ONNX model here</p>
+                  <p class="text-xs text-slate-500 mt-1">or click to browse from your computer</p>
+                </div>
+                <span class="text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-400 font-mono" id="modelFileSize">Max 350 MB</span>
+              </div>
+            </div>
+
+            <!-- Calibration / Validation Upload (Optional) -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-slate-300 flex items-center justify-between">
+                <span>Calibration / Validation Dataset (Optional)</span>
+                <span class="text-[11px] text-slate-500">.npy or .npz</span>
+              </label>
+              <div class="flex items-center space-x-2">
+                <input type="file" id="calibFile" accept=".npy,.npz" class="block w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600/20 file:text-indigo-300 hover:file:bg-indigo-600/30 file:cursor-pointer bg-dark-900/60 rounded-lg border border-slate-800 p-1">
+              </div>
+              <p class="text-[11px] text-slate-500">Enables Static INT8 Quantization and top-1/top-5 accuracy validation.</p>
+            </div>
+
+            <!-- Quick Analysis Preview Card (Appears after file selected) -->
+            <div id="quickAnalysisCard" class="hidden glass-card rounded-xl p-4 space-y-3 border-indigo-500/20">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-indigo-300 flex items-center space-x-1.5">
+                  <i data-lucide="activity" class="w-4 h-4"></i>
+                  <span>Graph Inspection Preview</span>
+                </span>
+                <button type="button" id="btnAnalyzeOnly" class="text-[11px] text-indigo-400 hover:text-indigo-300 underline flex items-center space-x-1">
+                  <span>Re-analyze</span>
+                </button>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <div class="p-2 rounded bg-slate-800/60">
+                  <div class="text-slate-400 text-[10px]">Model Size</div>
+                  <div class="font-bold text-white mt-0.5" id="analysisSize">--</div>
+                </div>
+                <div class="p-2 rounded bg-slate-800/60">
+                  <div class="text-slate-400 text-[10px]">Parameters</div>
+                  <div class="font-bold text-white mt-0.5" id="analysisParams">--</div>
+                </div>
+                <div class="p-2 rounded bg-slate-800/60">
+                  <div class="text-slate-400 text-[10px]">Graph Nodes</div>
+                  <div class="font-bold text-white mt-0.5" id="analysisNodes">--</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Hardware Target & Constraints -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="glass rounded-2xl p-6 space-y-6">
+            <h2 class="text-lg font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="sliders" class="w-5 h-5 text-indigo-400"></i>
+              <span>2. Hardware Target & Constraints</span>
+            </h2>
+
+            <!-- Hardware Selection Grid -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-slate-300">Target Edge Hardware</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5" id="hardwareSelector">
+                <!-- RPi 5 -->
+                <div data-hw="rpi5" class="hw-card border border-indigo-500 bg-indigo-600/10 rounded-xl p-3 text-left cursor-pointer transition relative">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-white">RPi 5</span>
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-indigo-400 check-icon"></i>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">Cortex-A76 @ 2.4GHz</p>
+                  <span class="text-[9px] text-indigo-300 font-mono mt-0.5 block">8GB RAM (High Perf)</span>
+                </div>
+                <!-- RPi 4 -->
+                <div data-hw="rpi4" class="hw-card border border-slate-800 bg-dark-900/60 hover:border-slate-700 rounded-xl p-3 text-left cursor-pointer transition relative">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-200">RPi 4</span>
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-indigo-400 check-icon hidden"></i>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">Cortex-A72 @ 1.8GHz</p>
+                  <span class="text-[9px] text-slate-500 font-mono mt-0.5 block">4GB RAM (Standard)</span>
+                </div>
+                <!-- RPi 3 -->
+                <div data-hw="rpi3" class="hw-card border border-slate-800 bg-dark-900/60 hover:border-slate-700 rounded-xl p-3 text-left cursor-pointer transition relative">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-200">RPi 3</span>
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-indigo-400 check-icon hidden"></i>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">Cortex-A53 @ 1.4GHz</p>
+                  <span class="text-[9px] text-slate-500 font-mono mt-0.5 block">1GB RAM (Low Power)</span>
+                </div>
+                <!-- Jetson Nano -->
+                <div data-hw="jetson_nano" class="hw-card border border-slate-800 bg-dark-900/60 hover:border-slate-700 rounded-xl p-3 text-left cursor-pointer transition relative">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-200">Jetson Nano</span>
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-indigo-400 check-icon hidden"></i>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">Cortex-A57 + GPU</p>
+                  <span class="text-[9px] text-slate-500 font-mono mt-0.5 block">4GB RAM (Embedded)</span>
+                </div>
+                <!-- x86_64 -->
+                <div data-hw="x86_64" class="hw-card border border-slate-800 bg-dark-900/60 hover:border-slate-700 rounded-xl p-3 text-left cursor-pointer transition relative">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-200">x86_64</span>
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-indigo-400 check-icon hidden"></i>
+                  </div>
+                  <p class="text-[10px] text-slate-400 mt-1">AVX2 / Host CPU</p>
+                  <span class="text-[9px] text-slate-500 font-mono mt-0.5 block">Server / Dev Workstation</span>
+                </div>
+              </div>
+              <input type="hidden" id="selectedHardware" value="rpi5">
+            </div>
+
+            <!-- Priority & Execution Options -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Optimization Priority</label>
+                <select id="prioritySelect" class="w-full bg-dark-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                  <option value="latency" selected>⚡ Latency (Fastest p50)</option>
+                  <option value="memory">💾 Memory (Lowest RAM Delta)</option>
+                  <option value="accuracy">🎯 Accuracy (Best Top-1)</option>
+                  <option value="balanced">⚖️ Balanced (Weighted Score)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Execution Provider</label>
+                <select id="executionProvider" class="w-full bg-dark-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                  <option value="auto" selected>Auto Detect</option>
+                  <option value="cpu">CPU (Default)</option>
+                  <option value="cuda">CUDA (NVIDIA GPU)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- TVM Toggle & Constraints -->
+            <div class="space-y-4 pt-2 border-t border-slate-800">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-white block">Include Apache TVM Relay Compiler</span>
+                  <span class="text-[11px] text-slate-500">Evaluates TVM Opt-Level-3 alongside ONNX Runtime</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="includeTvm" class="sr-only peer" checked>
+                  <div class="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+              </div>
+
+              <!-- Constraint Inputs -->
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Max Latency Constraint (ms)</label>
+                  <input type="number" step="0.1" id="maxLatency" placeholder="e.g. 100" class="w-full bg-dark-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400 mb-1">Max Memory Constraint (MB)</label>
+                  <input type="number" step="0.1" id="maxMemory" placeholder="e.g. 50" class="w-full bg-dark-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+              </div>
+            </div>
+
+            <!-- CTA Button -->
+            <button type="submit" id="btnSubmit" class="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              <i data-lucide="play" class="w-4 h-4 fill-white"></i>
+              <span>Run Optimization & Benchmark Pipeline</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- Pipeline Stepper / Progress Status (Hidden by default) -->
+    <div id="progressSection" class="hidden glass rounded-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold text-white flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping"></span>
+          <span id="progressTitle">Executing Deployment Pipeline...</span>
+        </h3>
+        <span class="text-xs text-slate-400 font-mono" id="progressTimer">0.0s</span>
+      </div>
+
+      <!-- Stepper Visual -->
+      <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
+        <div id="step-1" class="p-2.5 rounded-lg border border-slate-800 bg-dark-900/60 text-slate-400">
+          <div class="font-medium text-slate-200">1. Upload</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Model Ingestion</div>
+        </div>
+        <div id="step-2" class="p-2.5 rounded-lg border border-slate-800 bg-dark-900/60 text-slate-400">
+          <div class="font-medium text-slate-200">2. Analyze</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Graph Extraction</div>
+        </div>
+        <div id="step-3" class="p-2.5 rounded-lg border border-slate-800 bg-dark-900/60 text-slate-400">
+          <div class="font-medium text-slate-200">3. Plan</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Rules & Strategies</div>
+        </div>
+        <div id="step-4" class="p-2.5 rounded-lg border border-slate-800 bg-dark-900/60 text-slate-400">
+          <div class="font-medium text-slate-200">4. Optimize</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">TVM & Quantize</div>
+        </div>
+        <div id="step-5" class="p-2.5 rounded-lg border border-slate-800 bg-dark-900/60 text-slate-400">
+          <div class="font-medium text-slate-200">5. Benchmark</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Measure Lat/Mem</div>
+        </div>
+        <div id="step-6" class="p-2.5 rounded-lg border border-slate-800 bg-dark-900/60 text-slate-400">
+          <div class="font-medium text-slate-200">6. Package</div>
+          <div class="text-[10px] text-slate-500 mt-0.5">Export ZIP</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section (Hidden until pipeline completes) -->
+    <div id="resultsSection" class="hidden space-y-8">
+      
+      <!-- Winner Banner Card -->
+      <div id="winnerCard" class="rounded-2xl p-6 bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900 border border-indigo-500/30 shadow-2xl relative overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div class="space-y-2">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-semibold">
+              <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Optimal Deployment Candidate Selected</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white tracking-tight" id="winnerName">--</h3>
+            <p class="text-xs text-slate-300" id="winnerHardwareSubtitle">Target: Raspberry Pi 5</p>
+          </div>
+
+          <!-- Winner Key Metrics Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="glass-card rounded-xl p-3">
+              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Latency (p50)</div>
+              <div class="text-lg font-bold text-emerald-400 mt-0.5" id="winnerLatency">-- ms</div>
+            </div>
+            <div class="glass-card rounded-xl p-3">
+              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Throughput</div>
+              <div class="text-lg font-bold text-cyan-400 mt-0.5" id="winnerFps">-- FPS</div>
+            </div>
+            <div class="glass-card rounded-xl p-3">
+              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Memory Delta</div>
+              <div class="text-lg font-bold text-amber-400 mt-0.5" id="winnerMemory">-- MB</div>
+            </div>
+            <div class="glass-card rounded-xl p-3">
+              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Model Size</div>
+              <div class="text-lg font-bold text-purple-400 mt-0.5" id="winnerSize">-- MB</div>
+            </div>
+          </div>
+
+          <!-- Download Action Button -->
+          <div class="flex flex-col sm:flex-row md:flex-col gap-2 shrink-0">
+            <a id="btnDownloadPackage" href="#" class="inline-flex items-center justify-center space-x-2 px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold text-xs shadow-lg shadow-emerald-600/30 transition">
+              <i data-lucide="download" class="w-4 h-4"></i>
+              <span>Download Package (.zip)</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts & Visual Comparison -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Latency Comparison Chart -->
+        <div class="lg:col-span-8 glass rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-400"></i>
+              <span>Candidate Latency Comparison (ms)</span>
+            </h4>
+            <span class="text-xs text-slate-400 font-mono">Lower is better</span>
+          </div>
+          <div class="h-64">
+            <canvas id="latencyChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Operator Distribution Doughnut -->
+        <div class="lg:col-span-4 glass rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-purple-400"></i>
+              <span>Graph Operators</span>
+            </h4>
+          </div>
+          <div class="h-64 flex items-center justify-center">
+            <canvas id="operatorChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full Candidates Comparison Table -->
+      <div class="glass rounded-2xl p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h4 class="text-sm font-semibold text-white flex items-center space-x-2">
+            <i data-lucide="table-2" class="w-4 h-4 text-indigo-400"></i>
+            <span>Explored Candidates Benchmark Results</span>
+          </h4>
+          <span class="text-xs text-slate-400" id="totalCandidatesCount">-- candidates tested</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="text-[11px] text-slate-400 uppercase bg-dark-900/80 border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Candidate Strategy</th>
+                <th class="py-3 px-4">Framework</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Latency p50</th>
+                <th class="py-3 px-4">Throughput (FPS)</th>
+                <th class="py-3 px-4">Memory Delta</th>
+                <th class="py-3 px-4">Model Size</th>
+                <th class="py-3 px-4">Top-1 Accuracy</th>
+              </tr>
+            </thead>
+            <tbody id="candidatesTableBody" class="divide-y divide-slate-800/60">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    let latencyChartInstance = null;
+    let operatorChartInstance = null;
+
+    // Dropzone logic
+    const dropzone = document.getElementById('dropzone');
+    const modelFileInput = document.getElementById('modelFile');
+    const modelFileName = document.getElementById('modelFileName');
+    const modelFileSize = document.getElementById('modelFileSize');
+    const quickAnalysisCard = document.getElementById('quickAnalysisCard');
+
+    dropzone.addEventListener('click', () => modelFileInput.click());
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-indigo-500', 'bg-dark-900'); });
+    dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('border-indigo-500', 'bg-dark-900'); });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-indigo-500', 'bg-dark-900');
+      if (e.dataTransfer.files.length) {
+        modelFileInput.files = e.dataTransfer.files;
+        handleModelSelected(e.dataTransfer.files[0]);
+      }
+    });
+
+    modelFileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) {
+        handleModelSelected(e.target.files[0]);
+      }
+    });
+
+    function handleModelSelected(file) {
+      modelFileName.textContent = file.name;
+      modelFileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+      quickAnalyze(file);
+    }
+
+    // Hardware Card Selection
+    const hwCards = document.querySelectorAll('.hw-card');
+    const selectedHardwareInput = document.getElementById('selectedHardware');
+
+    hwCards.forEach(card => {
+      card.addEventListener('click', () => {
+        hwCards.forEach(c => {
+          c.classList.remove('border-indigo-500', 'bg-indigo-600/10');
+          c.classList.add('border-slate-800', 'bg-dark-900/60');
+          c.querySelector('.check-icon').classList.add('hidden');
+        });
+        card.classList.add('border-indigo-500', 'bg-indigo-600/10');
+        card.classList.remove('border-slate-800', 'bg-dark-900/60');
+        card.querySelector('.check-icon').classList.remove('hidden');
+        selectedHardwareInput.value = card.getAttribute('data-hw');
+      });
+    });
+
+    // Quick Analyze (hits /analyze)
+    async function quickAnalyze(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('/analyze', {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) throw new Error(await response.text());
+        const data = await response.json();
+        
+        quickAnalysisCard.classList.remove('hidden');
+        document.getElementById('analysisSize').textContent = (data.analysis.model_size_mb || 0).toFixed(2) + ' MB';
+        document.getElementById('analysisParams').textContent = (data.analysis.total_parameters || 0).toLocaleString();
+        document.getElementById('analysisNodes').textContent = (data.analysis.num_nodes || 0).toLocaleString();
+
+        if (data.analysis.operator_types) {
+          renderOperatorChart(data.analysis.operator_types);
+        }
+      } catch (err) {
+        console.warn('Quick analyze skipped or failed:', err);
+      }
+    }
+
+    document.getElementById('btnAnalyzeOnly').addEventListener('click', () => {
+      if (modelFileInput.files.length) quickAnalyze(modelFileInput.files[0]);
+    });
+
+    // Pipeline Form Submit (hits /deploy)
+    const pipelineForm = document.getElementById('pipelineForm');
+    const progressSection = document.getElementById('progressSection');
+    const resultsSection = document.getElementById('resultsSection');
+    const btnSubmit = document.getElementById('btnSubmit');
+
+    pipelineForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!modelFileInput.files.length) {
+        alert('Please select an ONNX model file.');
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      progressSection.classList.remove('hidden');
+      resultsSection.classList.add('hidden');
+
+      // Start timer
+      const startTime = performance.now();
+      const timerInterval = setInterval(() => {
+        const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+        document.getElementById('progressTimer').textContent = elapsed + 's';
+      }, 100);
+
+      // Construct Form Data
+      const formData = new FormData();
+      formData.append('file', modelFileInput.files[0]);
+      formData.append('hardware_id', selectedHardwareInput.value);
+      formData.append('priority', document.getElementById('prioritySelect').value);
+      formData.append('execution_provider', document.getElementById('executionProvider').value);
+      formData.append('include_tvm', document.getElementById('includeTvm').checked);
+
+      const maxLat = document.getElementById('maxLatency').value;
+      if (maxLat) formData.append('max_latency_ms', maxLat);
+
+      const maxMem = document.getElementById('maxMemory').value;
+      if (maxMem) formData.append('max_memory_mb', maxMem);
+
+      const calibFileInput = document.getElementById('calibFile');
+      if (calibFileInput.files.length) {
+        formData.append('calibration_file', calibFileInput.files[0]);
+      }
+
+      try {
+        const response = await fetch('/deploy', {
+          method: 'POST',
+          body: formData
+        });
+
+        clearInterval(timerInterval);
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(errText || 'Deployment pipeline failed.');
+        }
+
+        const data = await response.json();
+        renderResults(data);
+      } catch (err) {
+        clearInterval(timerInterval);
+        alert('Pipeline Error: ' + err.message);
+      } finally {
+        btnSubmit.disabled = false;
+        progressSection.classList.add('hidden');
+      }
+    });
+
+    function renderResults(data) {
+      resultsSection.classList.remove('hidden');
+      lucide.createIcons();
+
+      // Winner card
+      const winner = data.winner;
+      if (winner) {
+        document.getElementById('winnerName').textContent = winner.name;
+        document.getElementById('winnerHardwareSubtitle').textContent = `Target: ${data.hardware_target.toUpperCase()} | Priority: ${data.constraints.priority}`;
+        document.getElementById('winnerLatency').textContent = winner.latency_p50_ms ? winner.latency_p50_ms.toFixed(2) + ' ms' : '--';
+        document.getElementById('winnerFps').textContent = winner.throughput_fps ? winner.throughput_fps.toFixed(1) + ' FPS' : '--';
+        document.getElementById('winnerMemory').textContent = winner.memory_delta_mb ? winner.memory_delta_mb.toFixed(2) + ' MB' : '--';
+        document.getElementById('winnerSize').textContent = winner.model_size_mb ? winner.model_size_mb.toFixed(2) + ' MB' : '--';
+
+        if (data.download_url) {
+          document.getElementById('btnDownloadPackage').href = data.download_url;
+          document.getElementById('btnDownloadPackage').classList.remove('hidden');
+        } else {
+          document.getElementById('btnDownloadPackage').classList.add('hidden');
+        }
+      }
+
+      // Table & Charts
+      document.getElementById('totalCandidatesCount').textContent = `${data.candidates_explored} strategies evaluated`;
+      renderCandidatesTable(data.all_results, winner ? winner.name : null);
+      renderLatencyChart(data.all_results);
+
+      // Scroll smoothly to results
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderCandidatesTable(results, winnerName) {
+      const tbody = document.getElementById('candidatesTableBody');
+      tbody.innerHTML = '';
+
+      results.forEach(r => {
+        const isWinner = r.name === winnerName;
+        const tr = document.createElement('tr');
+        tr.className = isWinner ? 'bg-indigo-900/20 border-l-2 border-indigo-500 font-medium' : 'hover:bg-dark-900/40';
+
+        const statusBadge = r.success
+          ? `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Success</span>`
+          : `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20" title="${r.error || 'Failed'}">Failed</span>`;
+
+        const top1Acc = r.accuracy && r.accuracy.top1_accuracy != null
+          ? (r.accuracy.top1_accuracy * 100).toFixed(1) + '%'
+          : '<span class="text-slate-600">--</span>';
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 flex items-center space-x-2">
+            ${isWinner ? '<i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>' : ''}
+            <span class="${isWinner ? 'text-white font-semibold' : 'text-slate-300'} font-mono">${r.name}</span>
+          </td>
+          <td class="py-3 px-4 font-mono text-[11px] text-slate-400">${r.framework || 'onnxruntime'}</td>
+          <td class="py-3 px-4">${statusBadge}</td>
+          <td class="py-3 px-4 text-slate-200 font-mono">${r.latency_p50_ms ? r.latency_p50_ms.toFixed(2) + ' ms' : '--'}</td>
+          <td class="py-3 px-4 text-cyan-300 font-mono">${r.throughput_fps ? r.throughput_fps.toFixed(1) : '--'}</td>
+          <td class="py-3 px-4 text-amber-300 font-mono">${r.memory_delta_mb ? r.memory_delta_mb.toFixed(2) + ' MB' : '--'}</td>
+          <td class="py-3 px-4 text-slate-400 font-mono">${r.model_size_mb ? r.model_size_mb.toFixed(2) + ' MB' : '--'}</td>
+          <td class="py-3 px-4 text-purple-300 font-mono">${top1Acc}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function renderLatencyChart(results) {
+      const ctx = document.getElementById('latencyChart').getContext('2d');
+      if (latencyChartInstance) latencyChartInstance.destroy();
+
+      const validResults = results.filter(r => r.success && r.latency_p50_ms != null);
+      const labels = validResults.map(r => r.name);
+      const latencies = validResults.map(r => r.latency_p50_ms);
+
+      latencyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Median Latency (ms)',
+            data: latencies,
+            backgroundColor: 'rgba(99, 102, 241, 0.7)',
+            borderColor: 'rgba(99, 102, 241, 1)',
+            borderWidth: 1,
+            borderRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#cbd5e1', font: { size: 10 } }
+            }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    function renderOperatorChart(opsDict) {
+      const ctx = document.getElementById('operatorChart').getContext('2d');
+      if (operatorChartInstance) operatorChartInstance.destroy();
+
+      const entries = Object.entries(opsDict).slice(0, 6);
+      const labels = entries.map(e => e[0]);
+      const data = entries.map(e => e[1]);
+
+      operatorChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              '#6366f1', '#a855f7', '#ec4899', '#06b6d4', '#10b981', '#f59e0b'
+            ],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#cbd5e1', font: { size: 10 }, boxWidth: 10 }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
