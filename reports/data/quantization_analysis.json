@@ -1,0 +1,230 @@
+[
+  {
+    "model": "squeezenet1.1-13.onnx",
+    "calibration_samples": 77,
+    "test_samples": 179,
+    "variants": {
+      "fp32": {
+        "top1": 0.36312849162011174,
+        "top5": 0.6368715083798883,
+        "latency_p50_ms_1thread": 14.8259394991328,
+        "size_mb": 4.729733467102051
+      },
+      "static_int8_per_channel": {
+        "top1": 0.3407821229050279,
+        "top5": 0.6089385474860335,
+        "latency_p50_ms_1thread": 19.86506500543328,
+        "size_mb": 1.288116455078125
+      },
+      "static_int8_per_tensor": {
+        "top1": 0.329608938547486,
+        "top5": 0.6201117318435754,
+        "latency_p50_ms_1thread": 19.894290999218356,
+        "size_mb": 1.2384624481201172
+      },
+      "dynamic_int8": {
+        "top1": 0.3407821229050279,
+        "top5": 0.6312849162011173,
+        "latency_p50_ms_1thread": 15.339743993536104,
+        "size_mb": 1.233637809753418
+      }
+    },
+    "agreement_fp32_vs_static_int8": {
+      "both_right": 48,
+      "fp32_right_int8_wrong": 17,
+      "fp32_wrong_int8_right": 13,
+      "both_wrong": 101,
+      "same_top1_prediction": 0.6312849162011173
+    }
+  },
+  {
+    "model": "shufflenet-v2-13.onnx",
+    "calibration_samples": 77,
+    "test_samples": 179,
+    "variants": {
+      "fp32": {
+        "top1": 0.5195530726256983,
+        "top5": 0.7541899441340782,
+        "latency_p50_ms_1thread": 6.916787497175392,
+        "size_mb": 8.799816131591797
+      },
+      "static_int8_per_channel": {
+        "top1": 0.4972067039106145,
+        "top5": 0.770949720670391,
+        "latency_p50_ms_1thread": 7.962347008287907,
+        "size_mb": 2.4670467376708984
+      },
+      "static_int8_per_tensor": {
+        "top1": 0.4972067039106145,
+        "top5": 0.7541899441340782,
+        "latency_p50_ms_1thread": 7.446034003805835,
+        "size_mb": 2.415212631225586
+      },
+      "dynamic_int8": {
+        "top1": 0.5139664804469274,
+        "top5": 0.7541899441340782,
+        "latency_p50_ms_1thread": 10.733020993939135,
+        "size_mb": 2.3629846572875977
+      }
+    },
+    "agreement_fp32_vs_static_int8": {
+      "both_right": 85,
+      "fp32_right_int8_wrong": 8,
+      "fp32_wrong_int8_right": 4,
+      "both_wrong": 82,
+      "same_top1_prediction": 0.8435754189944135
+    }
+  },
+  {
+    "model": "mobilenetv2.onnx",
+    "calibration_samples": 77,
+    "test_samples": 179,
+    "variants": {
+      "fp32": {
+        "top1": 0.5810055865921788,
+        "top5": 0.776536312849162,
+        "latency_p50_ms_1thread": 12.70572350040311,
+        "size_mb": 13.344080924987793
+      },
+      "static_int8_per_channel": {
+        "top1": 0.5754189944134078,
+        "top5": 0.7821229050279329,
+        "latency_p50_ms_1thread": 10.900618995947298,
+        "size_mb": 3.725186347961426
+      },
+      "static_int8_per_tensor": {
+        "top1": 0.5139664804469274,
+        "top5": 0.7486033519553073,
+        "latency_p50_ms_1thread": 10.473676506080665,
+        "size_mb": 3.4997196197509766
+      },
+      "dynamic_int8": {
+        "top1": 0.553072625698324,
+        "top5": 0.7541899441340782,
+        "latency_p50_ms_1thread": 30.271952498878818,
+        "size_mb": 3.5217466354370117
+      }
+    },
+    "agreement_fp32_vs_static_int8": {
+      "both_right": 101,
+      "fp32_right_int8_wrong": 3,
+      "fp32_wrong_int8_right": 2,
+      "both_wrong": 73,
+      "same_top1_prediction": 0.9329608938547486
+    }
+  },
+  {
+    "model": "resnet18-v1-13.onnx",
+    "calibration_samples": 77,
+    "test_samples": 179,
+    "variants": {
+      "fp32": {
+        "top1": 0.5307262569832403,
+        "top5": 0.7318435754189944,
+        "latency_p50_ms_1thread": 56.399339497147594,
+        "size_mb": 44.65507793426514
+      },
+      "static_int8_per_channel": {
+        "top1": 0.5418994413407822,
+        "top5": 0.7374301675977654,
+        "latency_p50_ms_1thread": 46.012482001970056,
+        "size_mb": 11.310647010803223
+      },
+      "static_int8_per_tensor": {
+        "top1": 0.5251396648044693,
+        "top5": 0.7374301675977654,
+        "latency_p50_ms_1thread": 46.16734899900621,
+        "size_mb": 11.275004386901855
+      },
+      "dynamic_int8": {
+        "top1": 0.5307262569832403,
+        "top5": 0.7318435754189944,
+        "latency_p50_ms_1thread": 56.84577349893516,
+        "size_mb": 11.259129524230957
+      }
+    },
+    "agreement_fp32_vs_static_int8": {
+      "both_right": 93,
+      "fp32_right_int8_wrong": 2,
+      "fp32_wrong_int8_right": 4,
+      "both_wrong": 80,
+      "same_top1_prediction": 0.8994413407821229
+    }
+  },
+  {
+    "model": "resnet50.onnx",
+    "calibration_samples": 77,
+    "test_samples": 179,
+    "variants": {
+      "fp32": {
+        "top1": 0.6480446927374302,
+        "top5": 0.8603351955307262,
+        "latency_p50_ms_1thread": 129.2170690066996,
+        "size_mb": 97.41439151763916
+      },
+      "static_int8_per_channel": {
+        "top1": 0.6368715083798883,
+        "top5": 0.8547486033519553,
+        "latency_p50_ms_1thread": 88.32273550069658,
+        "size_mb": 24.87334632873535
+      },
+      "static_int8_per_tensor": {
+        "top1": 0.6815642458100558,
+        "top5": 0.8435754189944135,
+        "latency_p50_ms_1thread": 89.29687999625457,
+        "size_mb": 24.52995204925537
+      },
+      "dynamic_int8": {
+        "top1": 0.6256983240223464,
+        "top5": 0.8379888268156425,
+        "latency_p50_ms_1thread": 136.25552500161575,
+        "size_mb": 24.533599853515625
+      }
+    },
+    "agreement_fp32_vs_static_int8": {
+      "both_right": 114,
+      "fp32_right_int8_wrong": 2,
+      "fp32_wrong_int8_right": 0,
+      "both_wrong": 63,
+      "same_top1_prediction": 0.9329608938547486
+    }
+  },
+  {
+    "model": "resnet152.onnx",
+    "calibration_samples": 77,
+    "test_samples": 179,
+    "variants": {
+      "fp32": {
+        "top1": 0.6871508379888268,
+        "top5": 0.888268156424581,
+        "latency_p50_ms_1thread": 370.01061999762896,
+        "size_mb": 229.3978967666626
+      },
+      "static_int8_per_channel": {
+        "top1": 0.6871508379888268,
+        "top5": 0.888268156424581,
+        "latency_p50_ms_1thread": 211.23888549482217,
+        "size_mb": 58.80966854095459
+      },
+      "static_int8_per_tensor": {
+        "top1": 0.6871508379888268,
+        "top5": 0.8603351955307262,
+        "latency_p50_ms_1thread": 214.88269600376952,
+        "size_mb": 57.85359191894531
+      },
+      "dynamic_int8": {
+        "top1": 0.6703910614525139,
+        "top5": 0.88268156424581,
+        "latency_p50_ms_1thread": 337.87332749488996,
+        "size_mb": 57.86776256561279
+      }
+    },
+    "agreement_fp32_vs_static_int8": {
+      "both_right": 120,
+      "fp32_right_int8_wrong": 3,
+      "fp32_wrong_int8_right": 3,
+      "both_wrong": 53,
+      "same_top1_prediction": 0.9441340782122905
+    }
+  }
+]

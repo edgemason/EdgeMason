@@ -19,6 +19,9 @@ dependencies = [
     "anyio==4.4.0",
     "pillow==12.3.0",
     "apache-tvm",
+    "streamlit==1.56.0",
+    "requests==2.34.2",
+    "pandas==3.0.6",
 ]
 
 [tool.uv]

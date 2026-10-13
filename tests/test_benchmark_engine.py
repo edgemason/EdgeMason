@@ -75,8 +75,10 @@ def test_benchmark_engine_runs_and_measures_metrics():
 
         # 5. Memory metrics check
         mem = result.memory_mb
-        assert "before_mb" in mem and "after_mb" in mem and "delta_mb" in mem and "peak_rss_mb" in mem
-        assert mem["before_mb"] > 0
+        assert set(mem) == {"baseline_mb", "peak_mb", "delta_mb"}
+        assert mem["baseline_mb"] > 0
+        assert mem["peak_mb"] >= mem["baseline_mb"]
+        assert mem["delta_mb"] == pytest.approx(mem["peak_mb"] - mem["baseline_mb"], abs=0.01)
 
         # 6. Target hardware scaling estimate check
         assert result.hardware_estimate is not None
@@ -132,6 +134,7 @@ def test_cuda_benchmark_fails_clearly_when_provider_is_unavailable(
             warmup_runs=1,
             benchmark_runs=1,
             execution_provider="cuda",
+            isolated=False,
         )
     )
 
@@ -172,6 +175,7 @@ def test_auto_benchmark_reports_cpu_when_cuda_cannot_run_model(
             warmup_runs=1,
             benchmark_runs=1,
             execution_provider="auto",
+            isolated=False,
         )
     )
 
@@ -207,6 +211,7 @@ def test_cuda_benchmark_rejects_runtime_provider_fallback(tiny_onnx, monkeypatch
             warmup_runs=1,
             benchmark_runs=1,
             execution_provider="cuda",
+            isolated=False,
         )
     )
 
@@ -281,3 +286,91 @@ def test_hardware_profiles_scaling_differences():
 
         assert rpi3_res.hardware_estimate["scaling_factor"] > rpi5_res.hardware_estimate["scaling_factor"]
         assert rpi3_res.hardware_estimate["estimated_latency_p50_ms"] > rpi5_res.hardware_estimate["estimated_latency_p50_ms"]
+
+
+def _matmul_model(path, columns):
+    weights = np.random.rand(1000, columns).astype(np.float32)
+    graph = helper.make_graph(
+        [helper.make_node("MatMul", ["X", "W"], ["Y"])],
+        "matmul",
+        [helper.make_tensor_value_info("X", TensorProto.FLOAT, [1, 1000])],
+        [helper.make_tensor_value_info("Y", TensorProto.FLOAT, [1, columns])],
+        initializer=[
+            helper.make_tensor("W", TensorProto.FLOAT, weights.shape, weights.tobytes(), raw=True)
+        ],
+    )
+    model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 13)])
+    model.ir_version = 9
+    onnx.save(model, path)
+    return str(path)
+
+
+def test_isolated_benchmark_measures_peak_memory_from_before_model_load(tmp_path):
+    small = _matmul_model(tmp_path / "small.onnx", 1_000)   # ~4 MB of weights
+    big = _matmul_model(tmp_path / "big.onnx", 10_000)      # ~40 MB of weights
+
+    def memory(model_path):
+        parsed = json.loads(
+            benchmark(model_path, warmup_runs=1, benchmark_runs=3, execution_provider="cpu")
+        )
+        assert parsed["success"] is True, parsed["error"]
+        return parsed["memory_mb"]
+
+    small_memory, big_memory = memory(small), memory(big)
+
+    assert set(big_memory) == {"baseline", "peak", "delta"}
+    # Loading the weights happens after the baseline, so it is counted.
+    assert big_memory["delta"] >= 30
+    assert big_memory["delta"] > small_memory["delta"] + 20
+
+
+def test_isolated_benchmark_reports_timeout(tiny_onnx):
+    parsed = json.loads(
+        benchmark(str(tiny_onnx), warmup_runs=1, benchmark_runs=1, timeout_seconds=0.01)
+    )
+
+    assert parsed["success"] is False
+    assert "timed out" in parsed["error"]
+
+
+def test_without_budget_runs_exact_counts(tiny_onnx):
+    result = BenchmarkEngine().benchmark(str(tiny_onnx), warmup_runs=3, benchmark_runs=25)
+
+    assert result.success is True
+    assert result.warmup_runs == 3
+    assert result.benchmark_runs == 25
+    assert result.throughput["total_inferences"] == 25
+
+
+def test_time_budget_stops_early_but_keeps_minimum_runs(tiny_onnx, monkeypatch):
+    from api.optimizer import benchmark_engine
+
+    clock = iter(range(0, 10_000))  # every perf_counter call advances 1 "second"
+    monkeypatch.setattr(benchmark_engine.time, "perf_counter", lambda: float(next(clock)))
+
+    engine = BenchmarkEngine(time_budget_seconds=4.0)
+    result = engine.benchmark(str(tiny_onnx), warmup_runs=10, benchmark_runs=100)
+
+    assert result.success is True
+    # Warm-up may use 25% of the budget (1 s), so it stops after 1 run.
+    assert result.warmup_runs == 1
+    # Budget is used up quickly, but the minimum of 10 timed runs is kept.
+    assert result.benchmark_runs == benchmark_engine.MIN_TIMED_RUNS
+    assert len(result.latency_ms) > 0
+
+
+def test_time_budget_allows_all_runs_for_fast_models(tiny_onnx):
+    result = BenchmarkEngine(time_budget_seconds=30.0).benchmark(
+        str(tiny_onnx), warmup_runs=10, benchmark_runs=100
+    )
+
+    assert result.warmup_runs == 10
+    assert result.benchmark_runs == 100
+
+
+def test_failed_benchmark_reports_zero_runs():
+    result = BenchmarkEngine().benchmark("non_existent_model.onnx", warmup_runs=10, benchmark_runs=100)
+
+    assert result.success is False
+    assert result.warmup_runs == 0
+    assert result.benchmark_runs == 0

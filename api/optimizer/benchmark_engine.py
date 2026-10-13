@@ -5,7 +5,7 @@ Measures model performance metrics on target hardware configurations:
 - Latency percentiles (avg, min, max, std, p25, p50, p75, p90, p95, p99)
 - Throughput (Inferences / Frames per second)
 - Model size (bytes, KB, MB)
-- Memory usage (RSS before, after, delta, peak RSS)
+- Memory usage (RSS baseline before loading, peak, delta = peak - baseline)
 - Hardware target profiling and scaling estimates
 - Machine-readable JSON output
 """
@@ -13,8 +13,10 @@ Measures model performance metrics on target hardware configurations:
 import json
 import os
 import platform
+import subprocess
+import sys
+import tempfile
 import time
-import tracemalloc
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -22,24 +24,30 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import psutil
 
+try:
+    import resource
+except ImportError:  # Windows
+    resource = None
+
 # Optional framework imports
 try:
     import onnxruntime as rt
 except ImportError:
     rt = None
 
-try:
-    import tvm
-    from tvm.contrib import graph_executor
-except ImportError:
-    tvm = None
-    graph_executor = None
 
 
-PROFILES_PATH = Path(__file__).resolve().parent.parent.parent / "profiles" / "hardware_profiles.json"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+PROFILES_PATH = PROJECT_ROOT / "profiles" / "hardware_profiles.json"
+BENCHMARK_TIMEOUT_SECONDS = 900 
+# Below this many timed runs, percentiles are not meaningful.
+MIN_TIMED_RUNS = 10
+# Share of the time budget that warm-up may use.
+WARMUP_BUDGET_SHARE = 0.25
 MAX_INPUT_DIMENSION = 4096
 MAX_INPUT_ELEMENTS = 10_000_000
 EXECUTION_PROVIDERS = {
+    "auto": "CPUExecutionProvider",
     "cpu": "CPUExecutionProvider",
     "cuda": "CUDAExecutionProvider",
 }
@@ -65,6 +73,43 @@ def _preload_cuda_libraries(provider: str) -> None:
     preload = getattr(rt, "preload_dlls", None)
     if provider == "CUDAExecutionProvider" and preload is not None:
         preload(directory="")
+
+
+def _current_rss_bytes() -> int:
+    return psutil.Process().memory_info().rss
+
+
+def _start_peak_tracking() -> int:
+    """Reset the RSS high-water mark to now and return the current RSS.
+
+    On Linux, writing 5 to /proc/self/clear_refs resets VmHWM, so the peak
+    read later covers only what happens after this call.
+    """
+    try:
+        with open("/proc/self/clear_refs", "w", encoding="ascii") as clear_refs:
+            clear_refs.write("5")
+    except OSError:
+        pass
+    return _current_rss_bytes()
+
+
+def _peak_rss_bytes() -> int:
+    """Highest RSS since _start_peak_tracking (Linux VmHWM).
+
+    ru_maxrss is only a fallback for non-Linux hosts: after fork+exec it
+    still carries the parent's RSS, so it overstates the child's peak.
+    """
+    try:
+        with open("/proc/self/status", encoding="ascii") as status:
+            for line in status:
+                if line.startswith("VmHWM:"):
+                    return int(line.split()[1]) * 1024
+    except OSError:
+        pass
+    if resource is None:
+        return _current_rss_bytes()
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return peak if sys.platform == "darwin" else peak * 1024
 
 
 def load_hardware_profiles() -> Dict[str, Any]:
@@ -155,11 +200,22 @@ class ThroughputMetrics:
 
 @dataclass
 class MemoryMetrics:
-    before_mb: float
-    after_mb: float
+    """RSS in MB. baseline is taken before the model is loaded and peak is the
+    process high-water mark, so delta covers weights, activations and runtime
+    allocations. Only meaningful in a fresh process; see benchmark()."""
+    baseline_mb: float
+    peak_mb: float
     delta_mb: float
-    peak_rss_mb: float
-    peak_tracemalloc_mb: float
+
+    @classmethod
+    def since(cls, baseline_bytes: int) -> "MemoryMetrics":
+        peak_bytes = max(_peak_rss_bytes(), baseline_bytes)
+        mb = 1024.0 * 1024.0
+        return cls(
+            baseline_mb=round(baseline_bytes / mb, 3),
+            peak_mb=round(peak_bytes / mb, 3),
+            delta_mb=round((peak_bytes - baseline_bytes) / mb, 3),
+        )
 
 
 @dataclass
@@ -204,9 +260,11 @@ class BenchmarkEngine:
         self,
         hardware_id: str = "x86_64",
         execution_provider: str = "auto",
+        time_budget_seconds: Optional[float] = None,
     ):
         self.hardware_id = hardware_id
         self.execution_provider = execution_provider
+        self.time_budget_seconds = time_budget_seconds
         self.hardware_profiles = load_hardware_profiles()
         self.profile = self.hardware_profiles.get(hardware_id, self.hardware_profiles.get("x86_64", {}))
 
@@ -249,6 +307,44 @@ class BenchmarkEngine:
             inputs[inp.name] = np.random.rand(*shape).astype(np.float32)
         return inputs
 
+    def _run_timed(
+        self,
+        run: Any,
+        warmup_runs: int,
+        benchmark_runs: int,
+    ) -> tuple[int, List[float], float]:
+        """Warm up, then time each run. Returns (warm-ups done, latencies, seconds).
+
+        Without a time budget it does exactly warmup_runs + benchmark_runs.
+        With one, warm-up stops after its share of the budget and timing stops
+        when the budget is used up, but never before MIN_TIMED_RUNS timed runs,
+        so big models finish in reasonable time and small ones get every run.
+        """
+        budget = self.time_budget_seconds
+
+        warmups_done = 0
+        start_warmup = time.perf_counter()
+        while warmups_done < warmup_runs:
+            run()
+            warmups_done += 1
+            if budget is not None and time.perf_counter() - start_warmup >= budget * WARMUP_BUDGET_SHARE:
+                break
+
+        min_runs = min(MIN_TIMED_RUNS, benchmark_runs)
+        latencies_ms: List[float] = []
+        start_total = time.perf_counter()
+        while len(latencies_ms) < benchmark_runs:
+            t0 = time.perf_counter()
+            run()
+            latencies_ms.append((time.perf_counter() - t0) * 1000.0)
+            if (
+                budget is not None
+                and len(latencies_ms) >= min_runs
+                and time.perf_counter() - start_total >= budget
+            ):
+                break
+        return warmups_done, latencies_ms, time.perf_counter() - start_total
+
     def _benchmark_onnx(
         self,
         model_path: str,
@@ -265,6 +361,7 @@ class BenchmarkEngine:
         system_info = self.get_system_info()
         provider = resolve_execution_provider(self.execution_provider)
         _preload_cuda_libraries(provider)
+        baseline_rss = _start_peak_tracking()
 
         # Session creation
         def create_session(selected_provider: str):
@@ -307,27 +404,14 @@ class BenchmarkEngine:
         inputs = input_data if input_data is not None else self._generate_onnx_inputs(session, batch_size)
         output_name = session.get_outputs()[0].name
 
-        # Warmup phase
-        for _ in range(warmup_runs):
+        def _run():
             session.run([output_name], inputs)
 
-        # Tracemalloc & psutil for memory tracking
-        tracemalloc.start()
-        process = psutil.Process()
-        mem_before = process.memory_info().rss
-
-        latencies_ms: List[float] = []
-        start_total = time.perf_counter()
-
-        for _ in range(benchmark_runs):
-            t0 = time.perf_counter()
-            session.run([output_name], inputs)
-            latencies_ms.append((time.perf_counter() - t0) * 1000.0)
-
-        total_time_sec = time.perf_counter() - start_total
-        mem_after = process.memory_info().rss
-        _, peak_tracemalloc = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
+        warmup_runs, latencies_ms, total_time_sec = self._run_timed(
+            _run, warmup_runs, benchmark_runs
+        )
+        benchmark_runs = len(latencies_ms)
+        memory_metrics = MemoryMetrics.since(baseline_rss)
 
         lat_arr = np.array(latencies_ms)
         avg_lat = float(np.mean(lat_arr))
@@ -352,14 +436,6 @@ class BenchmarkEngine:
             total_inferences=benchmark_runs,
             total_time_ms=round(total_time_ms, 2),
             batch_size=batch_size,
-        )
-
-        memory_metrics = MemoryMetrics(
-            before_mb=round(mem_before / (1024.0 * 1024.0), 3),
-            after_mb=round(mem_after / (1024.0 * 1024.0), 3),
-            delta_mb=round((mem_after - mem_before) / (1024.0 * 1024.0), 3),
-            peak_rss_mb=round(mem_after / (1024.0 * 1024.0), 3),
-            peak_tracemalloc_mb=round(peak_tracemalloc / (1024.0 * 1024.0), 3),
         )
 
         # Scaling estimation for target hardware
@@ -409,6 +485,7 @@ class BenchmarkEngine:
         model_size = self.get_model_size(model_path)
         system_info = self.get_system_info()
 
+        baseline_rss = _start_peak_tracking()
         specs = load_input_specs(model_path)
         vm, dev = load_vm(model_path)
 
@@ -424,25 +501,11 @@ class BenchmarkEngine:
         def _run():
             run_vm(vm, dev, inputs, order)
 
-        for _ in range(warmup_runs):
-            _run()
-
-        tracemalloc.start()
-        process = psutil.Process()
-        mem_before = process.memory_info().rss
-
-        latencies_ms: List[float] = []
-        start_total = time.perf_counter()
-
-        for _ in range(benchmark_runs):
-            t0 = time.perf_counter()
-            _run()
-            latencies_ms.append((time.perf_counter() - t0) * 1000.0)
-
-        total_time_sec = time.perf_counter() - start_total
-        mem_after = process.memory_info().rss
-        _, peak_tracemalloc = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
+        warmup_runs, latencies_ms, total_time_sec = self._run_timed(
+            _run, warmup_runs, benchmark_runs
+        )
+        benchmark_runs = len(latencies_ms)
+        memory_metrics = MemoryMetrics.since(baseline_rss)
 
         lat_arr = np.array(latencies_ms)
         avg_lat = float(np.mean(lat_arr))
@@ -467,14 +530,6 @@ class BenchmarkEngine:
             total_inferences=benchmark_runs,
             total_time_ms=round(total_time_ms, 2),
             batch_size=batch_size,
-        )
-
-        memory_metrics = MemoryMetrics(
-            before_mb=round(mem_before / (1024.0 * 1024.0), 3),
-            after_mb=round(mem_after / (1024.0 * 1024.0), 3),
-            delta_mb=round((mem_after - mem_before) / (1024.0 * 1024.0), 3),
-            peak_rss_mb=round(mem_after / (1024.0 * 1024.0), 3),
-            peak_tracemalloc_mb=round(peak_tracemalloc / (1024.0 * 1024.0), 3),
         )
 
         scaling_factor = self.profile.get("latency_scaling_factor", 1.0)
@@ -542,34 +597,91 @@ class BenchmarkEngine:
                     input_data=input_data,
                 )
         except Exception as exc:
-            model_size = self.get_model_size(model_path)
-            system_info = self.get_system_info()
-            return BenchmarkResult(
-                model_path=model_path,
-                framework="unknown",
-                target_hardware=self.hardware_id,
-                warmup_runs=warmup_runs,
-                benchmark_runs=benchmark_runs,
-                batch_size=batch_size,
-                provider=(
-                    EXECUTION_PROVIDERS.get(
-                        self.execution_provider,
-                        "CUDAExecutionProvider"
-                        if self.execution_provider == "auto"
-                        and rt is not None
-                        and "CUDAExecutionProvider" in rt.get_available_providers()
-                        else "CPUExecutionProvider",
-                    )
-                ),
-                latency_ms={"avg": 0.0, "min": 0.0, "max": 0.0, "std": 0.0, "p25": 0.0, "p50": 0.0, "p75": 0.0, "p90": 0.0, "p95": 0.0, "p99": 0.0},
-                throughput={"fps": 0.0, "total_inferences": 0, "total_time_ms": 0.0, "batch_size": batch_size},
-                memory_mb={"before_mb": 0.0, "after_mb": 0.0, "delta_mb": 0.0, "peak_rss_mb": 0.0, "peak_tracemalloc_mb": 0.0},
-                model_size=asdict(model_size),
-                system_info=system_info,
-                hardware_estimate=None,
-                success=False,
-                error=str(exc),
+            return self.failure_result(
+                model_path, warmup_runs, benchmark_runs, batch_size, str(exc)
             )
+
+    def failure_result(
+        self,
+        model_path: str,
+        warmup_runs: int,
+        benchmark_runs: int,
+        batch_size: int,
+        error: str,
+    ) -> BenchmarkResult:
+        # Nothing ran, so report zero runs rather than the requested counts.
+        return BenchmarkResult(
+            model_path=model_path,
+            framework="unknown",
+            target_hardware=self.hardware_id,
+            warmup_runs=0,
+            benchmark_runs=0,
+            batch_size=batch_size,
+            provider=(
+                EXECUTION_PROVIDERS.get(
+                    self.execution_provider,
+                    "CUDAExecutionProvider"
+                    if self.execution_provider == "auto"
+                    and rt is not None
+                    and "CUDAExecutionProvider" in rt.get_available_providers()
+                    else "CPUExecutionProvider",
+                )
+            ),
+            latency_ms={"avg": 0.0, "min": 0.0, "max": 0.0, "std": 0.0, "p25": 0.0, "p50": 0.0, "p75": 0.0, "p90": 0.0, "p95": 0.0, "p99": 0.0},
+            throughput={"fps": 0.0, "total_inferences": 0, "total_time_ms": 0.0, "batch_size": batch_size},
+            memory_mb={"baseline_mb": 0.0, "peak_mb": 0.0, "delta_mb": 0.0},
+            model_size=asdict(self.get_model_size(model_path)),
+            system_info=self.get_system_info(),
+            hardware_estimate=None,
+            success=False,
+            error=error,
+        )
+
+
+def _benchmark_in_subprocess(
+    request: Dict[str, Any],
+    input_data: Optional[Dict[str, np.ndarray]],
+    timeout_seconds: float,
+) -> Dict[str, Any]:
+    """Run BenchmarkEngine.benchmark in a fresh Python process.
+
+    A fresh process has no memory left over from earlier candidates, so its
+    peak RSS minus the baseline is the memory this model needs.
+    """
+    with tempfile.TemporaryDirectory(prefix="edgemason-bench-") as directory:
+        work_dir = Path(directory)
+        if input_data is not None:
+            inputs_path = work_dir / "inputs.npz"
+            np.savez(inputs_path, *input_data.values())
+            request = {
+                **request,
+                "inputs_path": str(inputs_path),
+                "input_names": list(input_data),
+            }
+        request_path = work_dir / "request.json"
+        result_path = work_dir / "result.json"
+        request_path.write_text(json.dumps(request), encoding="utf-8")
+
+        python_path = [str(PROJECT_ROOT), os.environ.get("PYTHONPATH", "")]
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "api.optimizer.benchmark_worker",
+                str(request_path),
+                str(result_path),
+            ],
+            cwd=PROJECT_ROOT,
+            env={**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, python_path))},
+            capture_output=True,
+            text=True,
+            timeout=timeout_seconds,
+        )
+        if completed.returncode != 0 or not result_path.exists():
+            stderr = completed.stderr.strip().splitlines()
+            detail = stderr[-1] if stderr else f"exit code {completed.returncode}"
+            raise RuntimeError(f"benchmark process failed: {detail}")
+        return json.loads(result_path.read_text(encoding="utf-8"))
 
 
 def benchmark(
@@ -580,29 +692,57 @@ def benchmark(
     hardware_id: str = "x86_64",
     batch_size: int = 1,
     execution_provider: str = "auto",
+    isolated: bool = True,
+    timeout_seconds: float = BENCHMARK_TIMEOUT_SECONDS,
+    time_budget_seconds: Optional[float] = None,
 ) -> str:
     """
     Standard functional interface returning machine-readable JSON string.
-    Backwards-compatible drop-in replacement.
+
+    isolated=True runs the benchmark in a fresh process so memory_mb is
+    accurate. isolated=False runs in this process (faster, but the peak RSS
+    then includes everything this process did before).
+
+    warmup_runs and benchmark_runs are maximums when time_budget_seconds is
+    set; the result reports how many runs were actually done.
     """
     engine = BenchmarkEngine(
         hardware_id=hardware_id,
         execution_provider=execution_provider,
+        time_budget_seconds=time_budget_seconds,
     )
-    res = engine.benchmark(
-        model_path=filename,
-        warmup_runs=warmup_runs,
-        benchmark_runs=benchmark_runs,
-        batch_size=batch_size,
-        input_data=input_data,
-    )
-    data = res.to_dict()
-    # Provide backward-compatibility key mapping
+    if isolated:
+        request = {
+            "model_path": filename,
+            "warmup_runs": warmup_runs,
+            "benchmark_runs": benchmark_runs,
+            "batch_size": batch_size,
+            "hardware_id": hardware_id,
+            "execution_provider": execution_provider,
+            "time_budget_seconds": time_budget_seconds,
+        }
+        try:
+            data = _benchmark_in_subprocess(request, input_data, timeout_seconds)
+        except subprocess.TimeoutExpired:
+            data = engine.failure_result(
+                filename, warmup_runs, benchmark_runs, batch_size,
+                f"benchmark timed out after {timeout_seconds:.0f}s",
+            ).to_dict()
+        except Exception as exc:
+            data = engine.failure_result(
+                filename, warmup_runs, benchmark_runs, batch_size, str(exc)
+            ).to_dict()
+    else:
+        data = engine.benchmark(
+            model_path=filename,
+            warmup_runs=warmup_runs,
+            benchmark_runs=benchmark_runs,
+            batch_size=batch_size,
+            input_data=input_data, 
+        ).to_dict()
     data["memory_mb"] = {
-        "before": data["memory_mb"]["before_mb"],
-        "after": data["memory_mb"]["after_mb"],
+        "baseline": data["memory_mb"]["baseline_mb"],
+        "peak": data["memory_mb"]["peak_mb"],
         "delta": data["memory_mb"]["delta_mb"],
-        "peak_rss_mb": data["memory_mb"]["peak_rss_mb"],
-        "peak_tracemalloc_mb": data["memory_mb"]["peak_tracemalloc_mb"],
     }
     return json.dumps(data, indent=2)

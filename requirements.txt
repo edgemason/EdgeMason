@@ -14,3 +14,7 @@ keras==2.15.0
 anyio==4.4.0
 pillow==12.3.0
 apache-tvm
+# frontend (frontend/app.py)
+streamlit==1.56.0
+requests==2.34.2
+pandas==3.0.6
