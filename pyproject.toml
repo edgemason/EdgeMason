@@ -24,9 +24,20 @@ dependencies = [
 
 [tool.uv]
 package = false
+default-groups = ["dev", "research"]
 
 [dependency-groups]
 dev = ["pytest", "pytest-timeout", "mutmut"]
+research = ["torch", "torchvision", "matplotlib", "lxml"]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
