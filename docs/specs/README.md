@@ -9,11 +9,11 @@
 | Spec | Title | Depends on | Who | Status |
 |---|---|---|---|---|
 | [P0.1](P0.1-merge-abhay.md) | Merge `abhay` → `main`, commit the planning docs | – | executor (user merges) | todo |
-| [P0.2](P0.2-docs-scaffold.md) | INVENTORY, BACKLOG, CODING_STANDARDS | P0.1 | executor | todo |
-| [P0.3](P0.3-findings-register.md) | Findings register (claims → data → script) | P0.1 | executor | todo |
-| [P0.4](P0.4-reproducible-env.md) | Pin TVM; dev/research dependency groups; README Python version | none (branches from `abhay`) | executor | **agreed, ready** |
+| [P0.2](P0.2-docs-scaffold.md) | INVENTORY, BACKLOG, CODING_STANDARDS | none | executor | **agreed, ready** |
+| [P0.3](P0.3-findings-register.md) | Findings register (claims → data → script) | none | executor | **agreed, ready** |
+| [P0.4](P0.4-reproducible-env.md) | Pin TVM; dev/research dependency groups; README Python version | none | executor | **done** |
 | [P0.5](P0.5-asset-provisioning.md) | Asset provisioning plus checksums (**two stages; stops for a user decision**) | P0.4 | executor | todo |
-| [P0.6](P0.6-test-infrastructure.md) | Markers, timeout, seeds, normaliser, golden helper | P0.1 | executor | todo |
+| [P0.6](P0.6-test-infrastructure.md) | Markers, timeout, seeds, normaliser | P0.4 | executor | **agreed, ready** |
 | [P0.7a](P0.7a-characterize-pure-logic.md) | Characterize planner, ranking, estimates, provider, split, validation | P0.6 | executor | todo |
 | [P0.7b](P0.7b-characterize-http.md) | Characterize HTTP API and artifacts | P0.6 | executor | todo |
 | [P0.7c](P0.7c-characterize-optimizer.md) | Characterize quantization, benchmark format, packaging | P0.6 | executor | todo |
