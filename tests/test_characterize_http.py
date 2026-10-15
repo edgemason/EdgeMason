@@ -12,7 +12,7 @@ from onnx import TensorProto, helper
 
 from api.main import app
 from api.services import artifacts
-from tests.helpers import assert_matches_golden
+from tests.helpers import assert_matches_golden, normalise, strip_measurements
 
 
 @pytest.fixture
@@ -234,12 +234,30 @@ async def test_deploy_tiny_rpi4_cpu(tiny_onnx):
         )
     assert response.status_code == 200
     body = response.json()
+    original = body
     assert set(body.keys()) == {
         "hardware_target", "execution_provider", "constraints", "analysis",
         "plan", "data_split", "warnings", "candidates_explored", "all_results",
         "winner", "download_url",
     }
-    assert_matches_golden("deploy_tiny_rpi4_cpu", body)
+    # Case 15's *winner* is a measurement-derived candidate identity (host
+    # latency feeds estimate_on_target and ranking). On this rpi4-like runner
+    # it flips between fp32 / dynamic / static depending on measurement jitter
+    # (5 runs: fp32, dynamic, fp32, static, fp32). Lock only the deterministic
+    # structure here — which candidates ran, their field shapes, the plan /
+    # analysis scalars — and assert the winner is a deployable candidate plus
+    # numeric measurements separately. QUIRK: winner identity depends on measurement.
+    stable_body = {k: v for k, v in original.items() if k != "winner"}
+    assert_matches_golden("deploy_tiny_rpi4_cpu", strip_measurements(normalise(stable_body)))
+    # measurement fields exist and are positive numbers
+    for result in (original["all_results"] + [original["winner"]]):
+        for key in ("throughput_fps", "latency_p50_ms", "latency_p95_ms"):
+            val = result[key]
+            assert isinstance(val, (int, float)) and val > 0, f"{key} = {val!r}"
+    assert isinstance(original["winner"], dict) and original["winner"].get("name")
+    assert original["winner"].get("name") in {
+        r.get("name") for r in original["all_results"]
+    }
 
 
 @pytest.mark.slow
@@ -254,7 +272,12 @@ async def test_deploy_tiny_rpi4_nocal(tiny_onnx):
         )
     assert response.status_code == 200
     body = response.json()
-    assert_matches_golden("deploy_tiny_rpi4_nocal", body)
+    original = body
+    assert_matches_golden("deploy_tiny_rpi4_nocal", strip_measurements(normalise(original)))
+    for result in (original["all_results"] + [original["winner"]]):
+        for key in ("throughput_fps", "latency_p50_ms", "latency_p95_ms"):
+            val = result[key]
+            assert isinstance(val, (int, float)) and val > 0, f"{key} = {val!r}"
 
 
 # Artifacts

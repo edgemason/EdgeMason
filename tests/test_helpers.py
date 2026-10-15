@@ -1,5 +1,5 @@
 import pytest
-from tests.helpers import normalise
+from tests.helpers import normalise, strip_measurements
 
 
 def test_normalise_replaces_absolute_path():
@@ -88,3 +88,23 @@ def test_assert_matches_golden_update_env_rewrites(tmp_path, monkeypatch):
     monkeypatch.setenv("UPDATE_GOLDEN", "1")
     assert_matches_golden("update_case", {"a": 1}) is None
     assert '"a": 1' in (gdir / "update_case.json").read_text()
+
+
+def test_strip_measurements_replaces_known_numeric_keys():
+    data = {"throughput_fps": 100.5, "latency_p50_ms": 2, "name": "x"}
+    result = strip_measurements(data)
+    assert result == {"throughput_fps": "<MEASUREMENT>", "latency_p50_ms": "<MEASUREMENT>", "name": "x"}
+    assert data["throughput_fps"] == 100.5  # no mutation
+
+
+def test_strip_measurements_non_numeric_values_pass_through():
+    data = {"fps": "n/a", "baseline": None, "peak_mb": [1, 2]}
+    assert strip_measurements(data) == {"fps": "n/a", "baseline": None, "peak_mb": [1, 2]}
+
+
+def test_strip_measurements_nested_lists():
+    data = [{"throughput_fps": 1.0, "nested": {"delta": 3, "delta_mb": "x"}}, 5]
+    assert strip_measurements(data) == [
+        {"throughput_fps": "<MEASUREMENT>", "nested": {"delta": "<MEASUREMENT>", "delta_mb": "x"}},
+        5,
+    ]
