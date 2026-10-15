@@ -1,6 +1,10 @@
 import copy
+import difflib
+import json
+import os
 import re
 import tempfile
+from pathlib import Path
 
 _UUID_RE = re.compile(
     r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
@@ -44,3 +48,41 @@ def _replace(obj):
 def normalise(obj):
     """Deep-copy obj with run-specific values replaced by placeholders."""
     return _replace(copy.deepcopy(obj))
+
+
+GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
+
+
+def assert_matches_golden(name, data):
+    """Compare ``data`` (normalised) against ``tests/golden/<name>.json``.
+
+    Missing golden is written and the test fails asking for review.
+    ``UPDATE_GOLDEN=1`` rewrites the golden and passes.
+    """
+    golden_path = GOLDEN_DIR / f"{name}.json"
+    normalised = normalise(data)
+    desired = json.dumps(normalised, indent=2, sort_keys=True)
+
+    if os.environ.get("UPDATE_GOLDEN") == "1":
+        golden_path.parent.mkdir(parents=True, exist_ok=True)
+        golden_path.write_text(desired, encoding="utf-8")
+        return None
+
+    if not golden_path.exists():
+        golden_path.parent.mkdir(parents=True, exist_ok=True)
+        golden_path.write_text(desired, encoding="utf-8")
+        raise AssertionError(f"golden {name} created — review and commit it")
+
+    actual_text = golden_path.read_text(encoding="utf-8")
+    if actual_text == desired:
+        return None
+
+    diff = "".join(
+        difflib.unified_diff(
+            actual_text.splitlines(keepends=True),
+            desired.splitlines(keepends=True),
+            fromfile=str(golden_path),
+            tofile=f"{name} (actual)",
+        )
+    )
+    raise AssertionError(diff)
