@@ -1,0 +1,97 @@
+{
+  "accuracy": {
+    "both": [],
+    "max_latency": [
+      "alpha",
+      "delta"
+    ],
+    "max_memory": [
+      "epsilon",
+      "beta",
+      "gamma"
+    ],
+    "none": [
+      "epsilon",
+      "beta",
+      "gamma",
+      "alpha",
+      "delta"
+    ]
+  },
+  "balanced": {
+    "both": [],
+    "max_latency": [
+      "delta",
+      "alpha"
+    ],
+    "max_memory": [
+      "gamma",
+      "beta",
+      "epsilon"
+    ],
+    "none": [
+      "gamma",
+      "beta",
+      "epsilon",
+      "alpha",
+      "delta"
+    ]
+  },
+  "bogus": {
+    "both": [],
+    "max_latency": [
+      "delta",
+      "alpha"
+    ],
+    "max_memory": [
+      "beta",
+      "epsilon",
+      "gamma"
+    ],
+    "none": [
+      "delta",
+      "alpha",
+      "beta",
+      "epsilon",
+      "gamma"
+    ]
+  },
+  "latency": {
+    "both": [],
+    "max_latency": [
+      "delta",
+      "alpha"
+    ],
+    "max_memory": [
+      "beta",
+      "epsilon",
+      "gamma"
+    ],
+    "none": [
+      "delta",
+      "alpha",
+      "beta",
+      "epsilon",
+      "gamma"
+    ]
+  },
+  "memory": {
+    "both": [],
+    "max_latency": [
+      "alpha",
+      "delta"
+    ],
+    "max_memory": [
+      "gamma",
+      "beta",
+      "epsilon"
+    ],
+    "none": [
+      "gamma",
+      "beta",
+      "epsilon",
+      "alpha",
+      "delta"
+    ]
+  }
+}
