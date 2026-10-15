@@ -1,0 +1,41 @@
+{
+  "batch_size": 1,
+  "benchmark_runs": 10,
+  "error": null,
+  "framework": "onnxruntime",
+  "hardware_estimate": null,
+  "latency_ms": {
+    "avg": 0.0115,
+    "max": 0.0153,
+    "min": 0.0097,
+    "p25": 0.0102,
+    "p50": 0.011,
+    "p75": 0.0122,
+    "p90": 0.0137,
+    "p95": 0.0145,
+    "p99": 0.0152,
+    "std": 0.0017
+  },
+  "memory_mb": {
+    "baseline": 53.418,
+    "delta": 8.051,
+    "peak": 61.469
+  },
+  "model_path": "<PATH>",
+  "model_size": {
+    "bytes": 294,
+    "kb": 0.287,
+    "mb": 0.0
+  },
+  "provider": "CPUExecutionProvider",
+  "success": true,
+  "system_info": "<SYSTEM_INFO>",
+  "target_hardware": "x86_64",
+  "throughput": {
+    "batch_size": 1,
+    "fps": 82194.93,
+    "total_inferences": 10,
+    "total_time_ms": 0.12
+  },
+  "warmup_runs": 2
+}

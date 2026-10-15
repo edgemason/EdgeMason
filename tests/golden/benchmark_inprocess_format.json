@@ -1,0 +1,48 @@
+{
+  "batch_size": 1,
+  "benchmark_runs": 10,
+  "error": null,
+  "framework": "onnxruntime",
+  "hardware_estimate": {
+    "estimated_latency_avg_ms": 0.05,
+    "estimated_latency_p50_ms": 0.05,
+    "estimated_throughput_fps": 19804.11,
+    "scaling_factor": 11.8,
+    "target_hardware": "rpi4",
+    "target_name": "Raspberry Pi 4 Model B"
+  },
+  "latency_ms": {
+    "avg": 0.004,
+    "max": 0.005,
+    "min": 0.0035,
+    "p25": 0.0037,
+    "p50": 0.0039,
+    "p75": 0.0041,
+    "p90": 0.0043,
+    "p95": 0.0046,
+    "p99": 0.0049,
+    "std": 0.0004
+  },
+  "memory_mb": {
+    "baseline_mb": 93.215,
+    "delta_mb": 0.137,
+    "peak_mb": 93.352
+  },
+  "model_path": "<PATH>",
+  "model_size": {
+    "bytes": 294,
+    "kb": 0.287,
+    "mb": 0.0
+  },
+  "provider": "CPUExecutionProvider",
+  "success": true,
+  "system_info": "<SYSTEM_INFO>",
+  "target_hardware": "rpi4",
+  "throughput": {
+    "batch_size": 1,
+    "fps": 233688.54,
+    "total_inferences": 10,
+    "total_time_ms": 0.04
+  },
+  "warmup_runs": 2
+}
