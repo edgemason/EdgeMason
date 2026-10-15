@@ -42,3 +42,9 @@ torchvision = { index = "pytorch-cpu" }
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+timeout = 60
+markers = [
+    "slow: takes >10s or uses real models",
+    "tvm: needs apache-tvm",
+    "research: needs the research dependency group (torch/torchvision)",
+]
