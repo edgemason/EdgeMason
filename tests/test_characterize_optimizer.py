@@ -12,7 +12,7 @@ from onnx import TensorProto, helper
 from api.optimizer.benchmark_engine import BenchmarkEngine, benchmark
 from api.optimizer.quantizer import Quantizer
 from api.packager.generator import create_deployment_package
-from tests.helpers import assert_matches_golden
+from tests.helpers import assert_matches_golden, normalise, strip_measurements
 
 
 @pytest.fixture
@@ -207,24 +207,34 @@ def test_static_int8_determinism(tiny_conv):
 
 @pytest.mark.slow
 def test_benchmark_isolated_format(tiny_onnx):
-    result = json.loads(benchmark(str(tiny_onnx), isolated=True, warmup_runs=2, benchmark_runs=10))
+    original = json.loads(benchmark(str(tiny_onnx), isolated=True, warmup_runs=2, benchmark_runs=10))
     # # QUIRK: renamed
-    assert set(result["memory_mb"].keys()) == {"baseline", "peak", "delta"}
-    assert_matches_golden("benchmark_isolated_format", result)
+    assert set(original["memory_mb"].keys()) == {"baseline", "peak", "delta"}
+    assert_matches_golden("benchmark_isolated_format", strip_measurements(normalise(original)))
+    # live measurements: golden only locks structure, so check values separately
+    assert isinstance(original["throughput"]["fps"], (int, float))
+    assert original["throughput"]["fps"] > 0
+    assert isinstance(original["latency_ms"]["p50"], (int, float))
+    assert original["latency_ms"]["p50"] > 0
 
 
 @pytest.mark.slow
 def test_benchmark_inprocess_format(tiny_onnx):
     engine = BenchmarkEngine(hardware_id="rpi4", execution_provider="cpu")
-    result = engine.benchmark(str(tiny_onnx), warmup_runs=2, benchmark_runs=10).to_dict()
+    original = engine.benchmark(str(tiny_onnx), warmup_runs=2, benchmark_runs=10).to_dict()
     # # QUIRK: differs from isolated
-    assert set(result["memory_mb"].keys()) == {"baseline_mb", "peak_mb", "delta_mb"}
-    assert result["hardware_estimate"] is not None
+    assert set(original["memory_mb"].keys()) == {"baseline_mb", "peak_mb", "delta_mb"}
+    assert original["hardware_estimate"] is not None
     # # QUIRK: dead estimate, overwritten by pipeline (uses latency_scaling_factor not per-quant)
-    assert result["hardware_estimate"]["estimated_latency_p50_ms"] == round(
-        result["latency_ms"]["p50"] * 11.8, 2
+    assert original["hardware_estimate"]["estimated_latency_p50_ms"] == round(
+        original["latency_ms"]["p50"] * 11.8, 2
     )
-    assert_matches_golden("benchmark_inprocess_format", result)
+    assert_matches_golden("benchmark_inprocess_format", strip_measurements(normalise(original)))
+    # live measurements: golden only locks structure, so check values separately
+    assert isinstance(original["throughput"]["fps"], (int, float))
+    assert original["throughput"]["fps"] > 0
+    assert isinstance(original["latency_ms"]["p50"], (int, float))
+    assert original["latency_ms"]["p50"] > 0
 
 
 def test_benchmark_failure_format():

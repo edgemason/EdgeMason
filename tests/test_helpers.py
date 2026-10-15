@@ -1,5 +1,5 @@
 import pytest
-from tests.helpers import normalise
+from tests.helpers import normalise, strip_measurements
 
 
 def test_normalise_replaces_absolute_path():
@@ -88,3 +88,38 @@ def test_assert_matches_golden_update_env_rewrites(tmp_path, monkeypatch):
     monkeypatch.setenv("UPDATE_GOLDEN", "1")
     assert_matches_golden("update_case", {"a": 1}) is None
     assert '"a": 1' in (gdir / "update_case.json").read_text()
+
+
+def test_strip_measurements_replaces_measurement_keys():
+    data = {"throughput": {"fps": 123.4, "total_time_ms": 0.5}, "memory_mb": {"baseline": 50.0}}
+    assert strip_measurements(data) == {
+        "throughput": {"fps": "<MEASUREMENT>", "total_time_ms": "<MEASUREMENT>"},
+        "memory_mb": {"baseline": "<MEASUREMENT>"},
+    }
+
+
+def test_strip_measurements_leaves_other_keys_untouched():
+    data = {"batch_size": 1, "framework": "onnxruntime", "success": True, "model_size": {"mb": 0.0}}
+    assert strip_measurements(data) == data
+
+
+def test_strip_measurements_recurses_into_nested_dicts_and_lists():
+    data = [{"runs": [{"latency_p50_ms": 1.2}, {"latency_p50_ms": 1.4, "id": 3}]}]
+    assert strip_measurements(data) == [
+        {"runs": [{"latency_p50_ms": "<MEASUREMENT>"}, {"latency_p50_ms": "<MEASUREMENT>", "id": 3}]}
+    ]
+
+
+def test_strip_measurements_skips_non_numeric_values_under_measurement_keys():
+    data = {"fps": None, "latency_p95_ms": "n/a", "delta": {"nested": 1.0}}
+    assert strip_measurements(data) == {
+        "fps": None,
+        "latency_p95_ms": "n/a",
+        "delta": {"nested": 1.0},
+    }
+
+
+def test_strip_measurements_does_not_mutate_input():
+    original = {"fps": 10.0}
+    strip_measurements(original)
+    assert original == {"fps": 10.0}

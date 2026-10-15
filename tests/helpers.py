@@ -86,3 +86,41 @@ def assert_matches_golden(name, data):
         )
     )
     raise AssertionError(diff)
+
+
+BENCHMARK_MEASUREMENT_KEYS = {
+    # flat keys from deploy responses
+    "throughput_fps",
+    "latency_p50_ms", "latency_p95_ms", "latency_min_ms", "latency_max_ms",
+    "latency_mean_ms", "latency_avg_ms", "latency_std_ms",
+    "total_time_ms",
+    "fps",
+    # memory — both naming conventions (QUIRK)
+    "baseline", "peak", "delta",
+    "baseline_mb", "peak_mb", "delta_mb",
+    "memory_delta_mb",
+    # estimates derived from measurements
+    "estimated_latency_p50_ms", "estimated_latency_avg_ms",
+    "estimated_memory_mb", "estimated_throughput_fps",
+    # latency_ms subkeys (benchmark engine nests percentiles here)
+    "avg", "min", "max", "std",
+    "p25", "p50", "p75", "p90", "p95", "p99",
+    # model_size.kb can round differently
+    "kb",
+}
+
+
+def strip_measurements(obj, *, _keys=BENCHMARK_MEASUREMENT_KEYS):
+    """Deep-copy obj with live measurement values replaced by '<MEASUREMENT>'.
+
+    Only replaces values whose key is in BENCHMARK_MEASUREMENT_KEYS and whose
+    value is a number (int or float). Everything else passes through unchanged.
+    """
+    if isinstance(obj, dict):
+        return {
+            k: ("<MEASUREMENT>" if k in _keys and isinstance(v, (int, float)) else strip_measurements(v))
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [strip_measurements(item) for item in obj]
+    return obj
