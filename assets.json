@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "path": "models/mobilenetv2.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/mobilenetv2_ref.npz"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    },
+    {
+      "path": "models/resnet50.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/resnet50_ref.npz"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    },
+    {
+      "path": "models/resnet152.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/resnet152_ref.npz"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    },
+    {
+      "path": "models/efficientnet_b0.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/efficientnet_b0_ref.npz"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    },
+    {
+      "path": "models/resnet18-v1-7.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/resnet18-v1-7_ref.npz"
+      },
+      "source": {
+        "kind": "url",
+        "url": "https://github.com/onnx/models/raw/main/validated/vision/classification/resnet/model/resnet18-v1-7.onnx"
+      }
+    },
+    {
+      "path": "models/squeezenet1.1-7.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/squeezenet1.1-7_ref.npz"
+      },
+      "source": {
+        "kind": "url",
+        "url": "https://github.com/onnx/models/raw/main/validated/vision/classification/squeezenet/model/squeezenet1.1-7.onnx"
+      }
+    },
+    {
+      "path": "models/shufflenet-v2-10.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/shufflenet-v2-10_ref.npz"
+      },
+      "source": {
+        "kind": "url",
+        "url": "https://github.com/onnx/models/raw/main/validated/vision/classification/shufflenet/model/shufflenet-v2-10.onnx"
+      }
+    },
+    {
+      "path": "models/resnet18-v1-13.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/resnet18-v1-13_ref.npz"
+      },
+      "source": {
+        "kind": "convert",
+        "from": "models/resnet18-v1-7.onnx",
+        "opset": 13
+      }
+    },
+    {
+      "path": "models/squeezenet1.1-13.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/squeezenet1.1-13_ref.npz"
+      },
+      "source": {
+        "kind": "convert",
+        "from": "models/squeezenet1.1-7.onnx",
+        "opset": 13
+      }
+    },
+    {
+      "path": "models/shufflenet-v2-13.onnx",
+      "verify": {
+        "kind": "output_equivalence",
+        "atol": 1e-05,
+        "reference_outputs": "assets/reference/shufflenet-v2-13_ref.npz"
+      },
+      "source": {
+        "kind": "convert",
+        "from": "models/shufflenet-v2-10.onnx",
+        "opset": 13
+      }
+    },
+    {
+      "path": "models/samples/imagenetv2_mobilenetv2_20.npz",
+      "verify": {
+        "kind": "dataset",
+        "atol": 1e-05
+      },
+      "source": {
+        "kind": "script",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "scripts/prepare_imagenetv2_subset.py",
+          "--samples",
+          "20",
+          "--output",
+          "models/samples/imagenetv2_mobilenetv2_20.npz",
+          "--model",
+          "mobilenetv2"
+        ]
+      }
+    },
+    {
+      "path": "models/samples/imagenetv2_mobilenetv2_50.npz",
+      "verify": {
+        "kind": "dataset",
+        "atol": 1e-05
+      },
+      "source": {
+        "kind": "script",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "scripts/prepare_imagenetv2_subset.py",
+          "--samples",
+          "50",
+          "--output",
+          "models/samples/imagenetv2_mobilenetv2_50.npz",
+          "--model",
+          "mobilenetv2"
+        ]
+      }
+    },
+    {
+      "path": "models/samples/imagenetv2_mobilenetv2_256.npz",
+      "verify": {
+        "kind": "dataset",
+        "atol": 1e-05
+      },
+      "source": {
+        "kind": "script",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "scripts/prepare_imagenetv2_subset.py",
+          "--samples",
+          "256",
+          "--output",
+          "models/samples/imagenetv2_mobilenetv2_256.npz",
+          "--model",
+          "mobilenetv2"
+        ]
+      }
+    },
+    {
+      "path": "models/samples/imagenetv2_1000.npz",
+      "verify": {
+        "kind": "dataset",
+        "atol": 1e-05
+      },
+      "source": {
+        "kind": "script",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "scripts/download_imagenetv2_large.py",
+          "--output",
+          "models/samples/imagenetv2_1000.npz",
+          "--samples",
+          "1000"
+        ]
+      }
+    },
+    {
+      "path": "models/samples/imagenet_labels.json",
+      "verify": {
+        "kind": "json_labels"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    },
+    {
+      "path": "models/samples/mobilenetv2_sample.npy",
+      "verify": {
+        "kind": "sample_npy"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    },
+    {
+      "path": "models/samples/resnet50_sample.npy",
+      "verify": {
+        "kind": "sample_npy"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    },
+    {
+      "path": "models/samples/resnet152_sample.npy",
+      "verify": {
+        "kind": "sample_npy"
+      },
+      "source": {
+        "kind": "generator",
+        "command": [
+          "uv",
+          "run",
+          "python",
+          "-c",
+          "from models.model_generators import generate_all; generate_all('models')"
+        ]
+      }
+    }
+  ]
+}
