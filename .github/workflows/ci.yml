@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          python-version: "3.11"
+          enable-cache: true
+      - run: uv sync --group dev
+      - run: BASE_REF=origin/${{ github.base_ref || 'cleanup' }} scripts/lint_ratchet.sh
+      - run: uv run pytest -q -m "not slow and not tvm and not research"
