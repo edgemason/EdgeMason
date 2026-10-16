@@ -1,0 +1,36 @@
+{
+  "mobilenetv2": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.553072625698324,
+      "top5_accuracy": 0.7541899441340782
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5810055865921788,
+      "top5_accuracy": 0.776536312849162
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5754189944134078,
+      "top5_accuracy": 0.7821229050279329
+    }
+  },
+  "squeezenet1.1-13": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.3407821229050279,
+      "top5_accuracy": 0.6312849162011173
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.36312849162011174,
+      "top5_accuracy": 0.6368715083798883
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.3407821229050279,
+      "top5_accuracy": 0.6368715083798883
+    }
+  }
+}
