@@ -17,8 +17,8 @@
 | [P0.7a](P0.7a-characterize-pure-logic.md) | Characterize planner, ranking, estimates, provider, split, validation | P0.6 | executor | **done** |
 | [P0.7b](P0.7b-characterize-http.md) | Characterize HTTP API and artifacts | P0.6 | executor | **done** (cases 15-16 stopped: timing/RSS drift) |
 | [P0.7c](P0.7c-characterize-optimizer.md) | Characterize quantization, benchmark format, packaging | P0.6 | executor | **done** (cases 8-9 stopped: benchmark telemetry drift) |
-| [P0.8](P0.8-baseline-capture.md) | Baseline on real models, plus the reproduction check | P0.5, P0.7* | executor | todo |
-| [P0.9](P0.9-gate-script.md) | The results gate (`check` + `ab`), with self-test and mutation tests | P0.8 | executor | todo |
+| [P0.8](P0.8-baseline-capture.md) | Baseline on real models, plus the reproduction check | P0.5, P0.7* | executor | **done, unmerged** (2 backlog bugs raised: B-51, B-52) |
+| [P0.9](P0.9-gate-script.md) | The results gate (`check` + `ab`), with self-test and mutation tests | P0.8 | executor | **agreed** |
 | [P0.10](P0.10-lint-types-ci.md) | ruff/pyright ratchet plus GitHub Actions | P0.6 | executor | **done** |
 
 ## Execution waves (specs within a wave can run in parallel worktrees)

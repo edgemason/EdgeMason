@@ -10,6 +10,9 @@ means the item exists to change a number, and the user has to sign off on that n
 **Status: done** were closed by P0.4 and are listed so the coverage check stays complete without
 anything reading as pending work.
 
+A finding raised by an executor belongs here even before its fix is specced. B-51 and B-52 came
+from P0.8; the complete evidence is in `docs/executor/P0.8-report.md`.
+
 ---
 
 ## Measurement (research-sensitive)
@@ -67,6 +70,9 @@ Each of these needs user sign-off before its spec is written, and each must reco
 | B-31 | **GPU strip**: remove every GPU/CUDA code path, test and documentation claim. The full inventory — 10 product locations, 6 tests, 5 README claims and 4 open decisions — is in `docs/executor/P0.4-report.md` Appendix A. Cite it, do not copy it | D2, P0.4 Appendix A | product | identical | – |
 | B-32 | A default Streamlit deploy with TVM on will exceed the 120 s the frontend allows `/deploy`; the report's own figures put it near 45 minutes | REVIEW Spec #7 | bug | identical | B-28, B-27 |
 | B-33 | Extend `TVM_TARGETS`, which today covers only rpi4, rpi5 and x86_64 | PLAN C.3 (profiles) | product | intended improvement | B-09 |
+| B-51 | `create_static_int8` emits a model ONNX Runtime cannot load for **any** source model below opset 11: `per_channel=True` emits `DequantizeLinear` with `axis` (opset 13+), but ORT auto-upgrades a sub-11 graph to opset 11. Loading fails with `Unrecognized attribute: axis for operator DequantizeLinear`. Affects `resnet18-v1-7`, `squeezenet1.1-7`, `shufflenet-v2-10` and any user-supplied pre-11 model. There is **no opset guard in `api/`**; the bug stayed hidden because `assets.json` ships an opset-13 conversion of each. Fix: raise the pre-processed opset to ≥13, or reject opset-<11 with a clear error | P0.8 T2 finding | bug | identical | – |
+| B-52 | Top-5 is tie-unstable: `api/optimizer/validation.py` uses `np.argpartition`, which resolves ties arbitrarily, while `scripts/quantization_analysis.py` uses `np.argsort`. On statically-quantized models whole class groups collapse onto one quantized value, so on `squeezenet1.1-13` 123 of 179 test images have a bit-identical 5th/6th logit and the two scorers disagree on every one. Thread count is a second, independent confound (the product pins 1 thread, the research script uses all cores). Fix: tie-stable top-5 | P0.8 T3 finding | bug | intended improvement | – |
+| B-53 | EfficientNet B0 dynamic INT8 quantization produces **0.0% top1 accuracy** (fp32 baseline: 64.2%); static INT8 is also severely degraded at 13.9%. Depthwise separable convolutions are known to be quantization-sensitive, but 0% means the quantized model is completely non-functional. Research-relevant: if the paper discusses quantization across architectures, this result must be reported. Evidence in `baseline/full/accuracy.json` | P0.8 review finding | bug | intended improvement | – |
 
 ## Deps
 
@@ -118,6 +124,8 @@ section A is out of scope here (it is the asset-provisioning input for P0.5).
 | C.3 Literals scattered: priorities, `"fp32"`, framework names, provider names | B-11 |
 | C.3 `MAX_INPUT_ELEMENTS` and the 4096 limit each defined twice | B-20 |
 | C.4 Memory keys differ by benchmark mode | B-21 |
+| C. Static INT8 emits an unloadable model below opset 11 | B-51 |
+| C. Top-5 tie resolution is non-deterministic under static INT8 | B-52 |
 | C.4 Measurement issue 1: TVM threads unpinned | B-01 |
 | C.4 Measurement issue 2: accuracy always on CPU | B-02 (superseded by D1) |
 | C.4 Measurement issue 3: x86_64 has no per-quantization factors | B-03 |
@@ -186,6 +194,15 @@ listed so every id in this file traces to something.
 |---|---|
 | `PHASE0_PLAN.md` decisions: TVM is experimental, opt-in and off by default | B-36 |
 | P0.2 spec §Deps: drop `streamlit`, `requests` and `pandas` once Streamlit is deleted | B-35 |
+
+### From the P0.8 baseline capture
+
+| Source finding | Ids |
+|---|---|
+| Static INT8 emits a model ONNX Runtime cannot load for any source below opset 11 | B-51 |
+| Top-5 computed with `np.argpartition` is tie-unstable, so it cannot reproduce the research script's `np.argsort` figures | B-52 |
+| EfficientNet B0 dynamic INT8 quantization produces 0% top1 accuracy; static INT8 severely degraded at 13.9% (fp32 baseline 64.2%) | B-53 |
+| `reports/data/quantization_analysis.json` **reproduces**: all 18 `top1` and all 18 `size_mb` match to the last digit under the research script's own scoring. The apparent disagreements are tie-resolution and thread-count artefacts, not stale data | no action — confirms B-41's data is sound |
 
 ### From the P0.4 run
 
