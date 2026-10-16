@@ -315,13 +315,18 @@ def _committed_variants(assets_root: Path) -> dict[str, dict[str, dict]]:
     return {record["model"].removesuffix(MODEL_SUFFIX): record["variants"] for record in records}
 
 
-def _comparison(model: str, variant: str, field: str, verdict: str, committed=None,
-                measured=None, reason: str | None = None) -> dict:
-    entry = {"model": model, "variant": variant, "field": field, "verdict": verdict}
-    entry["committed"] = committed
-    entry["measured"] = measured
-    entry["reason"] = reason
-    return entry
+def _comparison(model: str, variant: str, field: str, verdict: str,
+                committed: object = None, measured: object = None,
+                reason: str | None = None) -> dict:
+    return {
+        "model": model,
+        "variant": variant,
+        "field": field,
+        "committed": committed,
+        "measured": measured,
+        "verdict": verdict,
+        "reason": reason,
+    }
 
 
 def _reproduction(assets_root: Path, measured: dict[str, dict[str, dict]]) -> dict:
