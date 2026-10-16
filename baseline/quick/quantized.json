@@ -1,0 +1,30 @@
+{
+  "mobilenetv2": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "f9a5cba552865832c19fb91f7784c0ebb0e26cf5d19f1e4c402e9f45015475ed"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "0fd3b4fb7b76bf28a51bb6f731742c8b31e9bbf49a54fb78f59338ce35420437"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "0fdffc1a46580fc83afa5f81fafcafc9fff8b6cc405658e514dbbdddcc34a29a"
+    }
+  },
+  "squeezenet1.1-13": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "c6fa5a80c988ec9786b0777ebb6c7b4bd65f90ec66b6d12a9370b2007a15f437"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "5846b40aca708f9e817e19caa3d49e49e81b9bd9ba2fffc70a175a8558904857"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "d01765c0eb60fe671f6000d6dac639e91e89128faa36e80be68a111da2a40b51"
+    }
+  }
+}
