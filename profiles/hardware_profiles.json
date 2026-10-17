@@ -8,7 +8,9 @@
     "ram_mb": 1024,
     "latency_scaling_factor": 18.5,
     "memory_overhead_scaling": 1.2,
-    "recommended_batch_size": 1
+    "recommended_batch_size": 1,
+    "execution_providers": ["cpu"],
+    "latency_scaling_by_quantization": { "dynamic_int8": 24.0, "static_int8": 24.0 }
   },
   "rpi4": {
     "name": "Raspberry Pi 4 Model B",
@@ -19,7 +21,9 @@
     "ram_mb": 4096,
     "latency_scaling_factor": 11.8,
     "memory_overhead_scaling": 1.1,
-    "recommended_batch_size": 1
+    "recommended_batch_size": 1,
+    "execution_providers": ["cpu"],
+    "latency_scaling_by_quantization": { "dynamic_int8": 15.3, "static_int8": 15.3 }
   },
   "rpi5": {
     "name": "Raspberry Pi 5",
@@ -30,7 +34,9 @@
     "ram_mb": 8192,
     "latency_scaling_factor": 4.5,
     "memory_overhead_scaling": 1.05,
-    "recommended_batch_size": 1
+    "recommended_batch_size": 1,
+    "execution_providers": ["cpu"],
+    "latency_scaling_by_quantization": { "dynamic_int8": 4.5, "static_int8": 4.5 }
   },
   "jetson_nano": {
     "name": "NVIDIA Jetson Nano",
@@ -41,7 +47,9 @@
     "ram_mb": 4096,
     "latency_scaling_factor": 8.2,
     "memory_overhead_scaling": 1.15,
-    "recommended_batch_size": 1
+    "recommended_batch_size": 1,
+    "execution_providers": ["cuda", "cpu"],
+    "latency_scaling_by_quantization": { "dynamic_int8": 10.7, "static_int8": 10.7 }
   },
   "x86_64": {
     "name": "Standard x86_64 Host / Server",
@@ -52,6 +60,7 @@
     "ram_mb": 16384,
     "latency_scaling_factor": 1.0,
     "memory_overhead_scaling": 1.0,
-    "recommended_batch_size": 1
+    "recommended_batch_size": 1,
+    "execution_providers": ["cuda", "cpu"]
   }
 }

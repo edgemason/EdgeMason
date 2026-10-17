@@ -1,0 +1,420 @@
+{
+  "date": "2026-10-05",
+  "model": "mobilenetv2.onnx",
+  "calibration": "imagenetv2_mobilenetv2_256.npz",
+  "execution_provider": "cpu",
+  "deploys": [
+    {
+      "hardware": "x86_64",
+      "priority": "latency",
+      "seconds": 19.6,
+      "provider": "cpu",
+      "family": "cnn",
+      "winner": "onnx_static_int8",
+      "split": {
+        "calibration_samples": 77,
+        "test_samples": 179
+      },
+      "warnings": [
+        "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+      ],
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 13.9254,
+          "latency_p95_ms": 21.7037,
+          "estimated_latency_p50_ms": 13.925,
+          "latency_scaling_factor": 1.0,
+          "memory_delta_mb": 42.977,
+          "estimated_memory_mb": 42.977,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 11.8919,
+          "latency_p95_ms": 19.0646,
+          "estimated_latency_p50_ms": 11.892,
+          "latency_scaling_factor": 1.0,
+          "memory_delta_mb": 23.508,
+          "estimated_memory_mb": 23.508,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    },
+    {
+      "hardware": "rpi5",
+      "priority": "latency",
+      "seconds": 19.2,
+      "provider": "cpu",
+      "family": "cnn",
+      "winner": "onnx_static_int8",
+      "split": {
+        "calibration_samples": 77,
+        "test_samples": 179
+      },
+      "warnings": [
+        "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+      ],
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 14.62,
+          "latency_p95_ms": 16.4653,
+          "estimated_latency_p50_ms": 65.79,
+          "latency_scaling_factor": 4.5,
+          "memory_delta_mb": 42.98,
+          "estimated_memory_mb": 45.129,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 11.9509,
+          "latency_p95_ms": 14.4121,
+          "estimated_latency_p50_ms": 53.779,
+          "latency_scaling_factor": 4.5,
+          "memory_delta_mb": 23.508,
+          "estimated_memory_mb": 24.683,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    },
+    {
+      "hardware": "rpi4",
+      "priority": "latency",
+      "seconds": 19.7,
+      "provider": "cpu",
+      "family": "cnn",
+      "winner": "onnx_fp32_baseline",
+      "split": {
+        "calibration_samples": 77,
+        "test_samples": 179
+      },
+      "warnings": [
+        "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+      ],
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 14.0512,
+          "latency_p95_ms": 21.0147,
+          "estimated_latency_p50_ms": 165.804,
+          "latency_scaling_factor": 11.8,
+          "memory_delta_mb": 42.973,
+          "estimated_memory_mb": 47.27,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 11.871,
+          "latency_p95_ms": 14.6164,
+          "estimated_latency_p50_ms": 181.626,
+          "latency_scaling_factor": 15.3,
+          "memory_delta_mb": 23.5,
+          "estimated_memory_mb": 25.85,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    },
+    {
+      "hardware": "rpi3",
+      "priority": "latency",
+      "seconds": 19.8,
+      "provider": "cpu",
+      "family": "cnn",
+      "winner": "onnx_fp32_baseline",
+      "split": {
+        "calibration_samples": 77,
+        "test_samples": 179
+      },
+      "warnings": [
+        "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+      ],
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 14.5799,
+          "latency_p95_ms": 16.7645,
+          "estimated_latency_p50_ms": 269.728,
+          "latency_scaling_factor": 18.5,
+          "memory_delta_mb": 42.977,
+          "estimated_memory_mb": 51.572,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 11.6589,
+          "latency_p95_ms": 14.2836,
+          "estimated_latency_p50_ms": 279.814,
+          "latency_scaling_factor": 24.0,
+          "memory_delta_mb": 23.5,
+          "estimated_memory_mb": 28.2,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    },
+    {
+      "hardware": "jetson_nano",
+      "priority": "latency",
+      "seconds": 19.6,
+      "provider": "cpu",
+      "family": "cnn",
+      "winner": "onnx_fp32_baseline",
+      "split": {
+        "calibration_samples": 77,
+        "test_samples": 179
+      },
+      "warnings": [
+        "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+      ],
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 13.5058,
+          "latency_p95_ms": 22.3922,
+          "estimated_latency_p50_ms": 110.748,
+          "latency_scaling_factor": 8.2,
+          "memory_delta_mb": 42.98,
+          "estimated_memory_mb": 49.427,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 12.228,
+          "latency_p95_ms": 18.0457,
+          "estimated_latency_p50_ms": 130.84,
+          "latency_scaling_factor": 10.7,
+          "memory_delta_mb": 23.508,
+          "estimated_memory_mb": 27.034,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    },
+    {
+      "hardware": "rpi4",
+      "priority": "memory",
+      "seconds": 20.4,
+      "winner": "onnx_static_int8",
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 13.8717,
+          "latency_p95_ms": 16.6406,
+          "estimated_latency_p50_ms": 163.686,
+          "latency_scaling_factor": 11.8,
+          "memory_delta_mb": 42.973,
+          "estimated_memory_mb": 47.27,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 13.108,
+          "latency_p95_ms": 20.81,
+          "estimated_latency_p50_ms": 200.552,
+          "latency_scaling_factor": 15.3,
+          "memory_delta_mb": 23.496,
+          "estimated_memory_mb": 25.846,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    },
+    {
+      "hardware": "rpi4",
+      "priority": "balanced",
+      "seconds": 18.5,
+      "winner": "onnx_static_int8",
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 13.6151,
+          "latency_p95_ms": 26.4979,
+          "estimated_latency_p50_ms": 160.658,
+          "latency_scaling_factor": 11.8,
+          "memory_delta_mb": 42.84,
+          "estimated_memory_mb": 47.124,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 11.2585,
+          "latency_p95_ms": 15.2754,
+          "estimated_latency_p50_ms": 172.255,
+          "latency_scaling_factor": 15.3,
+          "memory_delta_mb": 23.508,
+          "estimated_memory_mb": 25.859,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    },
+    {
+      "hardware": "rpi4",
+      "priority": "accuracy",
+      "seconds": 18.9,
+      "winner": "onnx_fp32_baseline",
+      "results": [
+        {
+          "name": "onnx_fp32_baseline",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 12.8719,
+          "latency_p95_ms": 16.2042,
+          "estimated_latency_p50_ms": 151.888,
+          "latency_scaling_factor": 11.8,
+          "memory_delta_mb": 42.98,
+          "estimated_memory_mb": 47.278,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "latency_p50_ms": 10.9419,
+          "latency_p95_ms": 13.8871,
+          "estimated_latency_p50_ms": 167.411,
+          "latency_scaling_factor": 15.3,
+          "memory_delta_mb": 23.508,
+          "estimated_memory_mb": 25.859,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ]
+    }
+  ],
+  "x86_repeats": [
+    {
+      "winner": "onnx_static_int8",
+      "seconds": 18.1,
+      "p50": {
+        "onnx_fp32_baseline": 13.2727,
+        "onnx_static_int8": 10.9341
+      }
+    },
+    {
+      "winner": "onnx_static_int8",
+      "seconds": 18.2,
+      "p50": {
+        "onnx_fp32_baseline": 13.4102,
+        "onnx_static_int8": 10.92
+      }
+    },
+    {
+      "winner": "onnx_fp32_baseline",
+      "seconds": 20.8,
+      "p50": {
+        "onnx_fp32_baseline": 12.532,
+        "onnx_static_int8": 23.5866
+      }
+    }
+  ]
+}

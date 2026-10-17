@@ -1,0 +1,38 @@
+{
+  "initializers": [
+    {
+      "dtype": "FLOAT",
+      "name": "B",
+      "shape": [
+        8
+      ]
+    },
+    {
+      "dtype": "FLOAT",
+      "name": "W_scale",
+      "shape": []
+    },
+    {
+      "dtype": "UINT8",
+      "name": "W_zero_point",
+      "shape": []
+    },
+    {
+      "dtype": "UINT8",
+      "name": "W_quantized",
+      "shape": [
+        4,
+        8
+      ]
+    }
+  ],
+  "op_types": [
+    "Add",
+    "Cast",
+    "DynamicQuantizeLinear",
+    "MatMulInteger",
+    "Mul",
+    "Mul",
+    "Relu"
+  ]
+}

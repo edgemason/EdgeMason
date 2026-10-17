@@ -1,0 +1,1566 @@
+[
+  {
+    "model": "squeezenet1.1-13.onnx",
+    "test_samples": 156,
+    "pool_size": 100,
+    "fp32_test": {
+      "top1": 0.3525641025641026,
+      "top5": 0.6282051282051282
+    },
+    "points": [
+      {
+        "calibration_size": 1,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.3525641025641026,
+          "top5": 0.6153846153846154
+        },
+        "per_tensor_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6089743589743589
+        },
+        "per_channel_calibration": {
+          "top1": 0.0,
+          "top5": 0.0
+        },
+        "fp32_calibration": {
+          "top1": 0.0,
+          "top5": 0.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.3333333333333333,
+          "top5": 0.6282051282051282
+        },
+        "per_tensor_test": {
+          "top1": 0.3333333333333333,
+          "top5": 0.5961538461538461
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.358974358974359,
+          "top5": 0.6538461538461539
+        },
+        "per_tensor_test": {
+          "top1": 0.33974358974358976,
+          "top5": 0.6153846153846154
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6153846153846154
+        },
+        "per_tensor_test": {
+          "top1": 0.3333333333333333,
+          "top5": 0.6153846153846154
+        },
+        "per_channel_calibration": {
+          "top1": 0.0,
+          "top5": 0.5
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 0.5
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.3333333333333333,
+          "top5": 0.6346153846153846
+        },
+        "per_tensor_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6282051282051282
+        },
+        "per_channel_calibration": {
+          "top1": 0.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.3525641025641026,
+          "top5": 0.6153846153846154
+        },
+        "per_tensor_test": {
+          "top1": 0.33974358974358976,
+          "top5": 0.6153846153846154
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.3525641025641026,
+          "top5": 0.6346153846153846
+        },
+        "per_tensor_test": {
+          "top1": 0.358974358974359,
+          "top5": 0.6282051282051282
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.3333333333333333,
+          "top5": 0.6217948717948718
+        },
+        "per_tensor_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6153846153846154
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.33974358974358976,
+          "top5": 0.6153846153846154
+        },
+        "per_tensor_test": {
+          "top1": 0.3333333333333333,
+          "top5": 0.6346153846153846
+        },
+        "per_channel_calibration": {
+          "top1": 0.4,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.3525641025641026,
+          "top5": 0.6153846153846154
+        },
+        "per_tensor_test": {
+          "top1": 0.3333333333333333,
+          "top5": 0.6153846153846154
+        },
+        "per_channel_calibration": {
+          "top1": 0.2,
+          "top5": 0.6
+        },
+        "fp32_calibration": {
+          "top1": 0.2,
+          "top5": 0.6
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.3269230769230769,
+          "top5": 0.6025641025641025
+        },
+        "per_tensor_test": {
+          "top1": 0.3525641025641026,
+          "top5": 0.5961538461538461
+        },
+        "per_channel_calibration": {
+          "top1": 0.4,
+          "top5": 0.5
+        },
+        "fp32_calibration": {
+          "top1": 0.4,
+          "top5": 0.6
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6153846153846154
+        },
+        "per_tensor_test": {
+          "top1": 0.33974358974358976,
+          "top5": 0.5897435897435898
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 0.7
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 0.6
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6025641025641025
+        },
+        "per_tensor_test": {
+          "top1": 0.3141025641025641,
+          "top5": 0.6025641025641025
+        },
+        "per_channel_calibration": {
+          "top1": 0.36,
+          "top5": 0.6
+        },
+        "fp32_calibration": {
+          "top1": 0.44,
+          "top5": 0.64
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.36538461538461536,
+          "top5": 0.6089743589743589
+        },
+        "per_tensor_test": {
+          "top1": 0.32051282051282054,
+          "top5": 0.5897435897435898
+        },
+        "per_channel_calibration": {
+          "top1": 0.32,
+          "top5": 0.56
+        },
+        "fp32_calibration": {
+          "top1": 0.36,
+          "top5": 0.6
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.3269230769230769,
+          "top5": 0.6025641025641025
+        },
+        "per_tensor_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6153846153846154
+        },
+        "per_channel_calibration": {
+          "top1": 0.48,
+          "top5": 0.64
+        },
+        "fp32_calibration": {
+          "top1": 0.52,
+          "top5": 0.64
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.358974358974359,
+          "top5": 0.6217948717948718
+        },
+        "per_tensor_test": {
+          "top1": 0.36538461538461536,
+          "top5": 0.6282051282051282
+        },
+        "per_channel_calibration": {
+          "top1": 0.38,
+          "top5": 0.62
+        },
+        "fp32_calibration": {
+          "top1": 0.4,
+          "top5": 0.64
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.34615384615384615,
+          "top5": 0.6089743589743589
+        },
+        "per_tensor_test": {
+          "top1": 0.33974358974358976,
+          "top5": 0.6217948717948718
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 0.76
+        },
+        "fp32_calibration": {
+          "top1": 0.44,
+          "top5": 0.74
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.3269230769230769,
+          "top5": 0.6153846153846154
+        },
+        "per_tensor_test": {
+          "top1": 0.3076923076923077,
+          "top5": 0.5961538461538461
+        },
+        "per_channel_calibration": {
+          "top1": 0.36,
+          "top5": 0.62
+        },
+        "fp32_calibration": {
+          "top1": 0.36,
+          "top5": 0.66
+        }
+      },
+      {
+        "calibration_size": 100,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.3269230769230769,
+          "top5": 0.5961538461538461
+        },
+        "per_tensor_test": {
+          "top1": 0.3269230769230769,
+          "top5": 0.6025641025641025
+        },
+        "per_channel_calibration": {
+          "top1": 0.4,
+          "top5": 0.65
+        },
+        "fp32_calibration": {
+          "top1": 0.44,
+          "top5": 0.66
+        }
+      }
+    ]
+  },
+  {
+    "model": "shufflenet-v2-13.onnx",
+    "test_samples": 156,
+    "pool_size": 100,
+    "fp32_test": {
+      "top1": 0.4935897435897436,
+      "top5": 0.75
+    },
+    "points": [
+      {
+        "calibration_size": 1,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.3717948717948718,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.3525641025641026,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.0,
+          "top5": 0.0
+        },
+        "fp32_calibration": {
+          "top1": 0.0,
+          "top5": 0.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7435897435897436
+        },
+        "per_tensor_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.75
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.4358974358974359,
+          "top5": 0.7435897435897436
+        },
+        "per_tensor_test": {
+          "top1": 0.46153846153846156,
+          "top5": 0.75
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.40384615384615385,
+          "top5": 0.7435897435897436
+        },
+        "per_tensor_test": {
+          "top1": 0.358974358974359,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 0.5
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 0.5
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.4358974358974359,
+          "top5": 0.75
+        },
+        "per_tensor_test": {
+          "top1": 0.41025641025641024,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.4807692307692308,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.75
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.46794871794871795,
+          "top5": 0.7564102564102564
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.75
+        },
+        "per_tensor_test": {
+          "top1": 0.5128205128205128,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.8,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.8,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7628205128205128
+        },
+        "per_tensor_test": {
+          "top1": 0.4807692307692308,
+          "top5": 0.7435897435897436
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.7564102564102564
+        },
+        "per_tensor_test": {
+          "top1": 0.5128205128205128,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 0.5
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 0.5
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7243589743589743
+        },
+        "per_tensor_test": {
+          "top1": 0.5,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.7,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.7,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.7371794871794872
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7564102564102564
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 0.7
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 0.7
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.46153846153846156,
+          "top5": 0.7628205128205128
+        },
+        "per_tensor_test": {
+          "top1": 0.5,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.56,
+          "top5": 0.84
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5192307692307693,
+          "top5": 0.7564102564102564
+        },
+        "per_tensor_test": {
+          "top1": 0.5192307692307693,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.48,
+          "top5": 0.68
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.68
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7564102564102564
+        },
+        "per_tensor_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 0.76
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.76
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.7371794871794872
+        },
+        "per_tensor_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.52,
+          "top5": 0.78
+        },
+        "fp32_calibration": {
+          "top1": 0.54,
+          "top5": 0.74
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.58,
+          "top5": 0.84
+        },
+        "fp32_calibration": {
+          "top1": 0.62,
+          "top5": 0.76
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5,
+          "top5": 0.7371794871794872
+        },
+        "per_tensor_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7435897435897436
+        },
+        "per_channel_calibration": {
+          "top1": 0.56,
+          "top5": 0.78
+        },
+        "fp32_calibration": {
+          "top1": 0.58,
+          "top5": 0.76
+        }
+      },
+      {
+        "calibration_size": 100,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5128205128205128,
+          "top5": 0.7435897435897436
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7435897435897436
+        },
+        "per_channel_calibration": {
+          "top1": 0.56,
+          "top5": 0.74
+        },
+        "fp32_calibration": {
+          "top1": 0.58,
+          "top5": 0.74
+        }
+      }
+    ]
+  },
+  {
+    "model": "mobilenetv2.onnx",
+    "test_samples": 156,
+    "pool_size": 100,
+    "fp32_test": {
+      "top1": 0.5448717948717948,
+      "top5": 0.7628205128205128
+    },
+    "points": [
+      {
+        "calibration_size": 1,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5256410256410257,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.46794871794871795,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5576923076923077,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5448717948717948,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.4807692307692308,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5512820512820513,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.4807692307692308,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.47435897435897434,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5448717948717948,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5512820512820513,
+          "top5": 0.7628205128205128
+        },
+        "per_tensor_test": {
+          "top1": 0.47435897435897434,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5384615384615384,
+          "top5": 0.7628205128205128
+        },
+        "per_tensor_test": {
+          "top1": 0.4807692307692308,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.8,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.8,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5512820512820513,
+          "top5": 0.7628205128205128
+        },
+        "per_tensor_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.8,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.8,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5448717948717948,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.4807692307692308,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 0.7
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 0.7
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5576923076923077,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.4,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5576923076923077,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.4807692307692308,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 0.7
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.7
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5576923076923077,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.5,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.64,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5576923076923077,
+          "top5": 0.7628205128205128
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.52,
+          "top5": 0.76
+        },
+        "fp32_calibration": {
+          "top1": 0.56,
+          "top5": 0.76
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5576923076923077,
+          "top5": 0.7628205128205128
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.717948717948718
+        },
+        "per_channel_calibration": {
+          "top1": 0.56,
+          "top5": 0.84
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 0.84
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5512820512820513,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.54,
+          "top5": 0.82
+        },
+        "fp32_calibration": {
+          "top1": 0.56,
+          "top5": 0.82
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5512820512820513,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.66,
+          "top5": 0.88
+        },
+        "fp32_calibration": {
+          "top1": 0.64,
+          "top5": 0.88
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5448717948717948,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.64,
+          "top5": 0.82
+        },
+        "fp32_calibration": {
+          "top1": 0.58,
+          "top5": 0.82
+        }
+      },
+      {
+        "calibration_size": 100,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5641025641025641,
+          "top5": 0.7692307692307693
+        },
+        "per_tensor_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.63,
+          "top5": 0.82
+        },
+        "fp32_calibration": {
+          "top1": 0.62,
+          "top5": 0.82
+        }
+      }
+    ]
+  },
+  {
+    "model": "resnet18-v1-13.onnx",
+    "test_samples": 156,
+    "pool_size": 100,
+    "fp32_test": {
+      "top1": 0.532051282051282,
+      "top5": 0.7243589743589743
+    },
+    "points": [
+      {
+        "calibration_size": 1,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.28205128205128205,
+          "top5": 0.6794871794871795
+        },
+        "per_tensor_test": {
+          "top1": 0.28205128205128205,
+          "top5": 0.6602564102564102
+        },
+        "per_channel_calibration": {
+          "top1": 0.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5576923076923077,
+          "top5": 0.7243589743589743
+        },
+        "per_tensor_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 1,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5256410256410257,
+          "top5": 0.7371794871794872
+        },
+        "per_tensor_test": {
+          "top1": 0.5256410256410257,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5128205128205128,
+          "top5": 0.717948717948718
+        },
+        "per_tensor_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.391025641025641,
+          "top5": 0.7115384615384616
+        },
+        "per_tensor_test": {
+          "top1": 0.3717948717948718,
+          "top5": 0.6987179487179487
+        },
+        "per_channel_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 1.0,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 2,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.48717948717948717,
+          "top5": 0.717948717948718
+        },
+        "per_tensor_test": {
+          "top1": 0.5128205128205128,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.5,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5128205128205128,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.5192307692307693,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 1.0
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5256410256410257,
+          "top5": 0.7243589743589743
+        },
+        "per_tensor_test": {
+          "top1": 0.5256410256410257,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.8,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.8,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 5,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5512820512820513,
+          "top5": 0.7371794871794872
+        },
+        "per_tensor_test": {
+          "top1": 0.5128205128205128,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.6,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.6,
+          "top5": 1.0
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.4935897435897436,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.717948717948718
+        },
+        "per_channel_calibration": {
+          "top1": 0.4,
+          "top5": 0.7
+        },
+        "fp32_calibration": {
+          "top1": 0.3,
+          "top5": 0.7
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.5256410256410257,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.3,
+          "top5": 0.7
+        },
+        "fp32_calibration": {
+          "top1": 0.3,
+          "top5": 0.7
+        }
+      },
+      {
+        "calibration_size": 10,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5192307692307693,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.5064102564102564,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.4,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.4,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7243589743589743
+        },
+        "per_tensor_test": {
+          "top1": 0.5256410256410257,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.52,
+          "top5": 0.76
+        },
+        "fp32_calibration": {
+          "top1": 0.44,
+          "top5": 0.84
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.5384615384615384,
+          "top5": 0.717948717948718
+        },
+        "per_tensor_test": {
+          "top1": 0.5192307692307693,
+          "top5": 0.7243589743589743
+        },
+        "per_channel_calibration": {
+          "top1": 0.48,
+          "top5": 0.72
+        },
+        "fp32_calibration": {
+          "top1": 0.44,
+          "top5": 0.76
+        }
+      },
+      {
+        "calibration_size": 25,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.56,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.56,
+          "top5": 0.8
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.5384615384615384,
+          "top5": 0.7307692307692307
+        },
+        "per_tensor_test": {
+          "top1": 0.5192307692307693,
+          "top5": 0.7435897435897436
+        },
+        "per_channel_calibration": {
+          "top1": 0.56,
+          "top5": 0.78
+        },
+        "fp32_calibration": {
+          "top1": 0.5,
+          "top5": 0.82
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 1,
+        "per_channel_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7371794871794872
+        },
+        "per_tensor_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7371794871794872
+        },
+        "per_channel_calibration": {
+          "top1": 0.64,
+          "top5": 0.84
+        },
+        "fp32_calibration": {
+          "top1": 0.58,
+          "top5": 0.86
+        }
+      },
+      {
+        "calibration_size": 50,
+        "draw": 2,
+        "per_channel_test": {
+          "top1": 0.5384615384615384,
+          "top5": 0.7371794871794872
+        },
+        "per_tensor_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7435897435897436
+        },
+        "per_channel_calibration": {
+          "top1": 0.52,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.46,
+          "top5": 0.82
+        }
+      },
+      {
+        "calibration_size": 100,
+        "draw": 0,
+        "per_channel_test": {
+          "top1": 0.532051282051282,
+          "top5": 0.7243589743589743
+        },
+        "per_tensor_test": {
+          "top1": 0.5192307692307693,
+          "top5": 0.7307692307692307
+        },
+        "per_channel_calibration": {
+          "top1": 0.55,
+          "top5": 0.8
+        },
+        "fp32_calibration": {
+          "top1": 0.51,
+          "top5": 0.81
+        }
+      }
+    ]
+  }
+]

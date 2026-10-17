@@ -236,8 +236,8 @@
               <div>
                 <label class="block text-xs font-medium text-slate-300 mb-1.5">Execution Provider</label>
                 <select id="executionProvider" class="w-full bg-dark-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                  <option value="auto" selected>Auto Detect</option>
-                  <option value="cpu">CPU (Default)</option>
+                  <option value="cpu" selected>CPU (Default)</option>
+                  <option value="auto">Auto Detect (GPU if the target supports it)</option>
                   <option value="cuda">CUDA (NVIDIA GPU)</option>
                 </select>
               </div>
@@ -331,12 +331,13 @@
             </div>
             <h3 class="text-2xl font-bold text-white tracking-tight" id="winnerName">--</h3>
             <p class="text-xs text-slate-300" id="winnerHardwareSubtitle">Target: Raspberry Pi 5</p>
+            <ul id="dataWarnings" class="hidden text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg px-3 py-2 space-y-1 list-disc list-inside"></ul>
           </div>
 
           <!-- Winner Key Metrics Grid -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
             <div class="glass-card rounded-xl p-3">
-              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Latency (p50)</div>
+              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Est. Latency on Target</div>
               <div class="text-lg font-bold text-emerald-400 mt-0.5" id="winnerLatency">-- ms</div>
             </div>
             <div class="glass-card rounded-xl p-3">
@@ -344,7 +345,7 @@
               <div class="text-lg font-bold text-cyan-400 mt-0.5" id="winnerFps">-- FPS</div>
             </div>
             <div class="glass-card rounded-xl p-3">
-              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Memory Delta</div>
+              <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Est. Memory on Target</div>
               <div class="text-lg font-bold text-amber-400 mt-0.5" id="winnerMemory">-- MB</div>
             </div>
             <div class="glass-card rounded-xl p-3">
@@ -410,9 +411,10 @@
                 <th class="py-3 px-4">Candidate Strategy</th>
                 <th class="py-3 px-4">Framework</th>
                 <th class="py-3 px-4">Status</th>
-                <th class="py-3 px-4">Latency p50</th>
+                <th class="py-3 px-4">Host Latency p50</th>
+                <th class="py-3 px-4">Est. on Target</th>
                 <th class="py-3 px-4">Throughput (FPS)</th>
-                <th class="py-3 px-4">Memory Delta</th>
+                <th class="py-3 px-4">Est. Memory</th>
                 <th class="py-3 px-4">Model Size</th>
                 <th class="py-3 px-4">Top-1 Accuracy</th>
               </tr>
@@ -589,10 +591,20 @@
       const winner = data.winner;
       if (winner) {
         document.getElementById('winnerName').textContent = winner.name;
-        document.getElementById('winnerHardwareSubtitle').textContent = `Target: ${data.hardware_target.toUpperCase()} | Priority: ${data.constraints.priority}`;
-        document.getElementById('winnerLatency').textContent = winner.latency_p50_ms ? winner.latency_p50_ms.toFixed(2) + ' ms' : '--';
+        const split = data.data_split || {};
+        const splitText = split.test_samples ? ` | Calibrated on ${split.calibration_samples} images, accuracy tested on ${split.test_samples} others` : '';
+        document.getElementById('winnerHardwareSubtitle').textContent = `Target: ${data.hardware_target.toUpperCase()} | Priority: ${data.constraints.priority}${splitText}`;
+        const warningsList = document.getElementById('dataWarnings');
+        warningsList.replaceChildren(...(data.warnings || []).map(text => {
+          const item = document.createElement('li');
+          item.textContent = text;
+          return item;
+        }));
+        warningsList.classList.toggle('hidden', !(data.warnings || []).length);
+        document.getElementById('winnerLatency').textContent = winner.estimated_latency_p50_ms != null ? '~' + winner.estimated_latency_p50_ms.toFixed(1) + ' ms' : '--';
+        document.getElementById('winnerLatency').title = winner.latency_p50_ms != null ? `Host p50 ${winner.latency_p50_ms.toFixed(2)} ms × ${winner.latency_scaling_factor} for ${data.hardware_target}` : '';
         document.getElementById('winnerFps').textContent = winner.throughput_fps ? winner.throughput_fps.toFixed(1) + ' FPS' : '--';
-        document.getElementById('winnerMemory').textContent = winner.memory_delta_mb ? winner.memory_delta_mb.toFixed(2) + ' MB' : '--';
+        document.getElementById('winnerMemory').textContent = winner.estimated_memory_mb != null ? '~' + winner.estimated_memory_mb.toFixed(2) + ' MB' : '--';
         document.getElementById('winnerSize').textContent = winner.model_size_mb ? winner.model_size_mb.toFixed(2) + ' MB' : '--';
 
         if (data.download_url) {
@@ -636,9 +648,10 @@
           </td>
           <td class="py-3 px-4 font-mono text-[11px] text-slate-400">${r.framework || 'onnxruntime'}</td>
           <td class="py-3 px-4">${statusBadge}</td>
-          <td class="py-3 px-4 text-slate-200 font-mono">${r.latency_p50_ms ? r.latency_p50_ms.toFixed(2) + ' ms' : '--'}</td>
+          <td class="py-3 px-4 text-slate-400 font-mono">${r.latency_p50_ms != null ? r.latency_p50_ms.toFixed(2) + ' ms' : '--'}</td>
+          <td class="py-3 px-4 text-slate-200 font-mono">${r.estimated_latency_p50_ms != null ? '~' + r.estimated_latency_p50_ms.toFixed(1) + ' ms <span class="text-slate-500">(×' + r.latency_scaling_factor + ')</span>' : '--'}</td>
           <td class="py-3 px-4 text-cyan-300 font-mono">${r.throughput_fps ? r.throughput_fps.toFixed(1) : '--'}</td>
-          <td class="py-3 px-4 text-amber-300 font-mono">${r.memory_delta_mb ? r.memory_delta_mb.toFixed(2) + ' MB' : '--'}</td>
+          <td class="py-3 px-4 text-amber-300 font-mono">${r.estimated_memory_mb != null ? '~' + r.estimated_memory_mb.toFixed(2) + ' MB' : '--'}</td>
           <td class="py-3 px-4 text-slate-400 font-mono">${r.model_size_mb ? r.model_size_mb.toFixed(2) + ' MB' : '--'}</td>
           <td class="py-3 px-4 text-purple-300 font-mono">${top1Acc}</td>
         `;
@@ -652,16 +665,16 @@
       const ctx = document.getElementById('latencyChart').getContext('2d');
       if (latencyChartInstance) latencyChartInstance.destroy();
 
-      const validResults = results.filter(r => r.success && r.latency_p50_ms != null);
+      const validResults = results.filter(r => r.success && r.estimated_latency_p50_ms != null);
       const labels = validResults.map(r => r.name);
-      const latencies = validResults.map(r => r.latency_p50_ms);
+      const latencies = validResults.map(r => r.estimated_latency_p50_ms);
 
       latencyChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
           datasets: [{
-            label: 'Median Latency (ms)',
+            label: 'Estimated Median Latency on Target (ms)',
             data: latencies,
             backgroundColor: 'rgba(99, 102, 241, 0.7)',
             borderColor: 'rgba(99, 102, 241, 1)',

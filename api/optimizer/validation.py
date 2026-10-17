@@ -6,14 +6,30 @@ import numpy as np
 import onnxruntime as ort
 
 
-MAX_VALIDATION_BYTES = 256 * 1024 * 1024
-MAX_VALIDATION_SAMPLES = 256
+# 1000 images of 3x224x224 float32 is about 602 MB.
+MAX_VALIDATION_BYTES = 640 * 1024 * 1024
+MAX_VALIDATION_SAMPLES = 1000
+
+# A labeled .npz is split so accuracy is never measured on the images used to
+# calibrate static INT8. Calibration only learns value ranges and stops
+# improving after a few hundred images, so it gets the smaller share.
+CALIBRATION_FRACTION = 0.3
+MAX_CALIBRATION_SAMPLES = 300
+RECOMMENDED_CALIBRATION_SAMPLES = 100
+RELIABLE_TEST_SAMPLES = 200
+SPLIT_SEED = 0
 
 
 @dataclass(frozen=True)
 class ValidationData:
     inputs: np.ndarray
     labels: np.ndarray
+
+
+@dataclass(frozen=True)
+class CalibrationSplit:
+    calibration: np.ndarray
+    test: ValidationData
 
 
 def _validate_inputs(inputs: np.ndarray) -> np.ndarray:
@@ -66,6 +82,53 @@ def load_validation_data(path: str | Path) -> ValidationData:
         raise ValueError("labels must be non-negative")
 
     return ValidationData(inputs=inputs, labels=labels.astype(np.int64, copy=False))
+
+
+def split_calibration_and_test(data: ValidationData) -> CalibrationSplit:
+    """Shuffle with a fixed seed, then take 30% (at most 300) for calibration.
+
+    The rest is the test set. Every candidate is scored on the same test set,
+    and the split is identical on every run.
+    """
+    sample_count = len(data.inputs)
+    if sample_count < 2:
+        raise ValueError(
+            "labeled .npz needs at least 2 samples to split into calibration and test"
+        )
+    calibration_count = min(
+        MAX_CALIBRATION_SAMPLES,
+        max(1, round(sample_count * CALIBRATION_FRACTION)),
+        sample_count - 1,
+    )
+    order = np.random.default_rng(SPLIT_SEED).permutation(sample_count)
+    calibration_index = np.sort(order[:calibration_count])
+    test_index = np.sort(order[calibration_count:])
+    return CalibrationSplit(
+        calibration=data.inputs[calibration_index],
+        test=ValidationData(
+            inputs=data.inputs[test_index],
+            labels=data.labels[test_index],
+        ),
+    )
+
+
+def data_warnings(calibration_count: int, test_count: int | None) -> list[str]:
+    """Warnings for small datasets. Results are still returned."""
+    warnings = []
+    if calibration_count < RECOMMENDED_CALIBRATION_SAMPLES:
+        warnings.append(
+            f"Only {calibration_count} calibration images were used. Static INT8 "
+            f"results may be less accurate; {RECOMMENDED_CALIBRATION_SAMPLES}-500 "
+            "are recommended."
+        )
+    if test_count is not None and test_count < RELIABLE_TEST_SAMPLES:
+        # 95% confidence half-width for an accuracy near 50% (the worst case).
+        margin = 1.96 * (0.25 / test_count) ** 0.5 * 100
+        warnings.append(
+            f"Accuracy is based on {test_count} test images, so it may vary by "
+            f"about ±{margin:.0f} points."
+        )
+    return warnings
 
 
 def evaluate_tvm(

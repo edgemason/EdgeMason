@@ -4,13 +4,15 @@ uvicorn[standard]==0.30.0
 pydantic==2.7.0
 python-multipart==0.0.9
 onnx==1.16.0
-onnxruntime-gpu==1.27.0; sys_platform == "linux" and platform_machine == "x86_64"
-nvidia-cudnn-cu13==9.26.0.51; sys_platform == "linux" and platform_machine == "x86_64"
-onnxruntime==1.27.0; sys_platform != "linux" or platform_machine != "x86_64"
+onnxruntime==1.27.0
 numpy==1.26.4
 psutil==6.0.0
 tensorflow==2.15.1
 keras==2.15.0
 anyio==4.4.0
 pillow==12.3.0
-apache-tvm
+apache-tvm==0.26.0
+# frontend (frontend/app.py)
+streamlit==1.56.0
+requests==2.34.2
+pandas==3.0.6

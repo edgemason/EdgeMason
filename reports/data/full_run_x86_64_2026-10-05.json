@@ -1,0 +1,350 @@
+{
+  "hardware_id": "x86_64",
+  "execution_provider": "cpu",
+  "priority": "latency",
+  "include_tvm": true,
+  "models": [
+    {
+      "model": "mobilenetv2.onnx",
+      "calibration": "imagenetv2_mobilenetv2_256.npz",
+      "status": 200,
+      "deploy_seconds": 194.9,
+      "model_family": "cnn",
+      "model_size_mb": 13.344080924987793,
+      "parameters": 3487816,
+      "data_split": {
+        "calibration_samples": 77,
+        "test_samples": 179
+      },
+      "warnings": [
+        "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+      ],
+      "winner": "onnx_static_int8",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 17.5093,
+          "latency_p95_ms": 29.6054,
+          "estimated_latency_p50_ms": 17.509,
+          "throughput_fps": 50.28,
+          "memory_delta_mb": 42.98,
+          "estimated_memory_mb": 42.98,
+          "model_size_mb": 13.344,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 15.2276,
+          "latency_p95_ms": 23.9532,
+          "estimated_latency_p50_ms": 15.228,
+          "throughput_fps": 59.36,
+          "memory_delta_mb": 23.508,
+          "estimated_memory_mb": 23.508,
+          "model_size_mb": 3.725,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.5754189944134078,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        },
+        {
+          "name": "tvm_opt_level_3",
+          "framework": "tvm",
+          "success": true,
+          "provider": "TVM/CPUDevice",
+          "error": null,
+          "latency_p50_ms": 374.9999,
+          "latency_p95_ms": 429.9846,
+          "estimated_latency_p50_ms": 375.0,
+          "throughput_fps": 2.58,
+          "memory_delta_mb": 52.004,
+          "estimated_memory_mb": 52.004,
+          "model_size_mb": 12.604,
+          "warmup_runs": 7,
+          "timed_runs": 26,
+          "top1": 0.5810055865921788,
+          "top5": 0.776536312849162,
+          "test_samples": 179
+        },
+        {
+          "name": "tvm_int8_quantized",
+          "framework": "tvm",
+          "success": true,
+          "provider": "TVM/CPUDevice",
+          "error": null,
+          "latency_p50_ms": 284.4257,
+          "latency_p95_ms": 355.5725,
+          "estimated_latency_p50_ms": 284.426,
+          "throughput_fps": 3.4,
+          "memory_delta_mb": 28.062,
+          "estimated_memory_mb": 28.062,
+          "model_size_mb": 3.533,
+          "warmup_runs": 9,
+          "timed_runs": 34,
+          "top1": 0.5810055865921788,
+          "top5": 0.7821229050279329,
+          "test_samples": 179
+        }
+      ],
+      "package": {
+        "files": [
+          "Dockerfile",
+          "README.md",
+          "benchmark_report.json",
+          "inference.py",
+          "model.onnx",
+          "requirements.txt"
+        ],
+        "zip_mb": 3.13,
+        "self_test_ok": true,
+        "self_test_output": [
+          "Output: shape [1, 1000]",
+          "Top-5 classes: [21, 92, 127, 22, 701]",
+          "Latency: 16.6 ms",
+          "OK"
+        ]
+      }
+    },
+    {
+      "model": "resnet50.onnx",
+      "calibration": "imagenetv2_mobilenetv2_256.npz",
+      "status": 200,
+      "deploy_seconds": 2848.5,
+      "model_family": "cnn",
+      "model_size_mb": 97.41439151763916,
+      "parameters": 25530472,
+      "data_split": {
+        "calibration_samples": 77,
+        "test_samples": 179
+      },
+      "warnings": [
+        "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+      ],
+      "winner": "onnx_static_int8",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 130.987,
+          "latency_p95_ms": 163.2417,
+          "estimated_latency_p50_ms": 130.987,
+          "throughput_fps": 7.48,
+          "memory_delta_mb": 254.973,
+          "estimated_memory_mb": 254.973,
+          "model_size_mb": 97.414,
+          "warmup_runs": 10,
+          "timed_runs": 75,
+          "top1": 0.6480446927374302,
+          "top5": 0.8603351955307262,
+          "test_samples": 179
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 85.3094,
+          "latency_p95_ms": 108.8085,
+          "estimated_latency_p50_ms": 85.309,
+          "throughput_fps": 11.37,
+          "memory_delta_mb": 76.629,
+          "estimated_memory_mb": 76.629,
+          "model_size_mb": 24.873,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.6368715083798883,
+          "top5": 0.8547486033519553,
+          "test_samples": 179
+        },
+        {
+          "name": "tvm_opt_level_3",
+          "framework": "tvm",
+          "success": true,
+          "provider": "TVM/CPUDevice",
+          "error": null,
+          "latency_p50_ms": 6558.7596,
+          "latency_p95_ms": 6698.1183,
+          "estimated_latency_p50_ms": 6558.76,
+          "throughput_fps": 0.15,
+          "memory_delta_mb": 388.926,
+          "estimated_memory_mb": 388.926,
+          "model_size_mb": 90.761,
+          "warmup_runs": 1,
+          "timed_runs": 10,
+          "top1": 0.6480446927374302,
+          "top5": 0.8603351955307262,
+          "test_samples": 179
+        },
+        {
+          "name": "tvm_int8_quantized",
+          "framework": "tvm",
+          "success": true,
+          "provider": "TVM/CPUDevice",
+          "error": null,
+          "latency_p50_ms": 6803.5146,
+          "latency_p95_ms": 7378.6449,
+          "estimated_latency_p50_ms": 6803.515,
+          "throughput_fps": 0.14,
+          "memory_delta_mb": 98.152,
+          "estimated_memory_mb": 98.152,
+          "model_size_mb": 20.518,
+          "warmup_runs": 1,
+          "timed_runs": 10,
+          "top1": 0.6312849162011173,
+          "top5": 0.8603351955307262,
+          "test_samples": 179
+        }
+      ],
+      "package": {
+        "files": [
+          "Dockerfile",
+          "README.md",
+          "benchmark_report.json",
+          "inference.py",
+          "model.onnx",
+          "requirements.txt"
+        ],
+        "zip_mb": 20.11,
+        "self_test_ok": true,
+        "self_test_output": [
+          "Output: shape [1, 1000]",
+          "Top-5 classes: [21, 892, 128, 812, 701]",
+          "Latency: 70.1 ms",
+          "OK"
+        ]
+      }
+    },
+    {
+      "model": "resnet152.onnx",
+      "calibration": "imagenetv2_mobilenetv2_50.npz",
+      "status": 200,
+      "deploy_seconds": 2048.0,
+      "model_family": "cnn",
+      "model_size_mb": 229.3978967666626,
+      "parameters": 60117096,
+      "data_split": {
+        "calibration_samples": 15,
+        "test_samples": 35
+      },
+      "warnings": [
+        "Only 15 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 35 test images, so it may vary by about \u00b117 points."
+      ],
+      "winner": "onnx_static_int8",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 367.9595,
+          "latency_p95_ms": 429.7277,
+          "estimated_latency_p50_ms": 367.959,
+          "throughput_fps": 2.66,
+          "memory_delta_mb": 517.574,
+          "estimated_memory_mb": 517.574,
+          "model_size_mb": 229.398,
+          "warmup_runs": 7,
+          "timed_runs": 27,
+          "top1": 0.8,
+          "top5": 0.8571428571428571,
+          "test_samples": 35
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 216.9833,
+          "latency_p95_ms": 276.6129,
+          "estimated_latency_p50_ms": 216.983,
+          "throughput_fps": 4.47,
+          "memory_delta_mb": 144.23,
+          "estimated_memory_mb": 144.23,
+          "model_size_mb": 58.81,
+          "warmup_runs": 10,
+          "timed_runs": 45,
+          "top1": 0.7428571428571429,
+          "top5": 0.8571428571428571,
+          "test_samples": 35
+        },
+        {
+          "name": "tvm_opt_level_3",
+          "framework": "tvm",
+          "success": true,
+          "provider": "TVM/CPUDevice",
+          "error": null,
+          "latency_p50_ms": 20896.8822,
+          "latency_p95_ms": 21666.9774,
+          "estimated_latency_p50_ms": 20896.882,
+          "throughput_fps": 0.05,
+          "memory_delta_mb": 917.379,
+          "estimated_memory_mb": 917.379,
+          "model_size_mb": 213.774,
+          "warmup_runs": 1,
+          "timed_runs": 10,
+          "top1": 0.8,
+          "top5": 0.8571428571428571,
+          "test_samples": 35
+        },
+        {
+          "name": "tvm_int8_quantized",
+          "framework": "tvm",
+          "success": true,
+          "provider": "TVM/CPUDevice",
+          "error": null,
+          "latency_p50_ms": 19091.6853,
+          "latency_p95_ms": 19532.8021,
+          "estimated_latency_p50_ms": 19091.685,
+          "throughput_fps": 0.05,
+          "memory_delta_mb": 233.504,
+          "estimated_memory_mb": 233.504,
+          "model_size_mb": 48.14,
+          "warmup_runs": 1,
+          "timed_runs": 10,
+          "top1": 0.7428571428571429,
+          "top5": 0.8571428571428571,
+          "test_samples": 35
+        }
+      ],
+      "package": {
+        "files": [
+          "Dockerfile",
+          "README.md",
+          "benchmark_report.json",
+          "inference.py",
+          "model.onnx",
+          "requirements.txt"
+        ],
+        "zip_mb": 47.35,
+        "self_test_ok": true,
+        "self_test_output": [
+          "Output: shape [1, 1000]",
+          "Top-5 classes: [21, 892, 128, 127, 92]",
+          "Latency: 171.6 ms",
+          "OK"
+        ]
+      }
+    }
+  ]
+}

@@ -123,3 +123,80 @@ def test_small_fast_model_skips_static_int8():
         PlannerInput(model_size_mb=1.0, max_latency_ms=None)
     )
     assert "onnx_static_int8" not in candidate_names(plan)
+
+
+CNN_OPS = {"Conv": 52, "Clip": 35, "Add": 10, "Gemm": 1}          # MobileNetV2-like
+MATMUL_OPS = {"MatMul": 96, "Add": 120, "Softmax": 12, "Gemm": 2}  # transformer-like
+
+
+def test_model_family_from_operator_counts():
+    from api.planner.rule_based import model_family
+
+    assert model_family(CNN_OPS) == "cnn"
+    assert model_family(MATMUL_OPS) == "matmul"
+    assert model_family({"Relu": 3}) == "unknown"
+    assert model_family({}) == "unknown"
+
+
+def test_cnn_with_calibration_gets_static_int8_but_no_dynamic():
+    plan = generate_candidates(
+        PlannerInput(model_size_mb=13.0, has_calibration_data=True, operator_counts=CNN_OPS)
+    )
+
+    assert plan["model_family"] == "cnn"
+    assert candidate_names(plan) == ["onnx_fp32_baseline", "onnx_static_int8"]
+    skipped = {item["strategy"]: item["reason"] for item in plan["skipped"]}
+    assert "slower than FP32" in skipped["onnx_dynamic_int8"]
+    assert plan["warnings"] == []
+
+
+def test_cnn_never_gets_dynamic_even_for_large_model_and_tight_latency():
+    plan = generate_candidates(
+        PlannerInput(
+            model_size_mb=SIZE_THRESHOLD_MB + 100,
+            max_latency_ms=LATENCY_THRESHOLD_MS - 1,
+            has_calibration_data=False,
+            operator_counts=CNN_OPS,
+        )
+    )
+
+    assert candidate_names(plan) == ["onnx_fp32_baseline"]
+    assert "calibration" in plan["warnings"][0]
+
+
+def test_cnn_rule_applies_to_tvm_candidates_by_method():
+    plan = generate_candidates(
+        PlannerInput(
+            model_size_mb=13.0,
+            has_calibration_data=True,
+            include_tvm=True,
+            operator_counts=CNN_OPS,
+        )
+    )
+
+    methods = {c["name"]: c["quantization"] for c in plan["candidates"]}
+    assert methods == {
+        "onnx_fp32_baseline": "fp32",
+        "onnx_static_int8": "static_int8",
+        "tvm_opt_level_3": "fp32",
+        "tvm_int8_quantized": "static_int8",
+    }
+    assert "dynamic_int8" not in methods.values()
+
+
+def test_matmul_heavy_model_keeps_dynamic_int8():
+    plan = generate_candidates(
+        PlannerInput(
+            model_size_mb=SIZE_THRESHOLD_MB + 1,
+            max_latency_ms=LATENCY_THRESHOLD_MS - 1,
+            has_calibration_data=True,
+            operator_counts=MATMUL_OPS,
+        )
+    )
+
+    assert plan["model_family"] == "matmul"
+    assert set(candidate_names(plan)) == {
+        "onnx_fp32_baseline",
+        "onnx_static_int8",
+        "onnx_dynamic_int8",
+    }
