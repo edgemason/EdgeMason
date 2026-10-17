@@ -1,0 +1,635 @@
+#!/usr/bin/env python
+"""P0.9 results gate: the `check` subcommand.
+
+The gate answers one question - "does the candidate's results match the
+baseline?" - and answers it with an exit code, so that no agent and no tired
+human has to judge it by eye. Exit 0 is a pass, 1 a fail, 2 a usage or
+environment error.
+
+The gate never modifies either tree it is given. It runs commands inside them
+with bytecode writing off, and the only tree it writes to is a throwaway
+detached worktree of the candidate's merge-base, which it removes again in a
+`finally`.
+
+Usage:
+    uv run python scripts/gate.py check --candidate . --level full
+    uv run python scripts/gate.py check --candidate ../other --report /tmp/g.json
+"""
+
+import argparse
+import contextlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from collections.abc import Iterator, Mapping, Sequence
+from dataclasses import dataclass
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+EXIT_PASS = 0
+EXIT_FAIL = 1
+EXIT_USAGE = 2
+
+PASS = "pass"
+FAIL = "fail"
+SKIPPED = "skipped"
+NOT_RUN = "not run"
+
+# The files the capture writes, in the order the gate inspects them.
+ACCURACY_FILE = "accuracy.json"
+ENVIRONMENT_FILE = "environment.json"
+# Accuracy is the one output the gate allows to wobble: every number must be
+# equal to within this much. Everything else must be byte-identical.
+ACCURACY_TOLERANCE = 1e-6
+FAST_MARKERS = "not slow and not tvm and not cuda and not research"
+GOLDEN_PATHS = ("tests/golden", "baseline")
+# The gate judges a candidate against the commit it branched from, never
+# against itself, so a change already on `cleanup` cannot slip through.
+BASE_REFS = ("cleanup", "origin/cleanup")
+# A single detail never lists more than this many ids or paths.
+MAX_LISTED = 25
+STEP_NAMES = ("assets", "tests", "goldens", "deterministic-outputs", "lint-types")
+NODE_ID = re.compile(r"^[^\s]+\.py::")
+
+
+class GateError(Exception):
+    """A usage or environment problem: the gate cannot judge at all."""
+
+
+@dataclass(frozen=True)
+class Step:
+    """One gate step and what it found."""
+
+    name: str
+    status: str
+    details: str
+
+    def as_dict(self) -> dict[str, str]:
+        return {"name": self.name, "status": self.status, "details": self.details}
+
+
+@dataclass(frozen=True)
+class CheckRequest:
+    """Everything the `check` subcommand needs, resolved."""
+
+    candidate: Path
+    level: str
+    baseline_dir: Path
+    allow_deleted: frozenset[str]
+    allow_golden_change: bool
+
+
+@dataclass(frozen=True)
+class BaselineTree:
+    """A throwaway worktree of the candidate's merge-base, or nothing at all."""
+
+    path: Path | None
+    reason: str
+
+
+def _run(
+    command: Sequence[str],
+    cwd: Path,
+    env: Mapping[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        list(command),
+        cwd=str(cwd),
+        env=dict(env) if env is not None else None,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _child_env() -> dict[str, str]:
+    """An environment that leaves no trace in the tree it runs in."""
+    env = os.environ.copy()
+    env["PYTHONDONTWRITEBYTECODE"] = "1"
+    return env
+
+
+def _git(tree: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return _run(["git", "-C", str(tree), *args], cwd=tree)
+
+
+def _tail(result: subprocess.CompletedProcess[str], lines: int = 5) -> str:
+    """The last few lines of a failed command, as one readable line."""
+    text = (result.stderr or result.stdout or "").strip().splitlines()
+    return " | ".join(text[-lines:]) if text else f"exit {result.returncode}"
+
+
+def _list(values: Sequence[str]) -> str:
+    """A capped, comma-separated list for a step detail."""
+    shown = list(values[:MAX_LISTED])
+    if len(values) > MAX_LISTED:
+        shown.append(f"... (+{len(values) - MAX_LISTED} more)")
+    return ", ".join(shown)
+
+
+def resolve_merge_base(tree: Path) -> tuple[str | None, str]:
+    """The commit the candidate branched from, and why it was not found.
+
+    `cleanup` is the branch every spec branches from; without it the candidate
+    *is* the baseline, and `HEAD` is the only honest answer.
+    """
+    for ref in BASE_REFS:
+        if _git(tree, "rev-parse", "--verify", "--quiet", ref).returncode != 0:
+            continue
+        result = _git(tree, "merge-base", "HEAD", ref)
+        commit = result.stdout.strip()
+        if result.returncode == 0 and commit:
+            return commit, ""
+        return None, f"`git merge-base HEAD {ref}` failed: {_tail(result)}"
+    return None, "neither `cleanup` nor `origin/cleanup` exists in the candidate tree"
+
+
+@contextlib.contextmanager
+def baseline_worktree(candidate: Path, merge_base: str | None) -> Iterator[BaselineTree]:
+    """Materialise the merge-base as a temporary detached worktree.
+
+    Always removed, even when the caller raised. A leaked worktree is a bug.
+    """
+    if merge_base is None:
+        yield BaselineTree(None, "the merge-base could not be resolved")
+        return
+    parent = Path(tempfile.mkdtemp(prefix="edgemason-gate-baseline-"))
+    path = parent / "tree"
+    try:
+        result = _git(candidate, "worktree", "add", "--detach", str(path), merge_base)
+        if result.returncode != 0:
+            yield BaselineTree(None, f"could not check out {merge_base}: {_tail(result)}")
+            return
+        yield BaselineTree(path, "")
+    finally:
+        _git(candidate, "worktree", "remove", "--force", str(path))
+        _git(candidate, "worktree", "prune")
+        shutil.rmtree(parent, ignore_errors=True)
+
+
+# --- step 1: assets -------------------------------------------------------
+
+
+def step_assets(candidate: Path) -> Step:
+    """Verify the candidate's assets, provisioning them once if they are missing."""
+    script = candidate / "scripts" / "provision_assets.py"
+    if not script.is_file():
+        raise GateError(f"no provisioning script at {script}")
+
+    verify = _run(
+        [sys.executable, str(script), "--dest", str(candidate), "--verify-only"],
+        cwd=candidate,
+        env=_child_env(),
+    )
+    if verify.returncode == 0:
+        return Step("assets", PASS, _tail(verify))
+    if verify.returncode != 3:
+        return Step(
+            "assets",
+            FAIL,
+            f"`provision_assets.py --verify-only` reported a mismatch "
+            f"(exit {verify.returncode}): {_tail(verify)}",
+        )
+
+    # 3 is the real script's "files are missing": provision them, then verify.
+    provision = _run(
+        [sys.executable, str(script), "--dest", str(candidate)],
+        cwd=candidate,
+        env=_child_env(),
+    )
+    if provision.returncode != 0:
+        return Step(
+            "assets",
+            FAIL,
+            f"provisioning failed (exit {provision.returncode}): {_tail(provision)}",
+        )
+    again = _run(
+        [sys.executable, str(script), "--dest", str(candidate), "--verify-only"],
+        cwd=candidate,
+        env=_child_env(),
+    )
+    if again.returncode != 0:
+        return Step(
+            "assets",
+            FAIL,
+            f"assets are still not verified after provisioning "
+            f"(exit {again.returncode}): {_tail(again)}",
+        )
+    return Step("assets", PASS, f"assets were missing, provisioned and verified: {_tail(again)}")
+
+
+# --- step 2: tests --------------------------------------------------------
+
+
+def _pytest_command(level: str, *extra: str) -> list[str]:
+    command = [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *extra]
+    if level == "fast":
+        command += ["-m", FAST_MARKERS]
+    return command
+
+
+def _collect_node_ids(tree: Path, level: str) -> set[str]:
+    result = _run(_pytest_command(level, "--collect-only"), cwd=tree, env=_child_env())
+    # 5 is pytest's "no tests collected", which is a valid empty set.
+    if result.returncode not in (0, 5):
+        raise GateError(f"`pytest --collect-only` failed in {tree} (exit {result.returncode})")
+    return {line for line in result.stdout.splitlines() if NODE_ID.match(line)}
+
+
+def _deleted_ids(candidate_ids: set[str], baseline_ids: set[str]) -> list[str]:
+    return sorted(baseline_ids - candidate_ids)
+
+
+def step_tests(
+    candidate: Path,
+    level: str,
+    allow_deleted: frozenset[str],
+    merge_base: str | None,
+) -> Step:
+    """`check`'s step 2, including the `--allow-deleted` escape hatch."""
+    with baseline_worktree(candidate, merge_base) as baseline:
+        if baseline.path is None:
+            return Step("tests", SKIPPED, f"baseline test ids unavailable: {baseline.reason}")
+        run = _run(_pytest_command(level), cwd=candidate, env=_child_env())
+        if run.returncode != 0:
+            return Step(
+                "tests",
+                FAIL,
+                f"`pytest` failed in the candidate (exit {run.returncode}): {_tail(run)}",
+            )
+        try:
+            candidate_ids = _collect_node_ids(candidate, level)
+            baseline_ids = _collect_node_ids(baseline.path, level)
+        except GateError as exc:
+            return Step("tests", FAIL, str(exc))
+
+    missing = [node_id for node_id in _deleted_ids(candidate_ids, baseline_ids)
+               if node_id not in allow_deleted]
+    if missing:
+        return Step(
+            "tests",
+            FAIL,
+            f"{len(missing)} test id(s) are collected in the baseline tree but missing from "
+            f"the candidate: {_list(missing)}",
+        )
+    waived = sorted(set(_deleted_ids(candidate_ids, baseline_ids)) & set(allow_deleted))
+    details = f"{_tail(run)}; no baseline test id is missing"
+    if waived:
+        details += f"; {len(waived)} allowed deletion(s): {_list(waived)}"
+    return Step("tests", PASS, details)
+
+
+# --- step 3: goldens ------------------------------------------------------
+
+
+def step_goldens(
+    candidate: Path,
+    merge_base: str | None,
+    merge_base_reason: str,
+    allow_golden_change: bool,
+) -> Step:
+    """Golden and baseline files must not have moved since the merge-base."""
+    if merge_base is None:
+        return Step("goldens", SKIPPED, f"no merge-base to diff against: {merge_base_reason}")
+    result = _git(candidate, "diff", "--name-only", merge_base, "--", *GOLDEN_PATHS)
+    if result.returncode != 0:
+        return Step("goldens", FAIL, f"`git diff` failed: {_tail(result)}")
+    changed = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if not changed:
+        return Step("goldens", PASS, f"no golden or baseline file changed since {merge_base[:12]}")
+    if allow_golden_change:
+        return Step(
+            "goldens",
+            PASS,
+            f"{len(changed)} golden/baseline file(s) changed, allowed by --allow-golden-change: "
+            f"{_list(changed)}",
+        )
+    return Step(
+        "goldens",
+        FAIL,
+        f"{len(changed)} golden/baseline file(s) changed since {merge_base[:12]}, and "
+        f"--allow-golden-change was not given: {_list(changed)}",
+    )
+
+
+# --- step 4: deterministic outputs ----------------------------------------
+
+
+def _diff_json(
+    expected: object,
+    actual: object,
+    path: str,
+    tolerance: float | None,
+) -> list[tuple[str, str]]:
+    """Structural differences as (json path, reason) pairs, in document order.
+
+    `tolerance` is the allowed difference per number; `None` means every value
+    must be identical.
+    """
+    if isinstance(expected, dict) and isinstance(actual, dict):
+        differences: list[tuple[str, str]] = []
+        ordered = list(expected) + [key for key in actual if key not in expected]
+        for key in ordered:
+            child = f"{path}.{key}" if path else str(key)
+            if key not in expected:
+                differences.append((child, "added"))
+            elif key not in actual:
+                differences.append((child, "removed"))
+            else:
+                differences += _diff_json(expected[key], actual[key], child, tolerance)
+        return differences
+    if isinstance(expected, list) and isinstance(actual, list):
+        differences = []
+        for index in range(max(len(expected), len(actual))):
+            child = f"{path}[{index}]" if path else f"[{index}]"
+            if index >= len(expected):
+                differences.append((child, "added"))
+            elif index >= len(actual):
+                differences.append((child, "removed"))
+            else:
+                differences += _diff_json(expected[index], actual[index], child, tolerance)
+        return differences
+    numeric = all(
+        isinstance(value, (int, float)) and not isinstance(value, bool)
+        for value in (expected, actual)
+    )
+    if numeric and tolerance is not None:
+        # An int and the float it equals are the same accuracy, not a difference.
+        delta = abs(float(expected) - float(actual))  # pyright: ignore [reportArgumentType]
+        if delta > tolerance:
+            return [(path, f"differs by {delta:.3g}, which is more than the "
+                           f"{tolerance:g} tolerance")]
+        return []
+    if type(expected) is type(actual) and expected == actual:
+        return []
+    return [(path, "differs")]
+
+
+def _byte_difference(expected: Path, actual: Path, name: str) -> str:
+    """Why two same-named JSON files are not byte-identical."""
+    try:
+        expected_json = json.loads(expected.read_text(encoding="utf-8"))
+        actual_json = json.loads(actual.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return "content differs and is not JSON"
+    differences = _diff_json(expected_json, actual_json, "", None)
+    if not differences:
+        return "the values are equal, so the bytes differ only in formatting"
+    path, reason = differences[0]
+    location = f"{name}:{path}" if path else name
+    return f"differs at {location} ({reason})"
+
+
+def _compare_outputs(expected_dir: Path, captured_dir: Path) -> list[str]:
+    """One line per difference between the stored baseline and the capture."""
+    expected_names = sorted(path.name for path in expected_dir.iterdir() if path.is_file())
+    captured_names = sorted(path.name for path in captured_dir.iterdir() if path.is_file())
+    problems: list[str] = []
+    for name in expected_names:
+        if name not in captured_names:
+            problems.append(f"{name}: missing from the candidate's capture")
+            continue
+        if name == ENVIRONMENT_FILE:
+            # Machine- and date-specific by design; P0.8 records it, nobody compares it.
+            continue
+        expected, actual = expected_dir / name, captured_dir / name
+        if name == ACCURACY_FILE:
+            try:
+                expected_json = json.loads(expected.read_text(encoding="utf-8"))
+                actual_json = json.loads(actual.read_text(encoding="utf-8"))
+            except (OSError, ValueError) as exc:
+                problems.append(f"{name}: unreadable as JSON ({exc})")
+                continue
+            problems += [
+                f"{name}:{path} {reason}"
+                for path, reason in _diff_json(expected_json, actual_json, "", ACCURACY_TOLERANCE)
+            ]
+        elif expected.read_bytes() != actual.read_bytes():
+            problems.append(_byte_difference(expected, actual, name))
+    problems += [f"{name}: unexpected file in the candidate's capture"
+                 for name in captured_names if name not in expected_names]
+    return problems
+
+
+def step_outputs(candidate: Path, baseline_dir: Path, level: str) -> Step:
+    """Capture the candidate's deterministic outputs and diff them."""
+    expected_dir = baseline_dir / ("quick" if level == "fast" else "full")
+    script = candidate / "scripts" / "capture_baseline.py"
+    if not script.is_file():
+        raise GateError(f"no capture script at {script}")
+
+    out_dir = Path(tempfile.mkdtemp(prefix="edgemason-gate-capture-"))
+    try:
+        command = [sys.executable, str(script), "--out", str(out_dir)]
+        if level == "fast":
+            command.append("--quick")
+        result = _run(command, cwd=candidate, env=_child_env())
+        if result.returncode != 0:
+            return Step(
+                "deterministic-outputs",
+                FAIL,
+                f"`capture_baseline.py` failed in the candidate (exit {result.returncode}): "
+                f"{_tail(result)}",
+            )
+        problems = _compare_outputs(expected_dir, out_dir)
+    finally:
+        shutil.rmtree(out_dir, ignore_errors=True)
+
+    if problems:
+        return Step(
+            "deterministic-outputs",
+            FAIL,
+            f"{len(problems)} difference(s) against {expected_dir}: {_list(problems)}",
+        )
+    counted = len([name for name in expected_dir.iterdir() if name.is_file()])
+    return Step(
+        "deterministic-outputs",
+        PASS,
+        f"{counted} baseline file(s) match the candidate's capture against {expected_dir} "
+        f"(accuracy within {ACCURACY_TOLERANCE:g}, {ENVIRONMENT_FILE} not compared)",
+    )
+
+
+# --- step 5: lint and types -----------------------------------------------
+
+
+def step_lint_types(candidate: Path, merge_base: str | None) -> Step:
+    """P0.10's ratchet, run against the same merge-base the gate judges by."""
+    ratchet = candidate / "scripts" / "lint_ratchet.sh"
+    if not ratchet.is_file():
+        return Step(
+            "lint-types",
+            SKIPPED,
+            f"no ratchet at {ratchet}: P0.10 has not merged into this tree, so ruff and "
+            f"pyright were not run",
+        )
+    env = _child_env()
+    if merge_base is not None:
+        env["BASE_REF"] = merge_base
+    result = _run(["bash", str(ratchet)], cwd=candidate, env=env)
+    if result.returncode != 0:
+        return Step(
+            "lint-types",
+            FAIL,
+            f"`lint_ratchet.sh` failed (exit {result.returncode}): {_tail(result, 12)}",
+        )
+    return Step("lint-types", PASS, _tail(result, 3))
+
+
+# --- the check subcommand -------------------------------------------------
+
+
+@dataclass(frozen=True)
+class CheckReport:
+    """The whole verdict, in the shape the spec's report fixes."""
+
+    verdict: str
+    steps: tuple[Step, ...]
+    ab: dict[str, str]
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "verdict": self.verdict,
+            "steps": [step.as_dict() for step in self.steps],
+            "ab": dict(self.ab),
+        }
+
+
+def run_check(request: CheckRequest) -> CheckReport:
+    """Run the five steps in order and stop at the first failure."""
+    if not request.candidate.is_dir():
+        raise GateError(f"--candidate is not a directory: {request.candidate}")
+    if not request.baseline_dir.is_dir():
+        raise GateError(f"--baseline-dir is not a directory: {request.baseline_dir}")
+
+    merge_base, merge_base_reason = resolve_merge_base(request.candidate)
+    runners = [
+        lambda: step_assets(request.candidate),
+        lambda: step_tests(request.candidate, request.level, request.allow_deleted, merge_base),
+        lambda: step_goldens(
+            request.candidate, merge_base, merge_base_reason, request.allow_golden_change
+        ),
+        lambda: step_outputs(request.candidate, request.baseline_dir, request.level),
+        lambda: step_lint_types(request.candidate, merge_base),
+    ]
+
+    steps: list[Step] = []
+    for index, runner in enumerate(runners):
+        step = runner()
+        steps.append(step)
+        if step.status == FAIL:
+            steps += [
+                Step(name, NOT_RUN, "not run: an earlier step failed")
+                for name in STEP_NAMES[index + 1:]
+            ]
+            break
+
+    verdict = PASS if all(step.status != FAIL for step in steps) else FAIL
+    return CheckReport(
+        verdict=verdict,
+        steps=tuple(steps),
+        ab={
+            "status": "not run",
+            "reason": "the check subcommand does not run the A/B protocol",
+        },
+    )
+
+
+def _summary(report: CheckReport, candidate: Path, level: str) -> str:
+    """A short markdown summary for stdout."""
+    rows = [
+        f"| {index} | {step.name} | {step.status} |"
+        for index, step in enumerate(report.steps, start=1)
+    ]
+    lines = [
+        f"## P0.9 gate `check`: **{report.verdict.upper()}**",
+        "",
+        f"- candidate: `{candidate}`",
+        f"- level: `{level}`",
+        "",
+        "| # | step | status |",
+        "| - | ---- | ------ |",
+        *rows,
+    ]
+    details = [
+        f"**{step.name}** - {step.details}"
+        for step in report.steps
+        if step.status in (FAIL, SKIPPED)
+    ]
+    if details:
+        lines += ["", *details]
+    return "\n".join(lines)
+
+
+def _read_allow_deleted(path: Path | None) -> frozenset[str]:
+    if path is None:
+        return frozenset()
+    if not path.is_file():
+        raise GateError(f"--allow-deleted is not a file: {path}")
+    return frozenset(
+        line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    )
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="gate.py", description="The P0.9 results gate."
+    )
+    subcommands = parser.add_subparsers(dest="command", required=True)
+    check = subcommands.add_parser("check", help="judge a candidate tree against the baseline")
+    check.add_argument("--candidate", required=True, type=Path, help="git worktree root to judge")
+    check.add_argument(
+        "--level", choices=("fast", "full"), default="fast",
+        help="fast runs the unmarked-out suite and the two quick models (default: fast)",
+    )
+    check.add_argument(
+        "--baseline-dir", type=Path, default=Path("baseline"),
+        help="directory holding the stored quick/ and full/ captures (default: baseline)",
+    )
+    check.add_argument("--report", type=Path, default=None, help="write the JSON report here")
+    check.add_argument(
+        "--allow-deleted", type=Path, default=None, metavar="FILE",
+        help="file of test node ids the candidate may have deleted, one per line",
+    )
+    check.add_argument(
+        "--allow-golden-change", action="store_true",
+        help="accept changes under tests/golden/ and baseline/ (approved specs only)",
+    )
+    return parser
+
+
+def _check_request(args: argparse.Namespace) -> CheckRequest:
+    baseline_dir = args.baseline_dir
+    if not baseline_dir.is_absolute():
+        baseline_dir = PROJECT_ROOT / baseline_dir
+    return CheckRequest(
+        candidate=args.candidate.resolve(),
+        level=args.level,
+        baseline_dir=baseline_dir,
+        allow_deleted=_read_allow_deleted(args.allow_deleted),
+        allow_golden_change=args.allow_golden_change,
+    )
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    try:
+        request = _check_request(args)
+        report = run_check(request)
+    except GateError as exc:
+        print(f"gate: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    print(_summary(report, args.candidate, args.level))
+    if args.report is not None:
+        args.report.parent.mkdir(parents=True, exist_ok=True)
+        args.report.write_text(json.dumps(report.as_dict(), indent=2) + "\n", encoding="utf-8")
+    return EXIT_PASS if report.verdict == PASS else EXIT_FAIL
+
+
+if __name__ == "__main__":
+    sys.exit(main())
