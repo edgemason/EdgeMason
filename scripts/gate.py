@@ -20,6 +20,7 @@ Usage:
 import argparse
 import contextlib
 import json
+import math
 import os
 import re
 import shutil
@@ -69,6 +70,12 @@ AB_ROUND_ORDERS = (("baseline", "candidate"), ("candidate", "baseline"))
 # One throwaway run per model x variant per tree before round 0, so the first
 # measured round is not the one paying for the page cache and the cold artifact.
 AB_WARMUP_RUNS_PER_SIDE = 1
+# Rounds per model x variant. Five is underpowered against a 5% band: with the
+# measured paired-difference spread (sd ~4.7%) the standard error of a mean of
+# 15 is ~1.2%, giving a minimum detectable effect near 2.4%, while the mean of
+# 5 gives ~4.2% and cannot resolve the band at all. 15 buys the sensitivity; it
+# costs about three times the wall time, and that trade is deliberate.
+AB_ROUNDS = 15
 # Accuracy is the one output the gate allows to wobble: every number must be
 # equal to within this much. Everything else must be byte-identical.
 ACCURACY_TOLERANCE = 1e-6
@@ -600,32 +607,63 @@ class MetricComparison:
     baseline: tuple[float, ...]
     candidate: tuple[float, ...]
     pct_diffs: tuple[float, ...]
-    median_pct_diff: float
+    mean_pct_diff: float
+    sd_pct_diff: float
     max_abs_pct_diff: float
     band_pct: float
     # Informational only; kept for auditability and deliberately not in the rule.
+    median_pct_diff: float
     median_baseline: float
     median_candidate: float
     mad_baseline: float
 
     @property
+    def n(self) -> int:
+        return len(self.pct_diffs)
+
+    @property
     def within_band(self) -> bool:
-        return abs(self.median_pct_diff) <= self.band_pct
+        return abs(self.mean_pct_diff) <= self.band_pct
+
+    @property
+    def standard_error(self) -> float:
+        """The sampling error of the mean, so a reader can judge the verdict."""
+        return self.sd_pct_diff / math.sqrt(self.n) if self.n else 0.0
+
+    @property
+    def minimum_detectable_effect(self) -> float:
+        """The smallest effect two standard errors from zero: about 95%."""
+        return 2.0 * self.standard_error
 
     def as_dict(self) -> dict[str, object]:
         return {
             "baseline": list(self.baseline),
             "candidate": list(self.candidate),
             "pct_diffs": list(self.pct_diffs),
-            "median_pct_diff": self.median_pct_diff,
+            "n": self.n,
+            "mean_pct_diff": self.mean_pct_diff,
+            "sd_pct_diff": self.sd_pct_diff,
             "max_abs_pct_diff": self.max_abs_pct_diff,
             "band_pct": self.band_pct,
             "within_band": self.within_band,
             "informational": {
+                "median_pct_diff": self.median_pct_diff,
                 "median_baseline": self.median_baseline,
                 "median_candidate": self.median_candidate,
                 "mad_baseline": self.mad_baseline,
             },
+        }
+
+    def power_dict(self) -> dict[str, object]:
+        """What the verdict could and could not have seen."""
+        return {
+            "n": self.n,
+            "se": self.standard_error,
+            "mde_2se": self.minimum_detectable_effect,
+            "band_pct": self.band_pct,
+            # True when the gate could resolve this band at all; a band far
+            # inside the noise means a pass here proves very little.
+            "powered_for_band": self.minimum_detectable_effect <= self.band_pct,
         }
 
 
@@ -661,6 +699,17 @@ def _median_absolute_deviation(values: Sequence[float]) -> float:
     return _median([abs(value - centre) for value in values])
 
 
+def _mean(values: Sequence[float]) -> float:
+    return statistics.fmean(values)
+
+
+def _sample_sd(values: Sequence[float]) -> float:
+    """The sample standard deviation; 0 for a single sample, which has no spread."""
+    if len(values) < 2:
+        return 0.0
+    return float(statistics.stdev(values))
+
+
 def compare_metric(
     baseline: Sequence[float],
     candidate: Sequence[float],
@@ -671,6 +720,14 @@ def compare_metric(
     `baseline` and `candidate` are the two measurements taken in each round, in
     round order and *regardless of which ran first*; the order is what
     `AB_ROUND_ORDERS` balances, not something this function needs to know.
+
+    The verdict uses the **mean** of the paired differences, not the median.
+    The differences are bimodal, sitting near zero when both runs shared a
+    machine state and near ±7% when a round straddled a frequency or thermal
+    change. The median flips to ±7% as soon as three of five rounds straddle
+    one, which is a coin flip rather than a measurement; the straddles partly
+    cancel in the mean, so the mean tracks the real effect while the median
+    tracks whichever side of a state change the sample happened to land on.
     """
     if len(baseline) != len(candidate):
         raise GateError("the two sides produced a different number of measurements")
@@ -682,9 +739,11 @@ def compare_metric(
         baseline=tuple(baseline),
         candidate=tuple(candidate),
         pct_diffs=pct_diffs,
-        median_pct_diff=_median(pct_diffs),
+        mean_pct_diff=_mean(pct_diffs),
+        sd_pct_diff=_sample_sd(pct_diffs),
         max_abs_pct_diff=max((abs(value) for value in pct_diffs), default=0.0),
         band_pct=band_pct,
+        median_pct_diff=_median(pct_diffs),
         median_baseline=_median(baseline),
         median_candidate=_median(candidate),
         mad_baseline=_median_absolute_deviation(baseline),
@@ -770,6 +829,27 @@ class AbReport:
     orders: dict[str, list[list[str]]]
 
     @property
+    def power(self) -> dict[str, object]:
+        """Per model x variant, what the verdict could and could not have seen."""
+        return {
+            "statistic": "mean of the paired per-round percentage differences",
+            "results": {
+                f"{result.model}/{result.variant}": {
+                    "p50": result.p50.power_dict(),
+                    "memory_delta": result.memory_delta.power_dict(),
+                }
+                for result in self.results
+            },
+        }
+
+    @property
+    def worst_minimum_detectable_effect(self) -> float:
+        """The bluntest p50 comparison in the run, in percent."""
+        return max(
+            (result.p50.minimum_detectable_effect for result in self.results), default=0.0
+        )
+
+    @property
     def led_by(self) -> dict[str, int]:
         """How many rounds each side went first in, across the whole run.
 
@@ -804,6 +884,7 @@ class AbReport:
                 "order": {key: list(map(list, value)) for key, value in self.orders.items()},
                 "rounds_led_by": self.led_by,
                 "results": [result.as_dict() for result in self.results],
+                "power": self.power,
                 "winners": {model: dict(found) for model, found in self.winners.items()},
             },
         }
@@ -944,37 +1025,45 @@ def _ab_steps(
 
 
 def _metric_detail(comparison: MetricComparison) -> str:
-    """One metric as its median paired difference against the band."""
+    """One metric as its mean paired difference against the band."""
     verdict = "within" if comparison.within_band else "OUTSIDE"
     return (
-        f"median paired diff {comparison.median_pct_diff:+.2f}% "
-        f"(band {comparison.band_pct:g}%, worst {comparison.max_abs_pct_diff:.2f}%, {verdict})"
+        f"mean {comparison.mean_pct_diff:+.2f}% (sd {comparison.sd_pct_diff:.2f}%, "
+        f"n={comparison.n}, band {comparison.band_pct:g}%, "
+        f"worst round {comparison.max_abs_pct_diff:.2f}%, {verdict})"
     )
 
 
 def _ab_summary(report: AbReport) -> str:
     """A short markdown table of the A/B run for stdout."""
     rows = [
-        "| model | variant | p50 paired median | band | p50 | memory paired | band | memory |",
-        "| ----- | ------ | ------------------ | ---- | --- | ------------- | ---- | ------ |",
+        "| model | variant | p50 mean | sd | band | p50 | memory mean | band | memory |",
+        "| ----- | ------ | -------- | -- | ---- | --- | ----------- | ---- | ------ |",
     ]
     for result in report.results:
         rows.append(
             f"| {result.model} | {result.variant} | "
-            f"{result.p50.median_pct_diff:+.2f}% | "
+            f"{result.p50.mean_pct_diff:+.2f}% | {result.p50.sd_pct_diff:.2f}% | "
             f"{result.p50.band_pct:g}% | {_verdict_word(result.p50)} | "
-            f"{result.memory_delta.median_pct_diff:+.2f}% | "
+            f"{result.memory_delta.mean_pct_diff:+.2f}% | "
             f"{result.memory_delta.band_pct:g}% | {_verdict_word(result.memory_delta)} |"
         )
     led = report.led_by
+    worst_mde = report.worst_minimum_detectable_effect
     lines = [
         f"## P0.9 gate `ab`: **{report.verdict.upper()}**",
         "",
         f"- baseline: `{report.request.baseline}`",
         f"- candidate: `{report.request.candidate}`",
+        "- statistic: mean of the paired per-round percentage differences",
         f"- rounds: {report.request.rounds} per model x variant, order alternates "
         f"starting {AB_ROUND_ORDERS[0][0]}",
         f"- rounds led by: baseline {led['baseline']}, candidate {led['candidate']}",
+        f"- smallest effect this run could see: ~{worst_mde:.2f}% "
+        f"(worst 2 SE; the band is {report.request.band_pct:g}%, "
+        f"{'so' if worst_mde <= report.request.band_pct else 'but'}"
+        f"{' the gate is powered for it' if worst_mde <= report.request.band_pct else ''}"
+        f")",
         "",
         *rows,
         "",
@@ -1134,8 +1223,11 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"models to compare (default: {', '.join(AB_MODELS)})",
     )
     ab.add_argument(
-        "--rounds", type=int, default=5,
-        help="alternating B/C rounds per model and variant (default: 5)",
+        "--rounds", type=int, default=AB_ROUNDS,
+        help=(
+            "alternating B/C rounds per model and variant "
+            f"(default: {AB_ROUNDS}; fewer rounds cannot resolve the band)"
+        ),
     )
     ab.add_argument(
         "--band-pct", type=float, default=AB_BAND_PCT, metavar="PCT",

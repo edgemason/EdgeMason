@@ -8,6 +8,7 @@ what the real gate does too.
 """
 
 import json
+import math
 import statistics
 import subprocess
 from dataclasses import dataclass
@@ -607,10 +608,13 @@ def test_ab_7_pass_within_five_percent(ab_env, capsys) -> None:
     assert entry["p50"]["pct_diffs"] == pytest.approx(
         [3.0, -0.98039216, 3.03030303, -0.99009901, 2.0]
     )
-    assert entry["p50"]["median_pct_diff"] == pytest.approx(2.0)
+    assert entry["p50"]["mean_pct_diff"] == pytest.approx(1.21196237)
     assert entry["p50"]["band_pct"] == pytest.approx(5.0)
     assert entry["p50"]["within_band"] is True
-    # MAD_B is informational only now; it must not appear in the rule.
+    # The median is kept for auditability but must not decide the verdict.
+    assert entry["p50"]["informational"]["median_pct_diff"] == pytest.approx(2.0)
+    assert "median_pct_diff" not in entry["p50"]
+    # MAD_B is informational only too; it must not appear in the rule.
     assert entry["p50"]["informational"]["mad_baseline"] == pytest.approx(0.1)
     assert "mad_b" not in entry["p50"]
     assert entry["pass"] is True
@@ -630,7 +634,7 @@ def test_ab_8_fails_when_the_candidate_is_twenty_percent_slower(ab_env) -> None:
     for variant in gate.AB_VARIANTS:
         entry = _result(report, variant)
         # Every paired round is +20%, so the median of the differences is +20%.
-        assert entry["p50"]["median_pct_diff"] == pytest.approx(20.0)
+        assert entry["p50"]["mean_pct_diff"] == pytest.approx(20.0)
         assert entry["p50"]["within_band"] is False
         assert entry["pass"] is False
     model_step = _step(report, "ab:tiny")
@@ -693,7 +697,7 @@ def test_ab_positional_bias_cancels_under_paired_diffs(ab_env) -> None:
     assert entry["p50"]["pct_diffs"] == pytest.approx([7.0, -6.54205607, 7.0, -6.54205607])
     # Even numbers of +7 and -6.54 give a median just above zero: the positional
     # penalty largely cancels.
-    assert entry["p50"]["median_pct_diff"] == pytest.approx(0.22897196)
+    assert entry["p50"]["mean_pct_diff"] == pytest.approx(0.22897196)
     assert entry["p50"]["within_band"] is True
     # The raw evidence of a big positional effect is still in the report.
     assert entry["p50"]["max_abs_pct_diff"] == pytest.approx(7.0)
@@ -708,7 +712,7 @@ def test_ab_one_sided_drift_still_fails(ab_env) -> None:
 
     assert code == gate.EXIT_FAIL
     entry = _result(report, "fp32")
-    assert entry["p50"]["median_pct_diff"] == pytest.approx(8.0)
+    assert entry["p50"]["mean_pct_diff"] == pytest.approx(8.0)
     assert entry["p50"]["within_band"] is False
     assert entry["pass"] is False
 
@@ -756,6 +760,90 @@ def test_ab_warmup_runs_are_discarded(ab_env) -> None:
     assert len(entry["p50"]["candidate"]) == 3
 
 
+def test_ab_mean_passes_where_the_median_would_fail(ab_env) -> None:
+    """The regression test for the flaky self-test.
+
+    These are the paired diffs from a measured self-test run that the median
+    rule rejected and the mean rule accepts. Three of the five rounds straddled
+    a machine state change and two did not, so the median lands on the straddles
+    and reads as a 6.8% regression while the mean correctly reports -4.24%.
+    Restoring the median as the pass statistic must break this test.
+    """
+    diffs = [-7.8, 0.2, 0.1, -6.9, -6.8]
+    baseline = [100.0] * 5
+    candidate = [value * (1.0 + diff / 100.0) for value, diff in zip(baseline, diffs, strict=True)]
+    ab_env.set_timings("baseline", _canned({
+        variant: baseline for variant in gate.AB_VARIANTS
+    }))
+    ab_env.set_timings("candidate", _canned({
+        variant: candidate for variant in gate.AB_VARIANTS
+    }))
+
+    code, report = ab_env.run("bimodal", "--rounds", "5")
+
+    assert code == gate.EXIT_PASS
+    entry = _result(report, "fp32")
+    assert entry["p50"]["pct_diffs"] == pytest.approx(diffs)
+    assert entry["p50"]["mean_pct_diff"] == pytest.approx(-4.24)
+    assert entry["p50"]["within_band"] is True
+    # The median would have called this a failure: it is kept, and it disagrees.
+    assert entry["p50"]["informational"]["median_pct_diff"] == pytest.approx(-6.8)
+    assert abs(entry["p50"]["informational"]["median_pct_diff"]) > entry["p50"]["band_pct"]
+
+
+def test_ab_one_sided_drift_still_fails_with_fifteen_rounds(ab_env) -> None:
+    """More rounds buy sensitivity; they must not blunt a real regression."""
+    ab_env.set_timings("baseline", _canned({
+        variant: [100.0] * 15 for variant in gate.AB_VARIANTS
+    }))
+    ab_env.set_timings("candidate", _canned({
+        variant: [108.0] * 15 for variant in gate.AB_VARIANTS
+    }))
+
+    code, report = ab_env.run("drift15", "--rounds", "15")
+
+    assert code == gate.EXIT_FAIL
+    entry = _result(report, "fp32")
+    assert entry["p50"]["n"] == 15
+    assert entry["p50"]["mean_pct_diff"] == pytest.approx(8.0)
+    assert entry["p50"]["within_band"] is False
+    assert entry["pass"] is False
+    assert _step(report, "ab:tiny")["status"] == "fail"
+
+
+def test_ab_reports_its_own_power(ab_env) -> None:
+    """The report says how big an effect the run could have seen."""
+    _code, report = ab_env.run("power", "--rounds", "15")
+
+    power = report["ab"]["power"]
+    assert power["statistic"] == "mean of the paired per-round percentage differences"
+    for result in report["ab"]["results"]:
+        key = f"{result['model']}/{result['variant']}"
+        p50 = power["results"][key]["p50"]
+        assert p50["n"] == result["p50"]["n"] == 15
+        # se is sd/sqrt(n) and the minimum detectable effect is 2 SE.
+        assert p50["se"] == pytest.approx(result["p50"]["sd_pct_diff"] / math.sqrt(15))
+        assert p50["mde_2se"] == pytest.approx(2.0 * p50["se"])
+        assert p50["band_pct"] == result["p50"]["band_pct"]
+        assert p50["powered_for_band"] == (p50["mde_2se"] <= p50["band_pct"])
+        assert set(power["results"][key]) == {"p50", "memory_delta"}
+
+
+def test_ab_power_block_reports_the_standard_error(ab_env) -> None:
+    """A flat comparison has no spread, so it can see a very small effect."""
+    ab_env.set_timings("baseline", FLAT_BASELINE)
+    ab_env.set_timings("candidate", FLAT_BASELINE)
+
+    _code, report = ab_env.run("power_flat", "--rounds", "4")
+
+    p50_power = report["ab"]["power"]["results"][f"{AB_MODEL}/fp32"]["p50"]
+    entry = _result(report, "fp32")
+    assert entry["p50"]["sd_pct_diff"] == pytest.approx(0.0)
+    assert p50_power["se"] == pytest.approx(0.0)
+    assert p50_power["mde_2se"] == pytest.approx(0.0)
+    assert p50_power["powered_for_band"] is True
+
+
 def test_ab_band_pct_is_settable(ab_env) -> None:
     """--band-pct moves the threshold without touching the measurements."""
     ab_env.set_timings("baseline", FLAT_BASELINE)
@@ -766,7 +854,7 @@ def test_ab_band_pct_is_settable(ab_env) -> None:
     assert code == gate.EXIT_PASS
     entry = _result(report, "fp32")
     assert entry["p50"]["band_pct"] == pytest.approx(10.0)
-    assert entry["p50"]["median_pct_diff"] == pytest.approx(8.0)
+    assert entry["p50"]["mean_pct_diff"] == pytest.approx(8.0)
     assert entry["p50"]["within_band"] is True
     assert report["ab"]["band_pct"] == pytest.approx(10.0)
 
@@ -776,7 +864,11 @@ def test_ab_defaults_to_the_three_named_models() -> None:
     args = gate.build_parser().parse_args(["ab", "--baseline", "b", "--candidate", "c"])
 
     assert args.models is None
-    assert args.rounds == 5
+    # 15 rounds, because five cannot resolve the 5% band: the mean of five
+    # paired diffs has a standard error near 2.1%, so the minimum detectable
+    # effect is no smaller than the band being judged.
+    assert args.rounds == 15
+    assert args.rounds == gate.AB_ROUNDS
     assert args.band_pct == gate.AB_BAND_PCT
     assert gate._ab_request(args).models == gate.AB_MODELS
     assert gate._ab_request(args).band_pct == gate.AB_BAND_PCT
@@ -822,7 +914,8 @@ def test_ab_report_carries_both_winners_and_every_sample(ab_env) -> None:
         assert len(entry["p50"]["candidate"]) == 3
         assert len(entry["p50"]["pct_diffs"]) == 3
         assert entry["p50"]["band_pct"] == gate.AB_BAND_PCT
-        assert entry["p50"]["max_abs_pct_diff"] >= abs(entry["p50"]["median_pct_diff"])
+        assert entry["p50"]["n"] == 3
+        assert entry["p50"]["max_abs_pct_diff"] >= abs(entry["p50"]["mean_pct_diff"])
     winners = report["ab"]["winners"][AB_MODEL]
     assert set(winners) == {"baseline", "candidate", "same"}
     assert winners["baseline"] == "static"
