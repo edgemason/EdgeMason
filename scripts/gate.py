@@ -59,7 +59,7 @@ AB_CANDIDATES = {
 AB_DATASET = "models/samples/imagenetv2_mobilenetv2_256.npz"
 AB_MODEL_DIR = "models"
 AB_MODEL_SUFFIX = ".onnx"
-# A pass needs the median paired difference within this many percent. The 5% is
+# A pass needs the mean paired difference within this many percent. The 5% is
 # the spec's number; it is a percentage of each round's own baseline value, not
 # a share of a median, so it does not drift with the model's size.
 AB_BAND_PCT = 5.0
@@ -596,12 +596,14 @@ class AbRequest:
 class MetricComparison:
     """One measured quantity, compared round by round across the two trees.
 
-    The verdict comes from the *paired* per-round differences, not from the two
-    independent medians. Medians of independent samples fold in anything that
-    moved the whole series, including the position a run happened to occupy, and
-    the bimodal bursts seen on a shared machine make MAD useless as a band
+    The verdict is the **mean** of the *paired* per-round percentage
+    differences. Medians of independent samples fold in anything that moved the
+    whole series, including the position a run happened to occupy, and the
+    bimodal bursts seen on a shared machine make MAD useless as a band
     (measured: MAD_B 0.2% against a real spread of 6.6%). Pairing cancels the
-    position and keeps only what differs between the trees within one round.
+    position, and the mean absorbs the straddles that make the median a coin
+    flip. `median_pct_diff` and `mad_baseline` are reported under
+    `informational` and decide nothing.
     """
 
     baseline: tuple[float, ...]
@@ -1232,7 +1234,7 @@ def build_parser() -> argparse.ArgumentParser:
     ab.add_argument(
         "--band-pct", type=float, default=AB_BAND_PCT, metavar="PCT",
         help=(
-            "allowed median paired difference in percent "
+            "allowed mean paired difference in percent "
             f"(default: {AB_BAND_PCT:g}; the spec's threshold)"
         ),
     )

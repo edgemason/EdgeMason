@@ -633,7 +633,7 @@ def test_ab_8_fails_when_the_candidate_is_twenty_percent_slower(ab_env) -> None:
     assert report["verdict"] == "fail"
     for variant in gate.AB_VARIANTS:
         entry = _result(report, variant)
-        # Every paired round is +20%, so the median of the differences is +20%.
+        # Every paired round is +20%, so the mean of the differences is +20%.
         assert entry["p50"]["mean_pct_diff"] == pytest.approx(20.0)
         assert entry["p50"]["within_band"] is False
         assert entry["pass"] is False
@@ -643,7 +643,7 @@ def test_ab_8_fails_when_the_candidate_is_twenty_percent_slower(ab_env) -> None:
 
 
 def test_ab_9_fails_when_the_winner_changes(ab_env) -> None:
-    """Case 9: every median is in band, but a different variant is now fastest."""
+    """Case 9: every mean is in band, but a different variant is now fastest."""
     ab_env.set_timings("baseline", CASE9_BASELINE)
     ab_env.set_timings("candidate", CASE9_CANDIDATE)
 
@@ -695,7 +695,7 @@ def test_ab_positional_bias_cancels_under_paired_diffs(ab_env) -> None:
     assert entry["p50"]["baseline"] == [100.0, 107.0, 100.0, 107.0]
     assert entry["p50"]["candidate"] == [107.0, 100.0, 107.0, 100.0]
     assert entry["p50"]["pct_diffs"] == pytest.approx([7.0, -6.54205607, 7.0, -6.54205607])
-    # Even numbers of +7 and -6.54 give a median just above zero: the positional
+    # Even numbers of +7 and -6.54 give a mean just above zero: the positional
     # penalty largely cancels.
     assert entry["p50"]["mean_pct_diff"] == pytest.approx(0.22897196)
     assert entry["p50"]["within_band"] is True
