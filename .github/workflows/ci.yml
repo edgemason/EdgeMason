@@ -16,5 +16,13 @@ jobs:
           python-version: "3.11"
           enable-cache: true
       - run: uv sync --group dev
-      - run: BASE_REF=origin/${{ github.base_ref || 'cleanup' }} scripts/lint_ratchet.sh
+      - name: Determine ratchet base
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "ref=$(git merge-base origin/${{ github.base_ref }} HEAD)" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=origin/cleanup" >> "$GITHUB_OUTPUT"
+          fi
+      - run: BASE_REF=${{ steps.base.outputs.ref }} scripts/lint_ratchet.sh
       - run: uv run pytest -q -m "not slow and not tvm and not research"
