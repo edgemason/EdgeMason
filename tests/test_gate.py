@@ -8,6 +8,7 @@ what the real gate does too.
 """
 
 import json
+import statistics
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -388,21 +389,25 @@ def benchmark(artifact, warmup_runs=10, benchmark_runs=100, time_budget_seconds=
     variant = Path(artifact).stem
     timings = json.loads(Path(TIMINGS).read_text(encoding="utf-8"))
     # The counter sits beside the artifact, which is in the gate's temp dir, so
-    # nothing is ever written into the tree being measured.
+    # nothing is ever written into the tree being measured. One call advances it
+    # once, so p50 and memory stay paired from the same round.
     counter = Path(artifact).parent / "calls.json"
     counts = json.loads(counter.read_text(encoding="utf-8")) if counter.is_file() else {}
     index = counts.get(variant, 0)
     counts[variant] = index + 1
     counter.write_text(json.dumps(counts), encoding="utf-8")
-    p50s = timings["p50"][variant]
-    mems = timings["memory_delta"][variant]
+
+    def value(field):
+        series = timings[field][variant]
+        return series[index] if index < len(series) else series[-1]
+
     return json.dumps({
         "success": True,
         "error": None,
         "warmup_runs": warmup_runs,
         "benchmark_runs": benchmark_runs,
-        "latency_ms": {"p50": p50s[index] if index < len(p50s) else p50s[-1]},
-        "memory_mb": {"delta": mems[index] if index < len(mems) else mems[-1]},
+        "latency_ms": {"p50": value("p50")},
+        "memory_mb": {"delta": value("memory_delta")},
     })
 '''
 
@@ -472,9 +477,18 @@ def _fake_tree(root: Path, timings: dict) -> Path:
 
 
 def _canned(p50: dict[str, list[float]], memory: dict[str, list[float]] | None = None) -> dict:
-    """A timings file; memory defaults to a constant that never moves the verdict."""
-    memory = memory or {variant: [100.0] * 5 for variant in p50}
-    return {"p50": p50, "memory_delta": memory}
+    """A timings file whose entries are the *measured rounds*.
+
+    One leading entry is prepended per variant because the gate burns a warm-up
+    run per side per variant before round 0, and the fake serves the series in
+    call order.
+    """
+    memory = memory or {variant: [100.0] * len(values) for variant, values in p50.items()}
+
+    def with_warmup(series: dict[str, list[float]]) -> dict[str, list[float]]:
+        return {variant: [values[0]] + list(values) for variant, values in series.items()}
+
+    return {"p50": with_warmup(p50), "memory_delta": with_warmup(memory)}
 
 
 # Case 7's numbers, and one variant's worth of the rest.
@@ -488,11 +502,11 @@ CASE7_CANDIDATE = _canned({
     "dynamic": [9.3, 9.1, 9.2, 9.0, 9.2],
     "static": [5.3, 5.1, 5.2, 5.0, 5.2],
 })
-# 20% slower across the board.
+# 20% slower across the board, in every round.
 CASE8_CANDIDATE = _canned({
-    "fp32": [p50 * 1.2 for p50 in CASE7_BASELINE["p50"]["fp32"]],
-    "dynamic": [p50 * 1.2 for p50 in CASE7_BASELINE["p50"]["dynamic"]],
-    "static": [p50 * 1.2 for p50 in CASE7_BASELINE["p50"]["static"]],
+    "fp32": [p50 * 1.2 for p50 in CASE7_BASELINE["p50"]["fp32"][1:]],
+    "dynamic": [p50 * 1.2 for p50 in CASE7_BASELINE["p50"]["dynamic"][1:]],
+    "static": [p50 * 1.2 for p50 in CASE7_BASELINE["p50"]["static"][1:]],
 })
 # Every variant inside its own band, but the fastest one is no longer the same.
 CASE9_BASELINE = _canned({
@@ -504,6 +518,33 @@ CASE9_CANDIDATE = _canned({
     "fp32": [10.0, 10.0, 10.0],
     "dynamic": [10.04, 10.04, 10.04],
     "static": [10.02, 10.02, 10.02],
+})
+# A machine that is ~7% slower on whichever run goes second. With four rounds
+# the order alternates B,C | C,B | B,C | C,B, so the candidate is the slow one
+# in the rounds it runs second and the fast one in the rounds it runs first:
+# the bias cancels, and no real difference exists.
+BIAS_BASELINE = _canned({
+    "fp32": [100.0, 107.0, 100.0, 107.0],
+    "dynamic": [90.0, 96.3, 90.0, 96.3],
+    "static": [50.0, 53.5, 50.0, 53.5],
+})
+BIAS_CANDIDATE = _canned({
+    "fp32": [107.0, 100.0, 107.0, 100.0],
+    "dynamic": [96.3, 90.0, 96.3, 90.0],
+    "static": [53.5, 50.0, 53.5, 50.0],
+})
+# A flat baseline, so the only difference in the run is the candidate's.
+FLAT_BASELINE = _canned({
+    "fp32": [100.0] * 4,
+    "dynamic": [90.0] * 4,
+    "static": [50.0] * 4,
+})
+# The candidate is genuinely 8% slower in every round, whichever position it
+# runs in. Position cannot explain this away.
+DRIFT_CANDIDATE = _canned({
+    "fp32": [108.0] * 4,
+    "dynamic": [97.2] * 4,
+    "static": [54.0] * 4,
 })
 
 
@@ -554,21 +595,24 @@ def _result(report: dict, variant: str) -> dict:
 
 
 def test_ab_7_pass_within_five_percent(ab_env, capsys) -> None:
-    """Case 7: a 2% median shift is inside the noise band."""
+    """Case 7: a couple of percent of paired difference is inside the band."""
     code, report = ab_env.run("case7", "--rounds", "5")
 
     assert code == gate.EXIT_PASS
     assert report["verdict"] == "pass"
     entry = _result(report, "fp32")
+    # The warm-up run is discarded, so the five measured rounds are these.
     assert entry["p50"]["baseline"] == [10.0, 10.2, 9.9, 10.1, 10.0]
     assert entry["p50"]["candidate"] == [10.3, 10.1, 10.2, 10.0, 10.2]
-    # Median of B's five samples; C's is 0.2 above it.
-    assert entry["p50"]["mB"] == pytest.approx(10.0)
-    assert entry["p50"]["mC"] == pytest.approx(10.2)
-    # MAD_B is 0.1, so the band is max(0.2, 5% of 10.0) = 0.5.
-    assert entry["p50"]["mad_b"] == pytest.approx(0.1)
-    assert entry["p50"]["band"] == pytest.approx(0.5)
+    assert entry["p50"]["pct_diffs"] == pytest.approx(
+        [3.0, -0.98039216, 3.03030303, -0.99009901, 2.0]
+    )
+    assert entry["p50"]["median_pct_diff"] == pytest.approx(2.0)
+    assert entry["p50"]["band_pct"] == pytest.approx(5.0)
     assert entry["p50"]["within_band"] is True
+    # MAD_B is informational only now; it must not appear in the rule.
+    assert entry["p50"]["informational"]["mad_baseline"] == pytest.approx(0.1)
+    assert "mad_b" not in entry["p50"]
     assert entry["pass"] is True
     assert _step(report, "ab:tiny")["status"] == "pass"
     assert _step(report, "ab:winners")["status"] == "pass"
@@ -576,18 +620,19 @@ def test_ab_7_pass_within_five_percent(ab_env, capsys) -> None:
 
 
 def test_ab_8_fails_when_the_candidate_is_twenty_percent_slower(ab_env) -> None:
-    """Case 8: a 20% regression is far outside the band."""
+    """Case 8: a 20% regression is far outside the band, under the new maths too."""
     ab_env.set_timings("candidate", CASE8_CANDIDATE)
 
     code, report = ab_env.run("case8", "--rounds", "5")
 
     assert code == gate.EXIT_FAIL
     assert report["verdict"] == "fail"
-    entry = _result(report, "fp32")
-    # Every sample is 1.2x, so the median is too.
-    assert entry["p50"]["mC"] == pytest.approx(12.0)
-    assert entry["p50"]["within_band"] is False
-    assert entry["pass"] is False
+    for variant in gate.AB_VARIANTS:
+        entry = _result(report, variant)
+        # Every paired round is +20%, so the median of the differences is +20%.
+        assert entry["p50"]["median_pct_diff"] == pytest.approx(20.0)
+        assert entry["p50"]["within_band"] is False
+        assert entry["pass"] is False
     model_step = _step(report, "ab:tiny")
     assert model_step["status"] == "fail"
     assert "OUTSIDE" in model_step["details"]
@@ -616,13 +661,125 @@ def test_ab_9_fails_when_the_winner_changes(ab_env) -> None:
     }
 
 
+def test_ab_positional_bias_cancels_under_paired_diffs(ab_env) -> None:
+    """A machine that is 7% slower on whichever run goes second is not a change.
+
+    On the old fixed order (B always first) this machine produced a flat
+    baseline series and a flat, 7% slower candidate series, and the old
+    independent-median rule called that a regression. Alternating the order and
+    pairing each round shows there is nothing there.
+    """
+    # What the old protocol recorded on this machine: B always ran first and so
+    # always got the fast position.
+    old_baseline = [100.0] * 4
+    old_candidate = [107.0] * 4
+    median_baseline = statistics.median(old_baseline)
+    mad_baseline = statistics.median([abs(x - median_baseline) for x in old_baseline])
+    old_band = max(2 * mad_baseline, 0.05 * median_baseline)
+    assert abs(statistics.median(old_candidate) - median_baseline) > old_band
+
+    ab_env.set_timings("baseline", BIAS_BASELINE)
+    ab_env.set_timings("candidate", BIAS_CANDIDATE)
+
+    code, report = ab_env.run("bias", "--rounds", "4")
+
+    assert code == gate.EXIT_PASS
+    assert report["verdict"] == "pass"
+    entry = _result(report, "fp32")
+    # Alternating order: the pairs are (100,107), (107,100), (100,107), (107,100),
+    # so the positional penalty lands on a different side in each round.
+    assert entry["p50"]["baseline"] == [100.0, 107.0, 100.0, 107.0]
+    assert entry["p50"]["candidate"] == [107.0, 100.0, 107.0, 100.0]
+    assert entry["p50"]["pct_diffs"] == pytest.approx([7.0, -6.54205607, 7.0, -6.54205607])
+    # Even numbers of +7 and -6.54 give a median just above zero: the positional
+    # penalty largely cancels.
+    assert entry["p50"]["median_pct_diff"] == pytest.approx(0.22897196)
+    assert entry["p50"]["within_band"] is True
+    # The raw evidence of a big positional effect is still in the report.
+    assert entry["p50"]["max_abs_pct_diff"] == pytest.approx(7.0)
+
+
+def test_ab_one_sided_drift_still_fails(ab_env) -> None:
+    """A genuine 8% regression fails whichever position the candidate runs in."""
+    ab_env.set_timings("baseline", FLAT_BASELINE)
+    ab_env.set_timings("candidate", DRIFT_CANDIDATE)
+
+    code, report = ab_env.run("drift", "--rounds", "4")
+
+    assert code == gate.EXIT_FAIL
+    entry = _result(report, "fp32")
+    assert entry["p50"]["median_pct_diff"] == pytest.approx(8.0)
+    assert entry["p50"]["within_band"] is False
+    assert entry["pass"] is False
+
+
+def test_ab_alternating_order_is_recorded_and_balanced(ab_env) -> None:
+    """The order actually alternates, and the report lets a reader verify it."""
+    _code, report = ab_env.run("order", "--rounds", "4")
+
+    # The parity does not restart per variant, so variant 2 opens with the
+    # opposite order to variant 1 even though it is round 0 of that variant.
+    assert report["ab"]["order"][f"{AB_MODEL}/fp32"] == [
+        ["baseline", "candidate"],
+        ["candidate", "baseline"],
+        ["baseline", "candidate"],
+        ["candidate", "baseline"],
+    ]
+    # Four rounds is even, so the parity realigns and variant 2 opens the same
+    # way variant 1 did. See the five-round case below for one that does not.
+    assert report["ab"]["order"][f"{AB_MODEL}/dynamic"] == [
+        ["baseline", "candidate"],
+        ["candidate", "baseline"],
+        ["baseline", "candidate"],
+        ["candidate", "baseline"],
+    ]
+    # 4 rounds x 3 variants = 12 rounds, split evenly.
+    assert report["ab"]["rounds_led_by"] == {"baseline": 6, "candidate": 6}
+
+    # An odd total is recorded rather than hidden: 5 rounds x 3 variants = 15,
+    # and because the parity carries across variants the second variant opens
+    # with the opposite order to the first.
+    _odd_code, odd = ab_env.run("order5", "--rounds", "5")
+    assert odd["ab"]["rounds_led_by"] == {"baseline": 8, "candidate": 7}
+    assert odd["ab"]["order"][f"{AB_MODEL}/dynamic"][0] == ["candidate", "baseline"]
+
+
+def test_ab_warmup_runs_are_discarded(ab_env) -> None:
+    """One throwaway run per side per variant happens before round 0."""
+    _code, report = ab_env.run("warmup", "--rounds", "3")
+
+    assert report["ab"]["warmup_runs_per_side"] == gate.AB_WARMUP_RUNS_PER_SIDE
+    # Six measured calls (3 rounds x 2 series) plus the warm-up = 7 in the series,
+    # and only the last three are kept.
+    entry = _result(report, "fp32")
+    assert len(entry["p50"]["baseline"]) == 3
+    assert len(entry["p50"]["candidate"]) == 3
+
+
+def test_ab_band_pct_is_settable(ab_env) -> None:
+    """--band-pct moves the threshold without touching the measurements."""
+    ab_env.set_timings("baseline", FLAT_BASELINE)
+    ab_env.set_timings("candidate", DRIFT_CANDIDATE)
+
+    code, report = ab_env.run("band", "--rounds", "4", "--band-pct", "10")
+
+    assert code == gate.EXIT_PASS
+    entry = _result(report, "fp32")
+    assert entry["p50"]["band_pct"] == pytest.approx(10.0)
+    assert entry["p50"]["median_pct_diff"] == pytest.approx(8.0)
+    assert entry["p50"]["within_band"] is True
+    assert report["ab"]["band_pct"] == pytest.approx(10.0)
+
+
 def test_ab_defaults_to_the_three_named_models() -> None:
     """The documented defaults are the CLI's defaults."""
     args = gate.build_parser().parse_args(["ab", "--baseline", "b", "--candidate", "c"])
 
     assert args.models is None
     assert args.rounds == 5
+    assert args.band_pct == gate.AB_BAND_PCT
     assert gate._ab_request(args).models == gate.AB_MODELS
+    assert gate._ab_request(args).band_pct == gate.AB_BAND_PCT
 
 
 def test_ab_exit_2_when_a_worker_cannot_run(ab_env, capsys) -> None:
@@ -663,7 +820,9 @@ def test_ab_report_carries_both_winners_and_every_sample(ab_env) -> None:
     for entry in report["ab"]["results"]:
         assert len(entry["p50"]["baseline"]) == 3
         assert len(entry["p50"]["candidate"]) == 3
-        assert entry["p50"]["band"] >= gate.AB_NOISE_SHARE * entry["p50"]["mB"]
+        assert len(entry["p50"]["pct_diffs"]) == 3
+        assert entry["p50"]["band_pct"] == gate.AB_BAND_PCT
+        assert entry["p50"]["max_abs_pct_diff"] >= abs(entry["p50"]["median_pct_diff"])
     winners = report["ab"]["winners"][AB_MODEL]
     assert set(winners) == {"baseline", "candidate", "same"}
     assert winners["baseline"] == "static"

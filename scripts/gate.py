@@ -58,8 +58,17 @@ AB_CANDIDATES = {
 AB_DATASET = "models/samples/imagenetv2_mobilenetv2_256.npz"
 AB_MODEL_DIR = "models"
 AB_MODEL_SUFFIX = ".onnx"
-# A pass needs |mC - mB| within max(2 * MAD_B, this share of mB).
-AB_NOISE_SHARE = 0.05
+# A pass needs the median paired difference within this many percent. The 5% is
+# the spec's number; it is a percentage of each round's own baseline value, not
+# a share of a median, so it does not drift with the model's size.
+AB_BAND_PCT = 5.0
+# The two sides swap places every round, so each tree spends half the rounds
+# first and half second. A machine that is slower the second time a model is
+# benchmarked then costs both sides the same amount instead of one of them.
+AB_ROUND_ORDERS = (("baseline", "candidate"), ("candidate", "baseline"))
+# One throwaway run per model x variant per tree before round 0, so the first
+# measured round is not the one paying for the page cache and the cold artifact.
+AB_WARMUP_RUNS_PER_SIDE = 1
 # Accuracy is the one output the gate allows to wobble: every number must be
 # equal to within this much. Everything else must be byte-identical.
 ACCURACY_TOLERANCE = 1e-6
@@ -573,32 +582,50 @@ class AbRequest:
     candidate: Path
     models: tuple[str, ...]
     rounds: int
+    band_pct: float = AB_BAND_PCT
 
 
 @dataclass(frozen=True)
 class MetricComparison:
-    """One measured quantity, compared across the two trees."""
+    """One measured quantity, compared round by round across the two trees.
+
+    The verdict comes from the *paired* per-round differences, not from the two
+    independent medians. Medians of independent samples fold in anything that
+    moved the whole series, including the position a run happened to occupy, and
+    the bimodal bursts seen on a shared machine make MAD useless as a band
+    (measured: MAD_B 0.2% against a real spread of 6.6%). Pairing cancels the
+    position and keeps only what differs between the trees within one round.
+    """
 
     baseline: tuple[float, ...]
     candidate: tuple[float, ...]
+    pct_diffs: tuple[float, ...]
+    median_pct_diff: float
+    max_abs_pct_diff: float
+    band_pct: float
+    # Informational only; kept for auditability and deliberately not in the rule.
     median_baseline: float
     median_candidate: float
     mad_baseline: float
-    band: float
 
     @property
     def within_band(self) -> bool:
-        return abs(self.median_candidate - self.median_baseline) <= self.band
+        return abs(self.median_pct_diff) <= self.band_pct
 
     def as_dict(self) -> dict[str, object]:
         return {
             "baseline": list(self.baseline),
             "candidate": list(self.candidate),
-            "mB": self.median_baseline,
-            "mC": self.median_candidate,
-            "mad_b": self.mad_baseline,
-            "band": self.band,
+            "pct_diffs": list(self.pct_diffs),
+            "median_pct_diff": self.median_pct_diff,
+            "max_abs_pct_diff": self.max_abs_pct_diff,
+            "band_pct": self.band_pct,
             "within_band": self.within_band,
+            "informational": {
+                "median_baseline": self.median_baseline,
+                "median_candidate": self.median_candidate,
+                "mad_baseline": self.mad_baseline,
+            },
         }
 
 
@@ -637,17 +664,30 @@ def _median_absolute_deviation(values: Sequence[float]) -> float:
 def compare_metric(
     baseline: Sequence[float],
     candidate: Sequence[float],
+    band_pct: float,
 ) -> MetricComparison:
-    """Compare one quantity: the candidate's median must sit inside the noise band."""
-    median_baseline = _median(baseline)
-    mad_baseline = _median_absolute_deviation(baseline)
+    """Compare one quantity by pairing each round with the other side of it.
+
+    `baseline` and `candidate` are the two measurements taken in each round, in
+    round order and *regardless of which ran first*; the order is what
+    `AB_ROUND_ORDERS` balances, not something this function needs to know.
+    """
+    if len(baseline) != len(candidate):
+        raise GateError("the two sides produced a different number of measurements")
+    pct_diffs = tuple(
+        ((candidate_value - baseline_value) / baseline_value) * 100.0
+        for baseline_value, candidate_value in zip(baseline, candidate, strict=True)
+    )
     return MetricComparison(
         baseline=tuple(baseline),
         candidate=tuple(candidate),
-        median_baseline=median_baseline,
+        pct_diffs=pct_diffs,
+        median_pct_diff=_median(pct_diffs),
+        max_abs_pct_diff=max((abs(value) for value in pct_diffs), default=0.0),
+        band_pct=band_pct,
+        median_baseline=_median(baseline),
         median_candidate=_median(candidate),
-        mad_baseline=mad_baseline,
-        band=max(2.0 * mad_baseline, AB_NOISE_SHARE * median_baseline),
+        mad_baseline=_median_absolute_deviation(baseline),
     )
 
 
@@ -696,9 +736,17 @@ def _ab_prepare(tree: Path, model: str, variant: str, artifact_dir: Path) -> Pat
     return Path(artifact)
 
 
-def _ab_measure(tree: Path, artifact: Path) -> tuple[float, float]:
-    """One isolated benchmark run inside `tree`; returns (p50 ms, memory delta MB)."""
-    payload = _ab_worker(tree, {"mode": "measure", "artifact": str(artifact)})
+def _ab_measure(tree: Path, artifact: Path, warmup: bool = False) -> tuple[float, float]:
+    """One isolated benchmark run inside `tree`; returns (p50 ms, memory delta MB).
+
+    `warmup` marks a throwaway run: its numbers are discarded, but the flag
+    travels with the request so a run can be shown to have happened.
+    """
+    payload = _ab_worker(tree, {
+        "mode": "measure",
+        "artifact": str(artifact),
+        "warmup": warmup,
+    })
     p50 = payload.get("p50")
     memory_delta = payload.get("memory_delta")
     if not isinstance(p50, (int, float)) or not isinstance(memory_delta, (int, float)):
@@ -719,6 +767,28 @@ class AbReport:
     request: AbRequest
     results: tuple[VariantComparison, ...]
     winners: dict[str, dict[str, object]]
+    orders: dict[str, list[list[str]]]
+
+    @property
+    def led_by(self) -> dict[str, int]:
+        """How many rounds each side went first in, across the whole run.
+
+        An odd total leaves one side ahead by one; that is recorded rather than
+        smoothed away.
+        """
+        return {
+            role: sum(
+                1
+                for variant_orders in self.orders.values()
+                for order in variant_orders
+                if order[0] == role
+            )
+            for role in ("baseline", "candidate")
+        }
+
+    @property
+    def rounds_per_variant(self) -> int:
+        return len(next(iter(self.orders.values()))) if self.orders else 0
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -728,7 +798,11 @@ class AbReport:
                 "rounds": self.request.rounds,
                 "models": list(self.request.models),
                 "variants": dict(AB_CANDIDATES),
-                "noise_share": AB_NOISE_SHARE,
+                "band_pct": self.request.band_pct,
+                "warmup_runs_per_side": AB_WARMUP_RUNS_PER_SIDE,
+                # Per model x variant, so the balancing of each series is visible.
+                "order": {key: list(map(list, value)) for key, value in self.orders.items()},
+                "rounds_led_by": self.led_by,
                 "results": [result.as_dict() for result in self.results],
                 "winners": {model: dict(found) for model, found in self.winners.items()},
             },
@@ -748,7 +822,15 @@ def run_ab(request: AbRequest) -> AbReport:
     candidate_winners: dict[str, str] = {}
 
     artifacts = Path(tempfile.mkdtemp(prefix="edgemason-gate-ab-"))
+    tree_of = {"baseline": request.baseline, "candidate": request.candidate}
     trees = (("baseline", request.baseline), ("candidate", request.candidate))
+    # The order of every round, recorded so a reader can verify the balancing.
+    # The parity runs continuously across models and variants rather than
+    # restarting per variant, so two consecutive measured runs are never both
+    # made by the same tree. Over 3 variants x 5 rounds that is 15 rounds and
+    # the baseline leads 8 of them to the candidate's 7.
+    measured_round = 0
+    orders: dict[str, list[list[str]]] = {}
     try:
         for model in request.models:
             # Each tree builds its own artifact per variant, once: re-quantizing
@@ -758,27 +840,45 @@ def run_ab(request: AbRequest) -> AbReport:
                 for role, tree in trees
                 for variant in AB_VARIANTS
             }
+            # Warm-up: throw away one run per side before round 0, so the first
+            # measured round is not the one paying for the cold artifact.
+            for role, tree in trees:
+                for variant in AB_VARIANTS:
+                    for _ in range(AB_WARMUP_RUNS_PER_SIDE):
+                        _ab_measure(tree, prepared[(role, variant)], warmup=True)
+
             for variant in AB_VARIANTS:
                 baseline_p50: list[float] = []
                 candidate_p50: list[float] = []
                 baseline_memory: list[float] = []
                 candidate_memory: list[float] = []
-                # Alternating B, C, B, C: a drift in the machine hits both sides
-                # of every pair instead of one whole series.
+                variant_orders: list[list[str]] = []
+                # The order alternates so each tree occupies each position
+                # equally often; the parity carries over from the previous
+                # variant rather than restarting. The paired series is
+                # collected in round order, not in run order.
                 for _ in range(request.rounds):
-                    for role, tree in trees:
-                        p50, memory_delta = _ab_measure(tree, prepared[(role, variant)])
+                    order = AB_ROUND_ORDERS[measured_round % len(AB_ROUND_ORDERS)]
+                    measured_round += 1
+                    variant_orders.append(list(order))
+                    for role in order:
+                        p50, memory_delta = _ab_measure(
+                            tree_of[role], prepared[(role, variant)]
+                        )
                         if role == "baseline":
                             baseline_p50.append(p50)
                             baseline_memory.append(memory_delta)
                         else:
                             candidate_p50.append(p50)
                             candidate_memory.append(memory_delta)
+                orders[f"{model}/{variant}"] = variant_orders
                 comparisons.append(VariantComparison(
                     model=model,
                     variant=variant,
-                    p50=compare_metric(baseline_p50, candidate_p50),
-                    memory_delta=compare_metric(baseline_memory, candidate_memory),
+                    p50=compare_metric(baseline_p50, candidate_p50, request.band_pct),
+                    memory_delta=compare_metric(
+                        baseline_memory, candidate_memory, request.band_pct
+                    ),
                 ))
             measured = [comparison for comparison in comparisons if comparison.model == model]
             baseline_winners[model] = min(measured, key=lambda c: c.p50.median_baseline).variant
@@ -793,6 +893,7 @@ def run_ab(request: AbRequest) -> AbReport:
         steps=tuple(steps),
         request=request,
         results=tuple(comparisons),
+        orders=orders,
         winners={
             model: {
                 "baseline": baseline_winners[model],
@@ -843,35 +944,37 @@ def _ab_steps(
 
 
 def _metric_detail(comparison: MetricComparison) -> str:
-    """One metric as `mB -> mC (band)`, the numbers a reader wants first."""
+    """One metric as its median paired difference against the band."""
     verdict = "within" if comparison.within_band else "OUTSIDE"
     return (
-        f"{comparison.median_baseline:g} -> {comparison.median_candidate:g} "
-        f"(band {comparison.band:g}, {verdict})"
+        f"median paired diff {comparison.median_pct_diff:+.2f}% "
+        f"(band {comparison.band_pct:g}%, worst {comparison.max_abs_pct_diff:.2f}%, {verdict})"
     )
 
 
 def _ab_summary(report: AbReport) -> str:
     """A short markdown table of the A/B run for stdout."""
     rows = [
-        "| model | variant | p50 B -> C | band | p50 | memory B -> C | band | memory |",
-        "| ----- | ------ | ----------- | ---- | --- | ------------- | ---- | ------ |",
+        "| model | variant | p50 paired median | band | p50 | memory paired | band | memory |",
+        "| ----- | ------ | ------------------ | ---- | --- | ------------- | ---- | ------ |",
     ]
     for result in report.results:
         rows.append(
             f"| {result.model} | {result.variant} | "
-            f"{result.p50.median_baseline:g} -> {result.p50.median_candidate:g} | "
-            f"{result.p50.band:g} | {_verdict_word(result.p50)} | "
-            f"{result.memory_delta.median_baseline:g} -> "
-            f"{result.memory_delta.median_candidate:g} | "
-            f"{result.memory_delta.band:g} | {_verdict_word(result.memory_delta)} |"
+            f"{result.p50.median_pct_diff:+.2f}% | "
+            f"{result.p50.band_pct:g}% | {_verdict_word(result.p50)} | "
+            f"{result.memory_delta.median_pct_diff:+.2f}% | "
+            f"{result.memory_delta.band_pct:g}% | {_verdict_word(result.memory_delta)} |"
         )
+    led = report.led_by
     lines = [
         f"## P0.9 gate `ab`: **{report.verdict.upper()}**",
         "",
         f"- baseline: `{report.request.baseline}`",
         f"- candidate: `{report.request.candidate}`",
-        f"- rounds: {report.request.rounds} (alternating B, C)",
+        f"- rounds: {report.request.rounds} per model x variant, order alternates "
+        f"starting {AB_ROUND_ORDERS[0][0]}",
+        f"- rounds led by: baseline {led['baseline']}, candidate {led['candidate']}",
         "",
         *rows,
         "",
@@ -897,6 +1000,7 @@ def _ab_request(args: argparse.Namespace) -> AbRequest:
         candidate=args.candidate.resolve(),
         models=tuple(args.models) if args.models else AB_MODELS,
         rounds=args.rounds,
+        band_pct=args.band_pct,
     )
 
 
@@ -1032,6 +1136,13 @@ def build_parser() -> argparse.ArgumentParser:
     ab.add_argument(
         "--rounds", type=int, default=5,
         help="alternating B/C rounds per model and variant (default: 5)",
+    )
+    ab.add_argument(
+        "--band-pct", type=float, default=AB_BAND_PCT, metavar="PCT",
+        help=(
+            "allowed median paired difference in percent "
+            f"(default: {AB_BAND_PCT:g}; the spec's threshold)"
+        ),
     )
     ab.add_argument("--report", type=Path, default=None, help="write the JSON report here")
     return parser
