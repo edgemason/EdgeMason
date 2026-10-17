@@ -14,6 +14,7 @@ detached worktree of the candidate's merge-base, which it removes again in a
 Usage:
     uv run python scripts/gate.py check --candidate . --level full
     uv run python scripts/gate.py check --candidate ../other --report /tmp/g.json
+    uv run python scripts/gate.py ab --baseline . --candidate . --rounds 5
 """
 
 import argparse
@@ -22,6 +23,7 @@ import json
 import os
 import re
 import shutil
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -43,6 +45,21 @@ NOT_RUN = "not run"
 # The files the capture writes, in the order the gate inspects them.
 ACCURACY_FILE = "accuracy.json"
 ENVIRONMENT_FILE = "environment.json"
+# The A/B protocol's defaults: three models, three candidate variants each.
+AB_MODELS = ("squeezenet1.1-13", "mobilenetv2", "resnet50")
+AB_VARIANTS = ("fp32", "dynamic", "static")
+# The name `Quantizer.quantize_for_candidate` routes on, per protocol variant.
+AB_CANDIDATES = {
+    "fp32": "onnx_fp32_baseline",
+    "dynamic": "onnx_dynamic_int8",
+    "static": "onnx_static_int8",
+}
+# Static INT8 needs calibration data, and this is where it lives in both trees.
+AB_DATASET = "models/samples/imagenetv2_mobilenetv2_256.npz"
+AB_MODEL_DIR = "models"
+AB_MODEL_SUFFIX = ".onnx"
+# A pass needs |mC - mB| within max(2 * MAD_B, this share of mB).
+AB_NOISE_SHARE = 0.05
 # Accuracy is the one output the gate allows to wobble: every number must be
 # equal to within this much. Everything else must be byte-identical.
 ACCURACY_TOLERANCE = 1e-6
@@ -96,6 +113,7 @@ def _run(
     command: Sequence[str],
     cwd: Path,
     env: Mapping[str, str] | None = None,
+    timeout: float | None = None,
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         list(command),
@@ -104,6 +122,7 @@ def _run(
         capture_output=True,
         text=True,
         check=False,
+        timeout=timeout,
     )
 
 
@@ -481,6 +500,406 @@ def step_lint_types(candidate: Path, merge_base: str | None) -> Step:
     return Step("lint-types", PASS, _tail(result, 3))
 
 
+# --- the ab subcommand ----------------------------------------------------
+
+# Every measurement runs inside the tree it measures, so the product code that
+# imports must be that tree's and not this gate's. The worker is passed with
+# `-c` and cwd set to the tree, which puts the tree first on sys.path, and it
+# is handed every path it needs so no asset path is written down twice.
+AB_WORKER = '''
+import json
+import sys
+from pathlib import Path
+
+
+def prepare(request):
+    from api.optimizer.quantizer import Quantizer
+    from api.optimizer.validation import load_validation_data, split_calibration_and_test
+
+    source = Path(request["model_dir"]) / f"{request['model']}.onnx"
+    if not source.is_file():
+        raise SystemExit(f"missing model: {source}")
+    artifact_dir = Path(request["artifact_dir"])
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    calibration = None
+    if request["needs_calibration"]:
+        calibration = split_calibration_and_test(
+            load_validation_data(request["dataset"])
+        ).calibration
+    built = Quantizer(str(artifact_dir)).quantize_for_candidate(
+        str(source), request["candidate"], calibration_data=calibration
+    )
+    print(json.dumps({"artifact": built}))
+
+
+def measure(request):
+    from api import config
+    from api.optimizer.benchmark_engine import benchmark
+
+    # The tree's own defaults, not this gate's idea of them.
+    payload = json.loads(benchmark(
+        request["artifact"],
+        warmup_runs=config.BENCHMARK_WARMUP_RUNS,
+        benchmark_runs=config.BENCHMARK_TIMED_RUNS,
+        time_budget_seconds=config.BENCHMARK_TIME_BUDGET_SECONDS,
+        isolated=True,
+    ))
+    if not payload.get("success"):
+        raise SystemExit("the benchmark did not succeed: " + str(payload.get("error")))
+    print(json.dumps({
+        "p50": payload["latency_ms"]["p50"],
+        "memory_delta": payload["memory_mb"]["delta"],
+    }))
+
+
+ACTIONS = {"prepare": prepare, "measure": measure}
+
+
+if __name__ == "__main__":
+    request = json.loads(sys.argv[1])
+    ACTIONS[request["mode"]](request)
+'''
+
+# One subprocess per measurement, so a tree that hangs takes the gate with it
+# rather than the whole run. The heaviest measured run here takes ~8 s.
+AB_SUBPROCESS_TIMEOUT_SECONDS = 600
+
+
+@dataclass(frozen=True)
+class AbRequest:
+    """Everything the `ab` subcommand needs, resolved."""
+
+    baseline: Path
+    candidate: Path
+    models: tuple[str, ...]
+    rounds: int
+
+
+@dataclass(frozen=True)
+class MetricComparison:
+    """One measured quantity, compared across the two trees."""
+
+    baseline: tuple[float, ...]
+    candidate: tuple[float, ...]
+    median_baseline: float
+    median_candidate: float
+    mad_baseline: float
+    band: float
+
+    @property
+    def within_band(self) -> bool:
+        return abs(self.median_candidate - self.median_baseline) <= self.band
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "baseline": list(self.baseline),
+            "candidate": list(self.candidate),
+            "mB": self.median_baseline,
+            "mC": self.median_candidate,
+            "mad_b": self.mad_baseline,
+            "band": self.band,
+            "within_band": self.within_band,
+        }
+
+
+@dataclass(frozen=True)
+class VariantComparison:
+    """One model × variant: two measured quantities and one verdict."""
+
+    model: str
+    variant: str
+    p50: MetricComparison
+    memory_delta: MetricComparison
+
+    @property
+    def passed(self) -> bool:
+        return self.p50.within_band and self.memory_delta.within_band
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "model": self.model,
+            "variant": self.variant,
+            "p50": self.p50.as_dict(),
+            "memory_delta": self.memory_delta.as_dict(),
+            "pass": self.passed,
+        }
+
+
+def _median(values: Sequence[float]) -> float:
+    return float(statistics.median(values))
+
+
+def _median_absolute_deviation(values: Sequence[float]) -> float:
+    centre = _median(values)
+    return _median([abs(value - centre) for value in values])
+
+
+def compare_metric(
+    baseline: Sequence[float],
+    candidate: Sequence[float],
+) -> MetricComparison:
+    """Compare one quantity: the candidate's median must sit inside the noise band."""
+    median_baseline = _median(baseline)
+    mad_baseline = _median_absolute_deviation(baseline)
+    return MetricComparison(
+        baseline=tuple(baseline),
+        candidate=tuple(candidate),
+        median_baseline=median_baseline,
+        median_candidate=_median(candidate),
+        mad_baseline=mad_baseline,
+        band=max(2.0 * mad_baseline, AB_NOISE_SHARE * median_baseline),
+    )
+
+
+def _ab_worker(tree: Path, request: Mapping[str, object]) -> dict[str, object]:
+    """Run one worker action inside `tree` and return what it printed.
+
+    A crash or a timeout here is an environment error, not a measurement: the
+    gate cannot compare numbers it never got.
+    """
+    env = _child_env()
+    env["PYTHONPATH"] = str(tree)
+    command = [sys.executable, "-c", AB_WORKER, json.dumps(request)]
+    try:
+        result = _run(command, cwd=tree, env=env, timeout=AB_SUBPROCESS_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        raise GateError(
+            f"the benchmark worker in {tree} did not finish within "
+            f"{AB_SUBPROCESS_TIMEOUT_SECONDS}s"
+        ) from None
+    if result.returncode != 0:
+        raise GateError(f"the benchmark worker in {tree} failed: {_tail(result)}")
+    try:
+        payload = json.loads(result.stdout)
+    except ValueError as exc:
+        raise GateError(f"the benchmark worker in {tree} printed no JSON: {exc}") from None
+    if not isinstance(payload, dict):
+        raise GateError(f"the benchmark worker in {tree} printed an unexpected payload")
+    return payload
+
+
+def _ab_prepare(tree: Path, model: str, variant: str, artifact_dir: Path) -> Path:
+    """Build this tree's own artifact for one variant, with its own Quantizer."""
+    payload = _ab_worker(tree, {
+        "mode": "prepare",
+        "model": model,
+        "model_dir": str(tree / AB_MODEL_DIR),
+        "artifact_dir": str(artifact_dir),
+        "candidate": AB_CANDIDATES[variant],
+        # Only static INT8 needs calibration; fp32 and dynamic do not.
+        "needs_calibration": variant == "static",
+        "dataset": str(tree / AB_DATASET),
+    })
+    artifact = payload.get("artifact")
+    if not isinstance(artifact, str) or not artifact:
+        raise GateError(f"the worker in {tree} produced no artifact for {model}/{variant}")
+    return Path(artifact)
+
+
+def _ab_measure(tree: Path, artifact: Path) -> tuple[float, float]:
+    """One isolated benchmark run inside `tree`; returns (p50 ms, memory delta MB)."""
+    payload = _ab_worker(tree, {"mode": "measure", "artifact": str(artifact)})
+    p50 = payload.get("p50")
+    memory_delta = payload.get("memory_delta")
+    if not isinstance(p50, (int, float)) or not isinstance(memory_delta, (int, float)):
+        raise GateError(f"the worker in {tree} returned no usable measurement")
+    return float(p50), float(memory_delta)
+
+
+@dataclass(frozen=True)
+class AbReport:
+    """The A/B verdict, in the same shape every gate report uses.
+
+    The typed objects are kept so the summary and the report are rendered from
+    one source, not from the JSON the report happens to serialise to.
+    """
+
+    verdict: str
+    steps: tuple[Step, ...]
+    request: AbRequest
+    results: tuple[VariantComparison, ...]
+    winners: dict[str, dict[str, object]]
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "verdict": self.verdict,
+            "steps": [step.as_dict() for step in self.steps],
+            "ab": {
+                "rounds": self.request.rounds,
+                "models": list(self.request.models),
+                "variants": dict(AB_CANDIDATES),
+                "noise_share": AB_NOISE_SHARE,
+                "results": [result.as_dict() for result in self.results],
+                "winners": {model: dict(found) for model, found in self.winners.items()},
+            },
+        }
+
+
+def run_ab(request: AbRequest) -> AbReport:
+    """Run the alternating A/B protocol and compare every model × variant."""
+    for tree, flag in ((request.baseline, "--baseline"), (request.candidate, "--candidate")):
+        if not tree.is_dir():
+            raise GateError(f"{flag} is not a directory: {tree}")
+    if request.rounds < 1:
+        raise GateError(f"--rounds must be at least 1, got {request.rounds}")
+
+    comparisons: list[VariantComparison] = []
+    baseline_winners: dict[str, str] = {}
+    candidate_winners: dict[str, str] = {}
+
+    artifacts = Path(tempfile.mkdtemp(prefix="edgemason-gate-ab-"))
+    trees = (("baseline", request.baseline), ("candidate", request.candidate))
+    try:
+        for model in request.models:
+            # Each tree builds its own artifact per variant, once: re-quantizing
+            # between rounds would measure the quantizer, not the candidate.
+            prepared = {
+                (role, variant): _ab_prepare(tree, model, variant, artifacts / role / variant)
+                for role, tree in trees
+                for variant in AB_VARIANTS
+            }
+            for variant in AB_VARIANTS:
+                baseline_p50: list[float] = []
+                candidate_p50: list[float] = []
+                baseline_memory: list[float] = []
+                candidate_memory: list[float] = []
+                # Alternating B, C, B, C: a drift in the machine hits both sides
+                # of every pair instead of one whole series.
+                for _ in range(request.rounds):
+                    for role, tree in trees:
+                        p50, memory_delta = _ab_measure(tree, prepared[(role, variant)])
+                        if role == "baseline":
+                            baseline_p50.append(p50)
+                            baseline_memory.append(memory_delta)
+                        else:
+                            candidate_p50.append(p50)
+                            candidate_memory.append(memory_delta)
+                comparisons.append(VariantComparison(
+                    model=model,
+                    variant=variant,
+                    p50=compare_metric(baseline_p50, candidate_p50),
+                    memory_delta=compare_metric(baseline_memory, candidate_memory),
+                ))
+            measured = [comparison for comparison in comparisons if comparison.model == model]
+            baseline_winners[model] = min(measured, key=lambda c: c.p50.median_baseline).variant
+            candidate_winners[model] = min(measured, key=lambda c: c.p50.median_candidate).variant
+    finally:
+        shutil.rmtree(artifacts, ignore_errors=True)
+
+    steps = _ab_steps(request, comparisons, baseline_winners, candidate_winners)
+    verdict = PASS if all(step.status != FAIL for step in steps) else FAIL
+    return AbReport(
+        verdict=verdict,
+        steps=tuple(steps),
+        request=request,
+        results=tuple(comparisons),
+        winners={
+            model: {
+                "baseline": baseline_winners[model],
+                "candidate": candidate_winners[model],
+                "same": baseline_winners[model] == candidate_winners[model],
+            }
+            for model in request.models
+        },
+    )
+
+
+def _ab_steps(
+    request: AbRequest,
+    comparisons: Sequence[VariantComparison],
+    baseline_winners: Mapping[str, str],
+    candidate_winners: Mapping[str, str],
+) -> list[Step]:
+    """One step per model, then one for the winner, which is judged separately."""
+    steps = []
+    for model in request.models:
+        measured = [comparison for comparison in comparisons if comparison.model == model]
+        failed = [comparison for comparison in measured if not comparison.passed]
+        details = "; ".join(
+            f"{comparison.variant}: p50 {_metric_detail(comparison.p50)}ms, "
+            f"memory {_metric_detail(comparison.memory_delta)}mb"
+            for comparison in measured
+        )
+        steps.append(Step(
+            f"ab:{model}",
+            FAIL if failed else PASS,
+            f"{len(measured) - len(failed)}/{len(measured)} variants within the noise band. "
+            f"{details}",
+        ))
+    changed = [
+        model for model in request.models
+        if baseline_winners[model] != candidate_winners[model]
+    ]
+    winners = ", ".join(
+        f"{model}: baseline {baseline_winners[model]}, candidate {candidate_winners[model]}"
+        for model in request.models
+    )
+    steps.append(Step(
+        "ab:winners",
+        FAIL if changed else PASS,
+        f"the winner changed for {len(changed)} of {len(request.models)} model(s). {winners}",
+    ))
+    return steps
+
+
+def _metric_detail(comparison: MetricComparison) -> str:
+    """One metric as `mB -> mC (band)`, the numbers a reader wants first."""
+    verdict = "within" if comparison.within_band else "OUTSIDE"
+    return (
+        f"{comparison.median_baseline:g} -> {comparison.median_candidate:g} "
+        f"(band {comparison.band:g}, {verdict})"
+    )
+
+
+def _ab_summary(report: AbReport) -> str:
+    """A short markdown table of the A/B run for stdout."""
+    rows = [
+        "| model | variant | p50 B -> C | band | p50 | memory B -> C | band | memory |",
+        "| ----- | ------ | ----------- | ---- | --- | ------------- | ---- | ------ |",
+    ]
+    for result in report.results:
+        rows.append(
+            f"| {result.model} | {result.variant} | "
+            f"{result.p50.median_baseline:g} -> {result.p50.median_candidate:g} | "
+            f"{result.p50.band:g} | {_verdict_word(result.p50)} | "
+            f"{result.memory_delta.median_baseline:g} -> "
+            f"{result.memory_delta.median_candidate:g} | "
+            f"{result.memory_delta.band:g} | {_verdict_word(result.memory_delta)} |"
+        )
+    lines = [
+        f"## P0.9 gate `ab`: **{report.verdict.upper()}**",
+        "",
+        f"- baseline: `{report.request.baseline}`",
+        f"- candidate: `{report.request.candidate}`",
+        f"- rounds: {report.request.rounds} (alternating B, C)",
+        "",
+        *rows,
+        "",
+        *[
+            f"- winner {model}: baseline {found['baseline']}, candidate {found['candidate']}"
+            + ("" if found["same"] else "  <- CHANGED")
+            for model, found in report.winners.items()
+        ],
+    ]
+    details = [f"**{step.name}** - {step.details}" for step in report.steps if step.status == FAIL]
+    if details:
+        lines += ["", *details]
+    return "\n".join(lines)
+
+
+def _verdict_word(comparison: MetricComparison) -> str:
+    return "pass" if comparison.within_band else "FAIL"
+
+
+def _ab_request(args: argparse.Namespace) -> AbRequest:
+    return AbRequest(
+        baseline=args.baseline.resolve(),
+        candidate=args.candidate.resolve(),
+        models=tuple(args.models) if args.models else AB_MODELS,
+        rounds=args.rounds,
+    )
+
+
 # --- the check subcommand -------------------------------------------------
 
 
@@ -600,6 +1019,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--allow-golden-change", action="store_true",
         help="accept changes under tests/golden/ and baseline/ (approved specs only)",
     )
+
+    ab = subcommands.add_parser(
+        "ab", help="time two trees against each other over alternating rounds"
+    )
+    ab.add_argument("--baseline", required=True, type=Path, help="git worktree root to measure")
+    ab.add_argument("--candidate", required=True, type=Path, help="git worktree root to measure")
+    ab.add_argument(
+        "--models", nargs="+", default=None, metavar="NAME",
+        help=f"models to compare (default: {', '.join(AB_MODELS)})",
+    )
+    ab.add_argument(
+        "--rounds", type=int, default=5,
+        help="alternating B/C rounds per model and variant (default: 5)",
+    )
+    ab.add_argument("--report", type=Path, default=None, help="write the JSON report here")
     return parser
 
 
@@ -619,16 +1053,24 @@ def _check_request(args: argparse.Namespace) -> CheckRequest:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        request = _check_request(args)
-        report = run_check(request)
+        if args.command == "ab":
+            result = run_ab(_ab_request(args))
+            print(_ab_summary(result))
+            payload = result.as_dict()
+            verdict = result.verdict
+        else:
+            request = _check_request(args)
+            result = run_check(request)
+            print(_summary(result, args.candidate, args.level))
+            payload = result.as_dict()
+            verdict = result.verdict
     except GateError as exc:
         print(f"gate: {exc}", file=sys.stderr)
         return EXIT_USAGE
-    print(_summary(report, args.candidate, args.level))
     if args.report is not None:
         args.report.parent.mkdir(parents=True, exist_ok=True)
-        args.report.write_text(json.dumps(report.as_dict(), indent=2) + "\n", encoding="utf-8")
-    return EXIT_PASS if report.verdict == PASS else EXIT_FAIL
+        args.report.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return EXIT_PASS if verdict == PASS else EXIT_FAIL
 
 
 if __name__ == "__main__":
