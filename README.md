@@ -58,7 +58,7 @@ edgemason/
 │   ├── planner/
 │   │   └── rule_based.py           # candidate strategy selection from rules
 │   ├── optimizer/
-│   │   ├── onnx_runtime.py         # inference sessions + latency/memory benchmark
+│   │   ├── benchmark_engine.py     # latency/memory/throughput benchmark (ONNX Runtime + TVM)
 │   │   └── quantizer.py            # fp32 / dynamic int8 / static int8 model gen
 │   └── packager/
 │       └── generator.py            # deployment ZIP (Dockerfile, inference.py, report)
