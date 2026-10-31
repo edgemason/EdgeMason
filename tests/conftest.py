@@ -36,3 +36,13 @@ def tiny_onnx(tmp_path):
     path = tmp_path / "tiny.onnx"
     onnx.save(model, path)
     return path
+
+
+@pytest.fixture(autouse=True)
+def _seed_rng():
+    import random
+
+    import numpy as np
+
+    random.seed(42)
+    np.random.seed(42)

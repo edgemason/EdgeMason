@@ -1,0 +1,353 @@
+{
+  "committed_source": "reports/data/quantization_analysis.json",
+  "comparison_fields": [
+    "model",
+    "variant",
+    "field",
+    "committed",
+    "measured",
+    "verdict",
+    "reason"
+  ],
+  "comparisons": [
+    {
+      "committed": 0.553072625698324,
+      "field": "top1",
+      "measured": 0.553072625698324,
+      "model": "mobilenetv2",
+      "reason": null,
+      "variant": "dynamic_int8",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 0.7541899441340782,
+      "field": "top5",
+      "measured": 0.7541899441340782,
+      "model": "mobilenetv2",
+      "reason": "scored with different tie-breaking (product `evaluate_onnx` uses `np.argpartition`, `scripts/quantization_analysis.py` uses `np.argsort`) and different thread count (product pins `intra_op_num_threads=1`, research script uses all cores); static INT8 quantisation collapses class groups onto identical logits so 5th-place class membership is ambiguous - e.g. squeezenet1.1-13: argsort/1-thread 0.6033519553072626, argsort/N-thread 0.6089385474860335 (the committed value), argpartition/1-thread 0.6368715083798883, 123/179 images differ by exact ties",
+      "variant": "dynamic_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 3.5217466354370117,
+      "field": "size_mb",
+      "measured": 3.5217466354370117,
+      "model": "mobilenetv2",
+      "reason": null,
+      "variant": "dynamic_int8",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 30.271952498878818,
+      "field": "latency_p50_ms_1thread",
+      "measured": null,
+      "model": "mobilenetv2",
+      "reason": "measured in-process by `scripts/quantization_analysis.py` (10 warm-up + 50 timed runs on the default thread pool) rather than by the product's benchmark engine, and it is a timing number, so it is never deterministic and cannot be compared against a stored value",
+      "variant": "dynamic_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 0.5810055865921788,
+      "field": "top1",
+      "measured": 0.5810055865921788,
+      "model": "mobilenetv2",
+      "reason": null,
+      "variant": "fp32",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 0.776536312849162,
+      "field": "top5",
+      "measured": 0.776536312849162,
+      "model": "mobilenetv2",
+      "reason": "scored with different tie-breaking (product `evaluate_onnx` uses `np.argpartition`, `scripts/quantization_analysis.py` uses `np.argsort`) and different thread count (product pins `intra_op_num_threads=1`, research script uses all cores); static INT8 quantisation collapses class groups onto identical logits so 5th-place class membership is ambiguous - e.g. squeezenet1.1-13: argsort/1-thread 0.6033519553072626, argsort/N-thread 0.6089385474860335 (the committed value), argpartition/1-thread 0.6368715083798883, 123/179 images differ by exact ties",
+      "variant": "fp32",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 13.344080924987793,
+      "field": "size_mb",
+      "measured": 13.344080924987793,
+      "model": "mobilenetv2",
+      "reason": null,
+      "variant": "fp32",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 12.70572350040311,
+      "field": "latency_p50_ms_1thread",
+      "measured": null,
+      "model": "mobilenetv2",
+      "reason": "measured in-process by `scripts/quantization_analysis.py` (10 warm-up + 50 timed runs on the default thread pool) rather than by the product's benchmark engine, and it is a timing number, so it is never deterministic and cannot be compared against a stored value",
+      "variant": "fp32",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 0.5754189944134078,
+      "field": "top1",
+      "measured": 0.5754189944134078,
+      "model": "mobilenetv2",
+      "reason": null,
+      "variant": "static_int8_per_channel",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 0.7821229050279329,
+      "field": "top5",
+      "measured": 0.7821229050279329,
+      "model": "mobilenetv2",
+      "reason": "scored with different tie-breaking (product `evaluate_onnx` uses `np.argpartition`, `scripts/quantization_analysis.py` uses `np.argsort`) and different thread count (product pins `intra_op_num_threads=1`, research script uses all cores); static INT8 quantisation collapses class groups onto identical logits so 5th-place class membership is ambiguous - e.g. squeezenet1.1-13: argsort/1-thread 0.6033519553072626, argsort/N-thread 0.6089385474860335 (the committed value), argpartition/1-thread 0.6368715083798883, 123/179 images differ by exact ties",
+      "variant": "static_int8_per_channel",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 3.725186347961426,
+      "field": "size_mb",
+      "measured": 3.725186347961426,
+      "model": "mobilenetv2",
+      "reason": null,
+      "variant": "static_int8_per_channel",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 10.900618995947298,
+      "field": "latency_p50_ms_1thread",
+      "measured": null,
+      "model": "mobilenetv2",
+      "reason": "measured in-process by `scripts/quantization_analysis.py` (10 warm-up + 50 timed runs on the default thread pool) rather than by the product's benchmark engine, and it is a timing number, so it is never deterministic and cannot be compared against a stored value",
+      "variant": "static_int8_per_channel",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 0.3407821229050279,
+      "field": "top1",
+      "measured": 0.3407821229050279,
+      "model": "squeezenet1.1-13",
+      "reason": null,
+      "variant": "dynamic_int8",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 0.6312849162011173,
+      "field": "top5",
+      "measured": 0.6312849162011173,
+      "model": "squeezenet1.1-13",
+      "reason": "scored with different tie-breaking (product `evaluate_onnx` uses `np.argpartition`, `scripts/quantization_analysis.py` uses `np.argsort`) and different thread count (product pins `intra_op_num_threads=1`, research script uses all cores); static INT8 quantisation collapses class groups onto identical logits so 5th-place class membership is ambiguous - e.g. squeezenet1.1-13: argsort/1-thread 0.6033519553072626, argsort/N-thread 0.6089385474860335 (the committed value), argpartition/1-thread 0.6368715083798883, 123/179 images differ by exact ties",
+      "variant": "dynamic_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 1.233637809753418,
+      "field": "size_mb",
+      "measured": 1.233637809753418,
+      "model": "squeezenet1.1-13",
+      "reason": null,
+      "variant": "dynamic_int8",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 15.339743993536104,
+      "field": "latency_p50_ms_1thread",
+      "measured": null,
+      "model": "squeezenet1.1-13",
+      "reason": "measured in-process by `scripts/quantization_analysis.py` (10 warm-up + 50 timed runs on the default thread pool) rather than by the product's benchmark engine, and it is a timing number, so it is never deterministic and cannot be compared against a stored value",
+      "variant": "dynamic_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 0.36312849162011174,
+      "field": "top1",
+      "measured": 0.36312849162011174,
+      "model": "squeezenet1.1-13",
+      "reason": null,
+      "variant": "fp32",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 0.6368715083798883,
+      "field": "top5",
+      "measured": 0.6368715083798883,
+      "model": "squeezenet1.1-13",
+      "reason": "scored with different tie-breaking (product `evaluate_onnx` uses `np.argpartition`, `scripts/quantization_analysis.py` uses `np.argsort`) and different thread count (product pins `intra_op_num_threads=1`, research script uses all cores); static INT8 quantisation collapses class groups onto identical logits so 5th-place class membership is ambiguous - e.g. squeezenet1.1-13: argsort/1-thread 0.6033519553072626, argsort/N-thread 0.6089385474860335 (the committed value), argpartition/1-thread 0.6368715083798883, 123/179 images differ by exact ties",
+      "variant": "fp32",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 4.729733467102051,
+      "field": "size_mb",
+      "measured": 4.729733467102051,
+      "model": "squeezenet1.1-13",
+      "reason": null,
+      "variant": "fp32",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 14.8259394991328,
+      "field": "latency_p50_ms_1thread",
+      "measured": null,
+      "model": "squeezenet1.1-13",
+      "reason": "measured in-process by `scripts/quantization_analysis.py` (10 warm-up + 50 timed runs on the default thread pool) rather than by the product's benchmark engine, and it is a timing number, so it is never deterministic and cannot be compared against a stored value",
+      "variant": "fp32",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 0.3407821229050279,
+      "field": "top1",
+      "measured": 0.3407821229050279,
+      "model": "squeezenet1.1-13",
+      "reason": null,
+      "variant": "static_int8_per_channel",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 0.6089385474860335,
+      "field": "top5",
+      "measured": 0.6368715083798883,
+      "model": "squeezenet1.1-13",
+      "reason": "scored with different tie-breaking (product `evaluate_onnx` uses `np.argpartition`, `scripts/quantization_analysis.py` uses `np.argsort`) and different thread count (product pins `intra_op_num_threads=1`, research script uses all cores); static INT8 quantisation collapses class groups onto identical logits so 5th-place class membership is ambiguous - e.g. squeezenet1.1-13: argsort/1-thread 0.6033519553072626, argsort/N-thread 0.6089385474860335 (the committed value), argpartition/1-thread 0.6368715083798883, 123/179 images differ by exact ties",
+      "variant": "static_int8_per_channel",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": 1.288116455078125,
+      "field": "size_mb",
+      "measured": 1.288116455078125,
+      "model": "squeezenet1.1-13",
+      "reason": null,
+      "variant": "static_int8_per_channel",
+      "verdict": "reproduces"
+    },
+    {
+      "committed": 19.86506500543328,
+      "field": "latency_p50_ms_1thread",
+      "measured": null,
+      "model": "squeezenet1.1-13",
+      "reason": "measured in-process by `scripts/quantization_analysis.py` (10 warm-up + 50 timed runs on the default thread pool) rather than by the product's benchmark engine, and it is a timing number, so it is never deterministic and cannot be compared against a stored value",
+      "variant": "static_int8_per_channel",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "mobilenetv2",
+      "reason": "the product `Quantizer` implements per-channel static INT8 only; the per-tensor path exists only in `scripts/quantization_analysis.py` and has no product counterpart to compare against",
+      "variant": "static_int8_per_tensor",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "mobilenetv2",
+      "reason": "no product function computes this block; it is derived in `scripts/quantization_analysis.py` only",
+      "variant": "agreement_fp32_vs_static_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "resnet152",
+      "reason": "the product `Quantizer` implements per-channel static INT8 only; the per-tensor path exists only in `scripts/quantization_analysis.py` and has no product counterpart to compare against",
+      "variant": "static_int8_per_tensor",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "resnet152",
+      "reason": "no product function computes this block; it is derived in `scripts/quantization_analysis.py` only",
+      "variant": "agreement_fp32_vs_static_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "resnet18-v1-13",
+      "reason": "the product `Quantizer` implements per-channel static INT8 only; the per-tensor path exists only in `scripts/quantization_analysis.py` and has no product counterpart to compare against",
+      "variant": "static_int8_per_tensor",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "resnet18-v1-13",
+      "reason": "no product function computes this block; it is derived in `scripts/quantization_analysis.py` only",
+      "variant": "agreement_fp32_vs_static_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "resnet50",
+      "reason": "the product `Quantizer` implements per-channel static INT8 only; the per-tensor path exists only in `scripts/quantization_analysis.py` and has no product counterpart to compare against",
+      "variant": "static_int8_per_tensor",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "resnet50",
+      "reason": "no product function computes this block; it is derived in `scripts/quantization_analysis.py` only",
+      "variant": "agreement_fp32_vs_static_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "shufflenet-v2-13",
+      "reason": "the product `Quantizer` implements per-channel static INT8 only; the per-tensor path exists only in `scripts/quantization_analysis.py` and has no product counterpart to compare against",
+      "variant": "static_int8_per_tensor",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "shufflenet-v2-13",
+      "reason": "no product function computes this block; it is derived in `scripts/quantization_analysis.py` only",
+      "variant": "agreement_fp32_vs_static_int8",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "squeezenet1.1-13",
+      "reason": "the product `Quantizer` implements per-channel static INT8 only; the per-tensor path exists only in `scripts/quantization_analysis.py` and has no product counterpart to compare against",
+      "variant": "static_int8_per_tensor",
+      "verdict": "not_comparable"
+    },
+    {
+      "committed": null,
+      "field": "*",
+      "measured": null,
+      "model": "squeezenet1.1-13",
+      "reason": "no product function computes this block; it is derived in `scripts/quantization_analysis.py` only",
+      "variant": "agreement_fp32_vs_static_int8",
+      "verdict": "not_comparable"
+    }
+  ],
+  "variants": {
+    "dynamic_int8": {
+      "candidate": "onnx_dynamic_int8"
+    },
+    "fp32": {
+      "candidate": "onnx_fp32_baseline"
+    },
+    "static_int8_per_channel": {
+      "candidate": "onnx_static_int8"
+    },
+    "static_int8_per_tensor": {
+      "candidate": null,
+      "reason": "the product `Quantizer` implements per-channel static INT8 only; the per-tensor path exists only in `scripts/quantization_analysis.py` and has no product counterpart to compare against"
+    }
+  }
+}

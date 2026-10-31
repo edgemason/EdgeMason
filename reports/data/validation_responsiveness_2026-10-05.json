@@ -1,0 +1,22 @@
+{
+  "model": "mobilenetv2.onnx",
+  "calibration": "imagenetv2_mobilenetv2_256.npz",
+  "hardware_id": "x86_64",
+  "deploy": {
+    "status": 200,
+    "seconds": 24.6,
+    "winner": "onnx_static_int8"
+  },
+  "health_during_deploy": {
+    "requests": 92,
+    "median_ms": 3.2,
+    "max_ms": 163.6,
+    "slower_than_1s": 0
+  },
+  "dashboard_during_deploy": {
+    "requests": 92,
+    "median_ms": 3.8,
+    "max_ms": 70.0,
+    "slower_than_1s": 0
+  }
+}

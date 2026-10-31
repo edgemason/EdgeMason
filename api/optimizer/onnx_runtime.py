@@ -175,6 +175,7 @@ def benchmark(
     batch_size: int = 1,
     sample_path: str | None = None,
     execution_provider: str = "auto",
+    time_budget_seconds: float | None = None,
 ) -> str:
     """Benchmark an ONNX or TVM model."""
     if input_data is None and sample_path and filename.endswith(".onnx"):
@@ -194,4 +195,5 @@ def benchmark(
         hardware_id=hardware_id,
         batch_size=batch_size,
         execution_provider=execution_provider,
+        time_budget_seconds=time_budget_seconds,
     )

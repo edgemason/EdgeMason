@@ -144,3 +144,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Asset reference outputs (committed)
+!assets/
+!assets/reference/
+!assets/reference/*.npz

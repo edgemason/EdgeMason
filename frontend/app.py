@@ -89,9 +89,9 @@ with st.sidebar:
     
     execution_provider = st.selectbox(
         "Execution Provider",
-        options=["auto", "cpu", "cuda"],
+        options=["cpu", "auto", "cuda"],
         index=0,
-        help="CUDA requires an active NVIDIA GPU environment."
+        help="CPU by default. Auto uses the GPU if the target supports it; CUDA requires an NVIDIA GPU."
     )
     
     include_tvm = st.toggle("Include Apache TVM Relay", value=True, help="Compiles TVM Opt-Level-3 candidates alongside ONNX Runtime.")
@@ -198,6 +198,15 @@ if "pipeline_result" in st.session_state:
     
     st.markdown("## 🏆 Deployment Recommendation & Benchmark Results")
     
+    split = res.get("data_split") or {}
+    if split.get("test_samples"):
+        st.caption(
+            f"Calibrated on {split['calibration_samples']} images, "
+            f"accuracy tested on {split['test_samples']} others."
+        )
+    for warning in res.get("warnings", []):
+        st.warning(warning)
+
     if winner:
         st.markdown(f"""
         <div class="winner-card">
@@ -212,14 +221,14 @@ if "pipeline_result" in st.session_state:
         """, unsafe_allow_html=True)
         
         wc1, wc2, wc3, wc4 = st.columns(4)
-        lat = winner.get("latency_p50_ms")
+        lat = winner.get("estimated_latency_p50_ms")
         fps = winner.get("throughput_fps")
-        mem = winner.get("memory_delta_mb")
+        mem = winner.get("estimated_memory_mb")
         sz = winner.get("model_size_mb")
         
-        wc1.metric("Median Latency", f"{lat:.2f} ms" if lat else "N/A")
+        wc1.metric("Est. Latency on Target", f"~{lat:.1f} ms" if lat is not None else "N/A")
         wc2.metric("Throughput", f"{fps:.1f} FPS" if fps else "N/A")
-        wc3.metric("Memory Delta", f"{mem:.2f} MB" if mem else "N/A")
+        wc3.metric("Est. Memory on Target", f"~{mem:.2f} MB" if mem is not None else "N/A")
         wc4.metric("Model Size", f"{sz:.2f} MB" if sz else "N/A")
         
         download_url = res.get("download_url")
@@ -246,9 +255,10 @@ if "pipeline_result" in st.session_state:
                 "Strategy": r.get("name"),
                 "Framework": r.get("framework", "onnxruntime"),
                 "Status": "✅ Success" if r.get("success") else f"❌ Failed ({r.get('error')})",
-                "Latency p50 (ms)": r.get("latency_p50_ms"),
+                "Host Latency p50 (ms)": r.get("latency_p50_ms"),
+                "Est. Latency on Target (ms)": r.get("estimated_latency_p50_ms"),
                 "Throughput (FPS)": r.get("throughput_fps"),
-                "Memory Delta (MB)": r.get("memory_delta_mb"),
+                "Est. Memory (MB)": r.get("estimated_memory_mb"),
                 "Model Size (MB)": r.get("model_size_mb"),
                 "Top-1 Accuracy": top1 or "--",
             })
@@ -261,8 +271,8 @@ if "pipeline_result" in st.session_state:
         if not valid_df.empty:
             chart_col1, chart_col2 = st.columns(2)
             with chart_col1:
-                st.caption("Median Latency (ms) — Lower is better")
-                st.bar_chart(valid_df.set_index("Strategy")["Latency p50 (ms)"])
+                st.caption("Estimated Median Latency on Target (ms) — Lower is better")
+                st.bar_chart(valid_df.set_index("Strategy")["Est. Latency on Target (ms)"])
             with chart_col2:
                 st.caption("Throughput (FPS) — Higher is better")
                 st.bar_chart(valid_df.set_index("Strategy")["Throughput (FPS)"])
