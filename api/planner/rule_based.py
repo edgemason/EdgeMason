@@ -21,6 +21,7 @@ STRATEGY_STATIC_INT8 = "onnx_static_int8"
 
 # Strategy names — TVM
 STRATEGY_TVM_OPT3 = "tvm_opt_level_3"
+STRATEGY_TVM_TUNED = "tvm_tuned"
 STRATEGY_TVM_INT8 = "tvm_int8_quantized"
 
 # Quantization methods, shared by every framework
@@ -49,6 +50,7 @@ class PlannerInput:
     include_tvm: bool = False
     # Operator type -> count, as reported by the model analyzer.
     operator_counts: dict = field(default_factory=dict)
+    enable_tvm_tuning: bool = False
 
 
 @dataclass
@@ -196,6 +198,18 @@ def generate_candidates(planner_input: PlannerInput) -> dict:
         )
         rules_applied.append("TVM candidates explicitly enabled.")
 
+        if planner_input.enable_tvm_tuning:
+            add(
+                Candidate(
+                    name=STRATEGY_TVM_TUNED,
+                    framework="tvm",
+                    quantization=QUANT_FP32,
+                    reason="TVM MetaSchedule autotuning enabled for hardware-optimal loop schedules.",
+                    requires_calibration=False,
+                )
+            )
+            rules_applied.append("TVM autotuning enabled -> include TVM Tuned candidate.")
+
         if planner_input.has_calibration_data:
             add(
                 Candidate(
@@ -241,6 +255,17 @@ def generate_candidates(planner_input: PlannerInput) -> dict:
             {
                 "strategy": STRATEGY_STATIC_INT8,
                 "reason": "Static INT8 was skipped because calibration data was unavailable.",
+            }
+        )
+
+    if not any(c.name == STRATEGY_TVM_TUNED for c in candidates):
+        skipped.append(
+            {
+                "strategy": STRATEGY_TVM_TUNED,
+                "reason": (
+                    "TVM autotuned candidate was skipped because TVM was not enabled or "
+                    "tuning was not requested."
+                ),
             }
         )
 

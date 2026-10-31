@@ -44,6 +44,7 @@ class DeployRequest:
     requested_provider: str
     execution_provider: str
     include_tvm: bool
+    enable_tvm_tuning: bool = False
 
 
 def _model_input_name(model_path: str) -> str:
@@ -198,6 +199,7 @@ def run_deploy(request: DeployRequest) -> dict:
             has_calibration_data=calibration_path is not None,
             include_tvm=request.include_tvm,
             operator_counts=analysis["operator_types"],
+            enable_tvm_tuning=request.enable_tvm_tuning,
         )
     )
     warnings = plan["warnings"] + warnings
@@ -238,6 +240,7 @@ def run_deploy(request: DeployRequest) -> dict:
             "priority": request.priority,
             "execution_provider": request.requested_provider,
             "include_tvm": request.include_tvm,
+            "enable_tvm_tuning": request.enable_tvm_tuning,
         },
         "analysis": {
             "model_size_mb": analysis["model_size_mb"],

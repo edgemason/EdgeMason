@@ -17,11 +17,12 @@ from api.optimizer.validation import (
 
 # ---------------------------------------------------------------------------
 # TVM hardware target map (dict form; CLI strings were removed in TVM 0.25+)
+# Enhanced with CPU architecture vector flags (AVX2/FMA for x86, NEON for ARM)
 # ---------------------------------------------------------------------------
 TVM_TARGETS: dict = {
-    "rpi4": {"kind": "llvm", "mcpu": "cortex-a72"},
-    "rpi5": {"kind": "llvm", "mcpu": "cortex-a76"},
-    "x86_64": {"kind": "llvm", "mcpu": "core-avx2"},
+    "rpi4": {"kind": "llvm", "mcpu": "cortex-a72", "mattr": ["+neon", "+v8a"]},
+    "rpi5": {"kind": "llvm", "mcpu": "cortex-a76", "mattr": ["+neon", "+v8.2a", "+dotprod"]},
+    "x86_64": {"kind": "llvm", "mcpu": "core-avx2", "mattr": ["+avx2", "+fma"]},
 }
 
 
@@ -56,7 +57,11 @@ class Quantizer:
         )
         return str(out_path)
 
-    def create_static_int8(self, model_path: str, calibration_data: CalibrationData) -> str:
+    def create_static_int8(
+        self,
+        model_path: str,
+        calibration_data: CalibrationData,
+    ) -> str:
         """Static INT8: both weights and activations quantized using calibration data."""
         out_path = self.output_dir / "model_static_int8.onnx"
 
@@ -102,17 +107,22 @@ class Quantizer:
 
         reader = NumpyDataReader(calib_data, input_name)
 
-        # Pre-processing (fuse Conv+BatchNorm, infer shapes) is recommended by
-        # ONNX Runtime but optional, so quantize the original if it fails.
-        prepped_path = self.output_dir / "model_static_int8_prepped.onnx"
+        # Infer dynamic shapes and symbolic dimensions so quantize_static can
+        # place QDQ operators without failing on unknown shapes.
+        preprocessed_path = self.output_dir / "_preprocessed_for_quant.onnx"
         try:
-            quant_pre_process(model_path, str(prepped_path), skip_symbolic_shape=True)
-            source_path = str(prepped_path)
+            quant_pre_process(
+                input_model_path=model_path,
+                output_model_path=str(preprocessed_path),
+                skip_symbolic_shape=False,
+            )
+            quant_source = str(preprocessed_path)
         except Exception:
-            source_path = model_path
+            # Fall back to raw model if preprocess fails on an uncommon op.
+            quant_source = model_path
 
         quantize_static(
-            model_input=source_path,
+            model_input=quant_source,
             model_output=str(out_path),
             calibration_data_reader=reader,
             weight_type=QuantType.QInt8,
@@ -138,6 +148,9 @@ class Quantizer:
     ) -> str:
         """Compile an ONNX model with TVM Relax and save as a .tar module.
 
+        Automatically applies pre-tuned schedule databases if available in
+        profiles/tvm_tuning/{hardware_id}.
+
         Args:
             model_path     : Path to the source .onnx file.
             hardware_id    : Edge target ('rpi4', 'rpi5', 'x86_64').
@@ -148,9 +161,53 @@ class Quantizer:
             str : Path to the exported '<output_dir>/model_tvm_opt{opt_level}.tar'.
         """
         from api.optimizer.tvm_runtime import compile_onnx
+        from api.optimizer.tvm_tuning import get_default_tuning_dir
+
+        tuning_dir = get_default_tuning_dir(hardware_id)
+        tuning_path = (
+            str(tuning_dir)
+            if (tuning_dir / "database_tuning_record.json").exists()
+            else None
+        )
 
         out_path = self.output_dir / f"model_tvm_opt{opt_level}.tar"
-        return compile_onnx(out_path, model_path, _tvm_target(hardware_id))
+        return compile_onnx(
+            out_path,
+            model_path,
+            _tvm_target(hardware_id),
+            tune=False,
+            tuning_database_path=tuning_path,
+        )
+
+    def create_tvm_tuned(
+        self,
+        model_path: str,
+        hardware_id: str = "x86_64",
+        max_trials: int = 16,
+        work_dir: Optional[str] = None,
+    ) -> str:
+        """Compile an ONNX model with TVM Relax and MetaSchedule autotuning.
+
+        Args:
+            model_path  : Path to the source .onnx file.
+            hardware_id : Target edge platform ('rpi4', 'rpi5', 'x86_64').
+            max_trials  : Search budget for MetaSchedule trials.
+            work_dir    : Directory for storing tuning records.
+
+        Returns:
+            str : Path to the exported '<output_dir>/model_tvm_tuned.tar'.
+        """
+        from api.optimizer.tvm_runtime import compile_onnx
+
+        out_path = self.output_dir / "model_tvm_tuned.tar"
+        return compile_onnx(
+            out_path,
+            model_path,
+            _tvm_target(hardware_id),
+            tune=True,
+            tuning_database_path=work_dir,
+            max_tuning_trials=max_trials,
+        )
 
     def create_tvm_int8(
         self,
@@ -213,6 +270,12 @@ class Quantizer:
         # --- TVM candidates ---
         elif candidate_name == "tvm_opt_level_3":
             return self.create_tvm_compiled(model_path, hardware_id=hardware_id, opt_level=3)
+
+        elif candidate_name == "tvm_tuned":
+            return self.create_tvm_tuned(
+                model_path,
+                hardware_id=hardware_id,
+            )
 
         elif candidate_name == "tvm_int8_quantized":
             return self.create_tvm_int8(
