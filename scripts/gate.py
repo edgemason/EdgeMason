@@ -149,8 +149,18 @@ def _child_env() -> dict[str, str]:
     return env
 
 
+def git_env() -> dict[str, str]:
+    """The current environment minus every GIT_* variable.
+
+    Inside a git hook, git exports GIT_DIR (and friends) pointing at the repo
+    being pushed. Those override `-C`, so a child git would act on that repo
+    instead of the tree we name (B-57).
+    """
+    return {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
+
+
 def _git(tree: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return _run(["git", "-C", str(tree), *args], cwd=tree)
+    return _run(["git", "-C", str(tree), *args], cwd=tree, env=git_env())
 
 
 def _tail(result: subprocess.CompletedProcess[str], lines: int = 5) -> str:

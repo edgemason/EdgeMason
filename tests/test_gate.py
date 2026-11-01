@@ -127,7 +127,40 @@ def _write(path: Path, text: str) -> None:
 
 
 def _git(repo: Path, *args: str) -> None:
-    subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True, text=True)
+    subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=gate.git_env(),
+    )
+
+
+def test_git_helpers_ignore_an_inherited_git_dir(tmp_path, monkeypatch) -> None:
+    """B-57: inside a git hook, git exports GIT_DIR pointing at the real repo.
+
+    That variable beats `-C`, so without a clean environment every "throwaway"
+    git command here would act on the decoy instead of the practice repo.
+    """
+    decoy = tmp_path / "decoy"
+    _git(tmp_path, "init", "-q", str(decoy))
+    monkeypatch.setenv("GIT_DIR", str(decoy / ".git"))
+    monkeypatch.setenv("GIT_WORK_TREE", str(decoy))
+    decoy_config_before = (decoy / ".git" / "config").read_text(encoding="utf-8")
+
+    practice = tmp_path / "practice"
+    _git(tmp_path, "init", "-q", str(practice))
+    _git(practice, "config", "user.email", "gate@example.invalid")
+    _git(practice, "config", "user.name", "gate")
+    _write(practice / "a.txt", "a\n")
+    _git(practice, "add", "-A")
+    _git(practice, "commit", "-q", "-m", "base tree")
+
+    # The decoy is untouched: same config, still no commits.
+    assert (decoy / ".git" / "config").read_text(encoding="utf-8") == decoy_config_before
+    assert list((decoy / ".git" / "refs" / "heads").iterdir()) == []
+    # The practice repo got the commit, and scripts/gate.py's helper reads it there too.
+    assert gate._git(practice, "log", "-1", "--format=%s").stdout.strip() == "base tree"
 
 
 @dataclass(frozen=True)
@@ -191,6 +224,7 @@ def gate_env(tmp_path) -> GateEnv:
         check=True,
         capture_output=True,
         text=True,
+        env=gate.git_env(),
     )
     for key, value in (("user.email", "gate@example.invalid"), ("user.name", "gate")):
         _git(candidate, "config", key, value)
