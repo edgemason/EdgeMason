@@ -27,6 +27,7 @@ each passes the gate as an intentional change rather than as a refactor.
 | B-03 | Give `x86_64` per-quantization scaling factors, so INT8 estimates are not derived from the fp32 multiplier | PLAN C.4 (#3) | measurement | intended improvement | B-07 |
 | B-04 | Seed benchmark inputs, so a repeat run measures the same work | PLAN C.4 (#4) | measurement | intended improvement | – |
 | B-05 | ~~Memory counts CPU RSS only, so GPU memory under CUDA is not counted~~ **Superseded by D1** (2026-10-14, CPU-only). Kept for the record. | PLAN C.4 (#5) | measurement | intended improvement | – |
+| B-54 | The TVM benchmark path ignores `input_data` (`api/optimizer/benchmark_engine.py:585`) and times random inputs, while the ONNX Runtime path times the calibration image | P1.1 planning | measurement | intended improvement | – |
 
 Each of these needs user sign-off before its spec is written, and each must record the new value in
 `docs/research/FINDINGS.md` (CODING_STANDARDS rule 6).
@@ -37,7 +38,7 @@ Each of these needs user sign-off before its spec is written, and each must reco
 
 | id | Title | Source | Kind | Gate class | Depends on |
 |---|---|---|---|---|---|
-| B-06 | Delete `api/optimizer/onnx_runtime.py`; the pipeline calls the engine directly and `benchmark`/`model_report` return data instead of JSON strings | DESIGN #2 | refactor | identical | – |
+| B-06 | ~~Delete `api/optimizer/onnx_runtime.py`; the pipeline calls the engine directly~~ **Status: done (P1.1)**. Still open: `benchmark`/`model_report` return data instead of JSON strings | DESIGN #2 | refactor | identical | – |
 | B-07 | Make the benchmark engine only measure: `services/hardware.py` owns the profiles and the estimate, with one profile loader. Removes the second, contradicting `hardware_estimate` | DESIGN #3, REVIEW Spec #6 | refactor | identical | – |
 | B-08 | Introduce a `CandidateResult` type so the result dict stops being an unwritten format | DESIGN #4 | refactor | identical | – |
 | B-09 | Put the framework decision (onnx/tvm) behind one seam with one adapter per framework, so the quantizer returns a model description rather than a path string | DESIGN #1 | refactor | identical | B-08 |
@@ -47,16 +48,17 @@ Each of these needs user sign-off before its spec is written, and each must reco
 | B-13 | Build the candidate result once instead of twice, in the success and failure branches | REVIEW Standards (Duplicated Code) | refactor | identical | B-08 |
 | B-14 | Give `/analyze` and `/deploy` the same error-handling shape (today analyze catches every `Exception`, deploy only `ValueError`) | REVIEW Standards (Duplicated Code) | refactor | identical | – |
 | B-15 | Collapse the identical `/` and `/ui` handlers in `routes/pages.py` | REVIEW Standards (Duplicated Code) | refactor | identical | – |
-| B-16 | Remove the `onnx_runtime.benchmark` pass-through (same code as B-06, tracked because REVIEW lists it as its own smell) | REVIEW Standards (Middle Man) | refactor | identical | B-06 |
+| B-16 | ~~Remove the `onnx_runtime.benchmark` pass-through~~ **Status: done (P1.1)** | REVIEW Standards (Middle Man) | refactor | identical | B-06 |
 | B-17 | Rename "EdgeForge" to "EdgeMason", and rename the `requested_provider` / `execution_provider` pair so it says which one is resolved | REVIEW Standards (Mysterious Name / Naming Drift) | refactor | identical | – |
 | B-18 | Small cleanups: unused `io`/`json` imports, the unused `e` behind a broad `except`, the function-level `evaluate_tvm` import | REVIEW Standards (Minor Issues) | refactor | identical | – |
-| B-19 | Remove the dead code the deep-dive named: `benchmark_tvm`, `run_inference`, the unreachable `sample_path` branch, `tvm_runtime.run_model`, the overwritten `hardware_estimate`, the four unread planner fields, and most hardware-profile metadata | PLAN C.1 (dead code) | refactor | identical | B-06 |
+| B-19 | Remove the dead code the deep-dive named: `benchmark_tvm`, `run_inference`, the unreachable `sample_path` branch, `tvm_runtime.run_model`, the overwritten `hardware_estimate`, the four unread planner fields, and most hardware-profile metadata. **Partly done (P1.1):** `benchmark_tvm`, `run_inference` and the `sample_path` branch went with `onnx_runtime.py`; the rest is still open | PLAN C.1 (dead code) | refactor | identical | B-06 |
 | B-20 | Define `MAX_INPUT_ELEMENTS` and the 4096 dimension limit once, not twice | PLAN C.4 (literals) | refactor | identical | – |
 | B-21 | The isolated and in-process benchmarks return different memory keys (`baseline/peak/delta` vs `baseline_mb/peak_mb/delta_mb`). Lock the quirk in a characterization test, then decide which name wins | PLAN C (memory keys) | refactor | identical | – |
 | B-22 | Characterize the loosely-tested areas: the planner beyond two cases, ranking (no accuracy-priority or tie-break test), `estimate_on_target` beyond rpi4, quantization outputs, and the `/deploy` response shape | PLAN E (tested loosely) | refactor | identical | – |
 | B-23 | Cover the untested surface: `/analyze`, `validate_model` limits, artifact TTL cleanup and bad ids, the 1000-sample and 640 MB limits, 413 errors, "accuracy priority requires .npz", and TVM accuracy | PLAN E (not tested) | refactor | identical | – |
 | B-24 | Neutralise test nondeterminism: unseeded RNG, `system_info` and installed versions in the ZIP, temp paths, `uuid4`, and timing-sensitive assertions | PLAN E (nondeterminism) | refactor | identical | – |
 | B-25 | Add pytest markers (`slow`, `tvm`, `cuda`, `research`) and a timeout, and split the one shared fixture | PLAN E (infrastructure) | refactor | identical | – |
+| B-56 | CI still diffs the lint ratchet against `BASE_REF=origin/cleanup`; point it at `origin/main` before the `cleanup` branch is ever deleted | P1.1 planning | refactor | identical | – |
 
 ## Product
 
@@ -73,6 +75,8 @@ Each of these needs user sign-off before its spec is written, and each must reco
 | B-51 | `create_static_int8` emits a model ONNX Runtime cannot load for **any** source model below opset 11: `per_channel=True` emits `DequantizeLinear` with `axis` (opset 13+), but ORT auto-upgrades a sub-11 graph to opset 11. Loading fails with `Unrecognized attribute: axis for operator DequantizeLinear`. Affects `resnet18-v1-7`, `squeezenet1.1-7`, `shufflenet-v2-10` and any user-supplied pre-11 model. There is **no opset guard in `api/`**; the bug stayed hidden because `assets.json` ships an opset-13 conversion of each. Fix: raise the pre-processed opset to ≥13, or reject opset-<11 with a clear error | P0.8 T2 finding | bug | identical | – |
 | B-52 | Top-5 is tie-unstable: `api/optimizer/validation.py` uses `np.argpartition`, which resolves ties arbitrarily, while `scripts/quantization_analysis.py` uses `np.argsort`. On statically-quantized models whole class groups collapse onto one quantized value, so on `squeezenet1.1-13` 123 of 179 test images have a bit-identical 5th/6th logit and the two scorers disagree on every one. Thread count is a second, independent confound (the product pins 1 thread, the research script uses all cores). Fix: tie-stable top-5 | P0.8 T3 finding | bug | intended improvement | – |
 | B-53 | EfficientNet B0 dynamic INT8 quantization produces **0.0% top1 accuracy** (fp32 baseline: 64.2%); static INT8 is also severely degraded at 13.9%. Depthwise separable convolutions are known to be quantization-sensitive, but 0% means the quantized model is completely non-functional. Research-relevant: if the paper discusses quantization across architectures, this result must be reported. Evidence in `baseline/full/accuracy.json` | P0.8 review finding | bug | intended improvement | – |
+| B-55 | Decide whether users may set `batch_size`. Today every caller passes the default 1, so the parameter is plumbed through but never used | P1.1 planning | product | identical | – |
+| B-57 | `tests/test_gate.py` `_git()` inherits the parent's `GIT_*` variables. Inside a git hook `GIT_DIR` points at the real repo and overrides `-C`, so the fixture's `init`/`config`/`commit` hit the real repo: it set `core.bare = true`, wrote `[user] gate`, and committed "base tree" onto `spec/P1.1`. Fix: run `_git` with every `GIT_*` variable removed, plus a test that sets `GIT_DIR` to a decoy repo and asserts the decoy is untouched | P1.1 push incident | bug | identical | – |
 
 ## Deps
 
