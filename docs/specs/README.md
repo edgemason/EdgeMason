@@ -8,7 +8,7 @@
 
 | Spec | Title | Depends on | Who | Status |
 |---|---|---|---|---|
-| [P0.1](P0.1-merge-abhay.md) | Merge `abhay` → `main`, commit the planning docs | – | executor (user merges) | todo |
+| [P0.1](P0.1-merge-abhay.md) | Merge `abhay` → `main`, commit the planning docs | – | executor (user merges) | **done** |
 | [P0.2](P0.2-docs-scaffold.md) | INVENTORY, BACKLOG, CODING_STANDARDS | none | executor | **done** |
 | [P0.3](P0.3-findings-register.md) | Findings register (claims → data → script) | none | executor | **done** |
 | [P0.4](P0.4-reproducible-env.md) | Pin TVM; dev/research dependency groups; README Python version | none | executor | **done** |
@@ -20,6 +20,12 @@
 | [P0.8](P0.8-baseline-capture.md) | Baseline on real models, plus the reproduction check | P0.5, P0.7* | executor | **done** (B-51, B-52, B-53 raised) |
 | [P0.9](P0.9-gate-script.md) | The results gate (`check` + `ab`), with self-test and mutation tests | P0.8 | executor | **done** |
 | [P0.10](P0.10-lint-types-ci.md) | ruff/pyright ratchet plus GitHub Actions | P0.6 | executor | **done** |
+
+## Phase 1: Refactors (gate class "identical" unless stated)
+
+| Spec | Title | Backlog | Who | Status |
+|---|---|---|---|---|
+| [P1.1](P1.1-remove-onnx-runtime-shim.md) | Remove the `onnx_runtime.py` shim | B-06 (first half), B-16 | executor (user wrote spec) | **done** |
 
 ## Execution waves (specs within a wave can run in parallel worktrees)
 1. **Wave 1:** P0.1
