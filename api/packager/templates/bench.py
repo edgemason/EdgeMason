@@ -243,7 +243,8 @@ def _new_result(args, model_path, out_path):
         "thermal": {"temp_c_before": None, "temp_c_after": None, "governor": None},
         "profile_path": None,
         "onnxruntime_version": ort.__version__ if ort is not None else None,
-        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        # timezone.utc, not datetime.UTC: bench.py runs on device Pythons that may predate 3.11.
+        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),  # noqa: UP017
         "success": False,
         "error": None,
     }

@@ -41,7 +41,9 @@ LATENCY_KEYS = {"avg", "min", "max", "std", "p25", "p50", "p75", "p90", "p95", "
 THROUGHPUT_KEYS = {"fps", "total_inferences", "total_time_ms", "batch_size"}
 MEMORY_KEYS = {"baseline", "peak", "delta", "method"}
 MODEL_SIZE_KEYS = {"bytes", "kb", "mb"}
-SYSTEM_INFO_KEYS = {"os", "os_release", "architecture", "processor", "cpu_count_logical", "python_version"}
+SYSTEM_INFO_KEYS = {
+    "os", "os_release", "architecture", "processor", "cpu_count_logical", "python_version"
+}
 SETTINGS_KEYS = {"threads", "seed", "warmup", "runs", "budget_seconds", "profile"}
 THERMAL_KEYS = {"temp_c_before", "temp_c_after", "governor"}
 
@@ -49,6 +51,7 @@ THERMAL_KEYS = {"temp_c_before", "temp_c_after", "governor"}
 @pytest.fixture(scope="module")
 def bench():
     spec = importlib.util.spec_from_file_location("bench", BENCH_PATH)
+    assert spec is not None and spec.loader is not None, f"cannot load {BENCH_PATH}"
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -101,7 +104,9 @@ def test_timing_loop_records_min_timed_runs_when_over_budget(bench):
     def slow_run():
         time.sleep(0.02)
 
-    warmups, latencies, total = bench.run_timed(slow_run, warmup_runs=10, benchmark_runs=100, budget=0.001)
+    warmups, latencies, total = bench.run_timed(
+        slow_run, warmup_runs=10, benchmark_runs=100, budget=0.001
+    )
 
     assert len(latencies) == bench.MIN_TIMED_RUNS == 10
     assert total > 0
@@ -135,7 +140,9 @@ def test_missing_thermal_and_governor_files_give_nulls(bench, tmp_path, tiny_onn
     monkeypatch.setattr(bench, "GOVERNOR_PATH", str(tmp_path / "no_governor"))
     out = tmp_path / "measured.json"
 
-    code = bench.main(["--model", str(tiny_onnx), "--out", str(out), "--runs", "10", "--budget", "5"])
+    code = bench.main(
+        ["--model", str(tiny_onnx), "--out", str(out), "--runs", "10", "--budget", "5"]
+    )
 
     assert code == 0
     data = json.loads(out.read_text())
@@ -148,7 +155,9 @@ def test_unwritable_clear_refs_falls_back_to_vmhwm(bench, tmp_path, tiny_onnx, m
     monkeypatch.setattr(bench, "CLEAR_REFS_PATH", str(tmp_path / "missing_dir" / "clear_refs"))
     out = tmp_path / "measured.json"
 
-    code = bench.main(["--model", str(tiny_onnx), "--out", str(out), "--runs", "10", "--budget", "5"])
+    code = bench.main(
+        ["--model", str(tiny_onnx), "--out", str(out), "--runs", "10", "--budget", "5"]
+    )
 
     assert code == 0
     data = json.loads(out.read_text())
@@ -165,7 +174,9 @@ def test_bench_runs_without_the_repo(tmp_path, tiny_onnx):
     shutil.copy(tiny_onnx, model)
     out = folder / "measured.json"
 
-    result = _run_bench("--model", str(model), "--out", str(out), "--runs", "10", "--budget", "5", cwd=folder)
+    result = _run_bench(
+        "--model", str(model), "--out", str(out), "--runs", "10", "--budget", "5", cwd=folder
+    )
 
     assert result.returncode == 0, result.stderr
     assert json.loads(out.read_text())["success"] is True
