@@ -5,7 +5,9 @@ Read this before carrying out any spec in `docs/specs/`. These rules apply to ev
 You may be any model or coding agent (Claude, opencode, or another). Everything you need is in this file, `TESTING.md` and the spec. Use only plain `git`, `uv` and shell commands. Don't rely on any agent-specific tool.
 
 ## Absolute limits (no spec can override these)
-- **Redesign only.** No new features, no new user-facing behaviour, no new endpoints, frameworks, targets or options. If something looks like a missing feature, write it down in your report. Don't build it.
+- **Redesign only, unless the spec is an approved feature spec.** By default: no new features, no new user-facing behaviour, no new endpoints, frameworks, targets or options. If something looks like a missing feature, write it down in your report. Don't build it.
+  - **Exception:** a spec whose header says `**Type:** feature (approved by user on YYYY-MM-DD)` may add the feature it describes, and only that feature. Everything the spec does not describe is still forbidden. Every other rule in this file still applies in full: worktree isolation, Scope, tests first, and stop-and-report.
+  - A spec with no `Type` line, or any other value, is a redesign spec.
 - **Never go beyond the sandbox.** Never write outside your worktree. Never push, open PRs, publish, upload, or install anything system-wide. Network access is allowed only for `uv sync` and for asset downloads that a spec names.
 - **Allowed writes outside the worktree** (approved by the user on 2026-10-14). These are caches, never code:
   - uv's package cache (`~/.cache/uv`)

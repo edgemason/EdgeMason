@@ -27,6 +27,12 @@
 |---|---|---|---|---|
 | [P1.1](P1.1-remove-onnx-runtime-shim.md) | Remove the `onnx_runtime.py` shim | B-06 (first half), B-16 | executor (user wrote spec) | **done** |
 
+## Phase 2: Real-hardware path (features, `Type: feature`)
+
+| Spec | Title | Backlog | Who | Status |
+|---|---|---|---|---|
+| [P2.1](P2.1-bench-in-zip.md) | On-device `bench.py` in the deployment ZIP (+ P2.1a memory test) | B-59..B-61 filed | executor (user wrote spec with planner) | **done** |
+
 ## Execution waves (specs within a wave can run in parallel worktrees)
 1. **Wave 1:** P0.1
 2. **Wave 2:** P0.2, P0.3, P0.4, P0.6

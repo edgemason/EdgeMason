@@ -28,6 +28,8 @@ each passes the gate as an intentional change rather than as a refactor.
 | B-04 | Seed benchmark inputs, so a repeat run measures the same work | PLAN C.4 (#4) | measurement | intended improvement | – |
 | B-05 | ~~Memory counts CPU RSS only, so GPU memory under CUDA is not counted~~ **Superseded by D1** (2026-10-14, CPU-only). Kept for the record. | PLAN C.4 (#5) | measurement | intended improvement | – |
 | B-54 | The TVM benchmark path ignores `input_data` (`api/optimizer/benchmark_engine.py:585`) and times random inputs, while the ONNX Runtime path times the calibration image | P1.1 planning | measurement | intended improvement | – |
+| B-58 | `TVM_TARGETS` (`api/optimizer/quantizer.py:21`) has no `mtriple`, so "rpi4"/"rpi5" TVM artifacts are compiled for the x86 host and likely will not load on a Pi. Fix: `-mtriple=aarch64-linux-gnu -mcpu=cortex-a76 -mattr=+neon,+dotprod,+fullfp16`. Verify with `file` on the built `.so` | Hardware-run planning (2026-11-01) | bug | intended improvement | – |
+| B-59 | The pilot runner (and any batch runner over `bench.py`) must check each run's exit code and whether `measured.json` exists. A run killed by the OOM killer, Ctrl+C or a power loss writes no JSON, so it must be recorded as failed (e.g. `status: "killed"`, exit code), not silently dropped from the results | P2.1 review (2026-11-02) | measurement | intended improvement | P2.1 |
 
 Each of these needs user sign-off before its spec is written, and each must record the new value in
 `docs/research/FINDINGS.md` (CODING_STANDARDS rule 6).
@@ -59,6 +61,7 @@ Each of these needs user sign-off before its spec is written, and each must reco
 | B-24 | Neutralise test nondeterminism: unseeded RNG, `system_info` and installed versions in the ZIP, temp paths, `uuid4`, and timing-sensitive assertions | PLAN E (nondeterminism) | refactor | identical | – |
 | B-25 | Add pytest markers (`slow`, `tvm`, `cuda`, `research`) and a timeout, and split the one shared fixture | PLAN E (infrastructure) | refactor | identical | – |
 | B-56 | CI still diffs the lint ratchet against `BASE_REF=origin/cleanup`; point it at `origin/main` before the `cleanup` branch is ever deleted | P1.1 planning | refactor | identical | – |
+| B-60 | The package goldens (`tests/golden/package_tiny_*.json`) store `bench.py`'s full text, so every edit to `bench.py`, even a comment, breaks two unrelated tests and trains reviewers to accept `UPDATE_GOLDEN=1` without reading the diff. Store it as a sha256, like `model.onnx`. Test 12 of P2.1 already checks the ZIP copy is byte-identical to the template | P2.1 review (2026-11-02) | refactor | identical | – |
 
 ## Product
 
@@ -77,6 +80,7 @@ Each of these needs user sign-off before its spec is written, and each must reco
 | B-53 | EfficientNet B0 dynamic INT8 quantization produces **0.0% top1 accuracy** (fp32 baseline: 64.2%); static INT8 is also severely degraded at 13.9%. Depthwise separable convolutions are known to be quantization-sensitive, but 0% means the quantized model is completely non-functional. Research-relevant: if the paper discusses quantization across architectures, this result must be reported. Evidence in `baseline/full/accuracy.json` | P0.8 review finding | bug | intended improvement | – |
 | B-55 | Decide whether users may set `batch_size`. Today every caller passes the default 1, so the parameter is plumbed through but never used | P1.1 planning | product | identical | – |
 | B-57 | `tests/test_gate.py` `_git()` inherits the parent's `GIT_*` variables. Inside a git hook `GIT_DIR` points at the real repo and overrides `-C`, so the fixture's `init`/`config`/`commit` hit the real repo: it set `core.bare = true`, wrote `[user] gate`, and committed "base tree" onto `spec/P1.1`. Fix: run `_git` with every `GIT_*` variable removed, plus a test that sets `GIT_DIR` to a decoy repo and asserts the decoy is untouched | P1.1 push incident | bug | identical | – |
+| B-61 | `bench.py` always builds float32 inputs, so models with integer inputs (e.g. int64 token ids) fail with `success: false`. The engine has the same limit. Build inputs from each input's declared ONNX type | P2.1 review (2026-11-02) | product | intended improvement | – |
 
 ## Deps
 
