@@ -209,6 +209,11 @@ def _readme(
         "docker run --rm -v \"$PWD/input.npy:/app/input.npy\" edgemason-model python inference.py input.npy",
         "```",
         "",
+        *(
+            ["Run `python bench.py` to measure performance on this device (writes measured.json).", ""]
+            if not is_tvm
+            else []
+        ),
         "From your own Python code:",
         "",
         "```python",
@@ -271,6 +276,9 @@ def create_deployment_package(
         zf.write(model_path, arcname=model_file)
         if is_tvm:
             zf.write(str(model_path) + ".inputs.json", arcname="tvm_inputs.json")
+        else:
+            bench_template = Path(__file__).parent / "templates" / "bench.py"
+            zf.writestr("bench.py", bench_template.read_bytes())
         zf.writestr("inference.py", INFERENCE_SCRIPT)
         zf.writestr("requirements.txt", _requirements(is_tvm))
         zf.writestr("Dockerfile", DOCKERFILE)
