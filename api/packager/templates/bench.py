@@ -76,6 +76,8 @@ def _ru_maxrss_bytes():
 
 def _read_temp_c():
     raw = _read_text(THERMAL_PATH)
+    if raw is None:
+        return None
     try:
         return round(int(raw) / 1000.0, 1)
     except (TypeError, ValueError):
@@ -97,6 +99,8 @@ def build_inputs(shapes, seed):
 
 
 def make_session(model_path, threads, profile_prefix=None):
+    if ort is None:
+        raise RuntimeError("onnxruntime not installed")
     options = ort.SessionOptions()
     options.intra_op_num_threads = threads
     options.inter_op_num_threads = 1
