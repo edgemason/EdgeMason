@@ -171,3 +171,53 @@ def test_bench_runs_without_the_repo(tmp_path, tiny_onnx):
     assert json.loads(out.read_text())["success"] is True
 
 
+
+
+def _write_weight_model(path, rows=1000, cols=10000):
+    """MatMul(X, W) with a large float32 weight W and tiny input and output.
+
+    Returns the weight size in bytes. The weight is random, not zeros, so its
+    pages are actually resident once the session loads them.
+    """
+    import numpy as np
+    import onnx
+    from onnx import TensorProto, helper
+
+    weights = np.random.default_rng(0).random((rows, cols), dtype=np.float32)
+    graph = helper.make_graph(
+        [helper.make_node("MatMul", ["X", "W"], ["Y"])],
+        "big_weight",
+        [helper.make_tensor_value_info("X", TensorProto.FLOAT, [1, rows])],
+        [helper.make_tensor_value_info("Y", TensorProto.FLOAT, [1, cols])],
+        initializer=[
+            helper.make_tensor("W", TensorProto.FLOAT, weights.shape, weights.tobytes(), raw=True)
+        ],
+    )
+    model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 13)])
+    onnx.checker.check_model(model)
+    onnx.save(model, path)
+    return weights.nbytes
+
+
+# The baseline must be taken before the session loads the weights. If it is taken after,
+# the weights are counted in the baseline and memory_mb.delta under-reports them.
+def test_memory_delta_includes_model_weights(tmp_path):
+    model = tmp_path / "big_weight.onnx"
+    weight_bytes = _write_weight_model(model)
+    out = tmp_path / "measured.json"
+
+    result = _run_bench(
+        "--model", str(model), "--out", str(out), "--warmup", "1", "--runs", "10", "--budget", "1"
+    )
+
+    assert result.returncode == 0, result.stderr
+    data = json.loads(out.read_text())
+    assert data["success"] is True
+    if not sys.platform.startswith("linux") or data["memory_mb"]["method"] != "vmhwm_reset":
+        pytest.skip("memory peak reset (vmhwm_reset) is only available on Linux")
+
+    weight_mb = weight_bytes / (1024 * 1024)
+    delta = data["memory_mb"]["delta"]
+    assert delta >= 0.8 * weight_mb, (
+        f"delta={delta} MB, weight_mb={weight_mb:.2f} MB, memory_mb={data['memory_mb']}"
+    )
