@@ -1,0 +1,299 @@
+{
+  "hardware_id": "rpi5",
+  "execution_provider": "cpu",
+  "priority": "latency",
+  "include_tvm": false,
+  "enable_tvm_tuning": false,
+  "models": [
+    {
+      "model": "mobilenetv2.onnx",
+      "calibration": "calibration_50.npz",
+      "status": 200,
+      "deploy_seconds": 13.4,
+      "model_family": "cnn",
+      "model_size_mb": 13.296359062194824,
+      "parameters": 3475008,
+      "data_split": {
+        "calibration_samples": 15,
+        "test_samples": 35
+      },
+      "warnings": [
+        "Only 15 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 35 test images, so it may vary by about \u00b117 points."
+      ],
+      "winner": "onnx_static_int8",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 33.4513,
+          "latency_p95_ms": 33.7739,
+          "estimated_latency_p50_ms": 150.531,
+          "throughput_fps": 29.87,
+          "memory_delta_mb": 36.359,
+          "estimated_memory_mb": 38.177,
+          "model_size_mb": 13.296,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 24.471,
+          "latency_p95_ms": 26.7501,
+          "estimated_latency_p50_ms": 110.12,
+          "throughput_fps": 40.29,
+          "memory_delta_mb": 36.031,
+          "estimated_memory_mb": 37.833,
+          "model_size_mb": 3.57,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        }
+      ]
+    },
+    {
+      "model": "resnet18.onnx",
+      "calibration": "calibration_50.npz",
+      "status": 200,
+      "deploy_seconds": 36.0,
+      "model_family": "cnn",
+      "model_size_mb": 44.5687141418457,
+      "parameters": 11680872,
+      "data_split": {
+        "calibration_samples": 15,
+        "test_samples": 35
+      },
+      "warnings": [
+        "Only 15 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 35 test images, so it may vary by about \u00b117 points."
+      ],
+      "winner": "onnx_static_int8",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 129.3378,
+          "latency_p95_ms": 133.2066,
+          "estimated_latency_p50_ms": 582.02,
+          "throughput_fps": 7.7,
+          "memory_delta_mb": 63.531,
+          "estimated_memory_mb": 66.708,
+          "model_size_mb": 44.569,
+          "warmup_runs": 10,
+          "timed_runs": 77,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 120.2738,
+          "latency_p95_ms": 121.8893,
+          "estimated_latency_p50_ms": 541.232,
+          "throughput_fps": 8.3,
+          "memory_delta_mb": 41.344,
+          "estimated_memory_mb": 43.411,
+          "model_size_mb": 11.228,
+          "warmup_runs": 10,
+          "timed_runs": 83,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        }
+      ]
+    },
+    {
+      "model": "resnet50.onnx",
+      "calibration": "calibration_50.npz",
+      "status": 200,
+      "deploy_seconds": 62.3,
+      "model_family": "cnn",
+      "model_size_mb": 97.32979393005371,
+      "parameters": 25507944,
+      "data_split": {
+        "calibration_samples": 15,
+        "test_samples": 35
+      },
+      "warnings": [
+        "Only 15 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 35 test images, so it may vary by about \u00b117 points."
+      ],
+      "winner": "onnx_fp32_baseline",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 294.2367,
+          "latency_p95_ms": 297.2943,
+          "estimated_latency_p50_ms": 1324.065,
+          "throughput_fps": 3.39,
+          "memory_delta_mb": 123.516,
+          "estimated_memory_mb": 129.692,
+          "model_size_mb": 97.33,
+          "warmup_runs": 9,
+          "timed_runs": 34,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 296.2805,
+          "latency_p95_ms": 299.5918,
+          "estimated_latency_p50_ms": 1333.262,
+          "throughput_fps": 3.37,
+          "memory_delta_mb": 86.406,
+          "estimated_memory_mb": 90.726,
+          "model_size_mb": 24.606,
+          "warmup_runs": 9,
+          "timed_runs": 34,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        }
+      ]
+    },
+    {
+      "model": "shufflenetv2.onnx",
+      "calibration": "calibration_50.npz",
+      "status": 200,
+      "deploy_seconds": 8.7,
+      "model_family": "cnn",
+      "model_size_mb": 8.758358001708984,
+      "parameters": 2263878,
+      "data_split": {
+        "calibration_samples": 15,
+        "test_samples": 35
+      },
+      "warnings": [
+        "Only 15 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 35 test images, so it may vary by about \u00b117 points."
+      ],
+      "winner": "onnx_static_int8",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 14.5032,
+          "latency_p95_ms": 14.7689,
+          "estimated_latency_p50_ms": 65.264,
+          "throughput_fps": 68.72,
+          "memory_delta_mb": 28.266,
+          "estimated_memory_mb": 29.679,
+          "model_size_mb": 8.758,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 14.3597,
+          "latency_p95_ms": 14.514,
+          "estimated_latency_p50_ms": 64.619,
+          "throughput_fps": 69.54,
+          "memory_delta_mb": 22.797,
+          "estimated_memory_mb": 23.937,
+          "model_size_mb": 2.502,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        }
+      ]
+    },
+    {
+      "model": "squeezenet.onnx",
+      "calibration": "calibration_50.npz",
+      "status": 200,
+      "deploy_seconds": 10.4,
+      "model_family": "cnn",
+      "model_size_mb": 4.720821380615234,
+      "parameters": 1233288,
+      "data_split": {
+        "calibration_samples": 15,
+        "test_samples": 35
+      },
+      "warnings": [
+        "Only 15 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+        "Accuracy is based on 35 test images, so it may vary by about \u00b117 points."
+      ],
+      "winner": "onnx_static_int8",
+      "candidates": [
+        {
+          "name": "onnx_fp32_baseline",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 28.7525,
+          "latency_p95_ms": 29.0873,
+          "estimated_latency_p50_ms": 129.386,
+          "throughput_fps": 34.72,
+          "memory_delta_mb": 21.312,
+          "estimated_memory_mb": 22.378,
+          "model_size_mb": 4.721,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        },
+        {
+          "name": "onnx_static_int8",
+          "framework": "onnxruntime",
+          "success": true,
+          "provider": "CPUExecutionProvider",
+          "error": null,
+          "latency_p50_ms": 27.5221,
+          "latency_p95_ms": 27.8899,
+          "estimated_latency_p50_ms": 123.849,
+          "throughput_fps": 36.24,
+          "memory_delta_mb": 20.297,
+          "estimated_memory_mb": 21.312,
+          "model_size_mb": 1.275,
+          "warmup_runs": 10,
+          "timed_runs": 100,
+          "top1": 0.0,
+          "top5": 0.0,
+          "test_samples": 35
+        }
+      ]
+    }
+  ]
+}
