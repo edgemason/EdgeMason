@@ -55,7 +55,7 @@ def onnx_input_specs(model_path: str | Path) -> list[dict]:
                 shape.append(1)
             else:
                 raise ValueError("only the model batch dimension may be dynamic")
-            specs.append({"name": item.name, "shape": shape})
+        specs.append({"name": item.name, "shape": shape})
     if len(specs) != 1:
         raise ValueError("TVM compilation supports single-input models only")
     return specs
