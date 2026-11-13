@@ -69,6 +69,7 @@ def export_models():
             model, dummy_input, p,
             input_names=["input"], output_names=["output"],
             opset_version=13, dynamic_axes={"input": {0: "batch"}, "output": {0: "batch"}},
+            dynamo=False,
         )
         print(f"  -> Exported {name}.onnx")
 
