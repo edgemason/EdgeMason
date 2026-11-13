@@ -1,15 +1,11 @@
 import os
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from api.optimizer.tvm_tuning import (
     TuningConfig,
     apply_tuning_best,
     configure_runtime_threads,
     get_default_tuning_dir,
-    get_tuning_database,
 )
 from api.planner.rule_based import (
     STRATEGY_TVM_OPT3,
@@ -79,7 +75,9 @@ def test_quantizer_tvm_tuned_routing(tmp_path):
 
     q = Quantizer(str(tmp_path))
 
-    with patch.object(q, "create_tvm_tuned", return_value="dummy_tuned.tar") as mock_tune:
+    with patch.object(
+        q, "create_tvm_tuned", return_value="dummy_tuned.tar"
+    ) as mock_tune:
         res = q.quantize_for_candidate(
             model_path="dummy.onnx",
             candidate_name="tvm_tuned",
