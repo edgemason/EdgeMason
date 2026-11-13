@@ -15,7 +15,9 @@ Usage:
 """
 
 import argparse
+import contextlib
 import os
+import signal
 import sys
 import time
 
@@ -25,15 +27,41 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.optimizer.quantizer import TVM_TARGETS
-from api.optimizer.tvm_runtime import compile_onnx, load_vm, run_vm
-from scripts.run_ci_benchmark import (
+from api.optimizer.quantizer import TVM_TARGETS  # noqa: E402
+from api.optimizer.tvm_runtime import compile_onnx, load_vm, run_vm  # noqa: E402
+from scripts.run_ci_benchmark import (  # noqa: E402
     MODEL_CONSTRUCTORS,
     export_models,
     preprocess_image,
 )
 
 os.environ.setdefault("STRICT_TVM", "1")
+
+
+class TuningTimeout(Exception):
+    pass
+
+
+@contextlib.contextmanager
+def time_limit(seconds):
+    """Hard wall-clock cap for one call, via SIGALRM (Linux/macOS CI only).
+
+    MetaSchedule's max_trials_global only counts *successful* builds -- if a
+    model's generated candidate schedules fail to compile 100% of the time
+    (a real TVM codegen gap we hit on resnet50/x86_64), the search loops
+    forever with zero progress instead of stopping at the trial budget.
+    """
+
+    def _raise(signum, frame):
+        raise TuningTimeout(f"tuning exceeded {seconds}s wall-clock limit")
+
+    previous = signal.signal(signal.SIGALRM, _raise)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous)
 
 
 def collect_image_paths(dataset_dir: str, num_images: int) -> list[str]:
@@ -84,6 +112,15 @@ def main() -> None:
         type=int,
         default=32,
         help="MetaSchedule trial budget for the 'tuned' candidate",
+    )
+    parser.add_argument(
+        "--tuning-timeout-sec",
+        type=int,
+        default=1200,
+        help="Hard wall-clock cap per model's tuning call. max_trials_global "
+        "only counts successful builds, so a model whose candidates all fail "
+        "to compile (seen on resnet50/x86_64) loops forever instead of "
+        "stopping at the trial budget -- this is the real backstop.",
     )
     parser.add_argument(
         "--skip-tuned",
@@ -167,14 +204,15 @@ def main() -> None:
         tuning_dir = f"profiles/tvm_tuning/ci_{args.hardware_tag}/{name}"
         t0 = time.time()
         try:
-            compile_onnx(
-                tuned_tar,
-                onnx_path,
-                target,
-                tune=True,
-                tuning_database_path=tuning_dir,
-                max_tuning_trials=args.max_trials,
-            )
+            with time_limit(args.tuning_timeout_sec):
+                compile_onnx(
+                    tuned_tar,
+                    onnx_path,
+                    target,
+                    tune=True,
+                    tuning_database_path=tuning_dir,
+                    max_tuning_trials=args.max_trials,
+                )
             compile_sec = round(time.time() - t0, 1)
             row = {
                 "hardware": args.hardware_tag,

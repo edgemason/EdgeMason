@@ -39,9 +39,12 @@ jobs:
             hardware_tag: github_macos_arm64
     runs-on: ${{ matrix.os }}
     # TVM untuned runs unvectorized scalar loops by design (~80-110 min for
-    # 1000 images alone), plus tuning adds real time on top (64 trials took
-    # ~3 min/model at 16 trials, so budget generously for 4x that).
-    timeout-minutes: 240
+    # 1000 images alone), plus tuning adds real time on top. Per-model tuning
+    # is now hard-capped at --tuning-timeout-sec (see run_ci_benchmark_tvm.py)
+    # since a 100% build-failure model (hit on resnet50/x86_64) would
+    # otherwise loop forever -- this job timeout is now just a safety margin
+    # on top of that, not the only backstop.
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
 
