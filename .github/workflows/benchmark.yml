@@ -14,7 +14,7 @@ on:
       tvm_max_trials:
         description: "MetaSchedule trial budget for the TVM tuned candidate"
         required: false
-        default: "16"
+        default: "64"
   push:
     branches: [abhay]
     paths:
@@ -38,15 +38,20 @@ jobs:
           - os: macos-latest
             hardware_tag: github_macos_arm64
     runs-on: ${{ matrix.os }}
-    # TVM untuned runs unvectorized scalar loops by design, so 1000 images
-    # on resnet50/resnet18 alone can take ~80-110 min per architecture.
-    timeout-minutes: 180
+    # TVM untuned runs unvectorized scalar loops by design (~80-110 min for
+    # 1000 images alone), plus tuning adds real time on top (64 trials took
+    # ~3 min/model at 16 trials, so budget generously for 4x that).
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Install libomp (macOS only, required by xgboost)
+        if: runner.os == 'macOS'
+        run: brew install libomp
 
       - name: Cache Imagenette dataset
         uses: actions/cache@v4
@@ -85,8 +90,8 @@ jobs:
         run: |
           python scripts/run_ci_benchmark_tvm.py \
             --hardware-tag ${{ matrix.hardware_tag }} \
-            --num-images ${{ github.event.inputs.tvm_num_images || '20' }} \
-            --max-trials ${{ github.event.inputs.tvm_max_trials || '16' }}
+            --num-images ${{ github.event.inputs.tvm_num_images || '1000' }} \
+            --max-trials ${{ github.event.inputs.tvm_max_trials || '64' }}
 
       - name: Upload TVM results
         if: always()
