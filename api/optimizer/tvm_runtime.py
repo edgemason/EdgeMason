@@ -86,7 +86,6 @@ def compile_onnx(
     from .tvm_tuning import (
         TuningConfig,
         apply_tuning_best,
-        get_tuning_database,
         tune_relax_module,
     )
 
@@ -114,9 +113,9 @@ def compile_onnx(
     except Exception:
         pass
 
-    # 2. MetaSchedule Tuning or Database Lookup
+    # 2. MetaSchedule Tuning or Database Lookup (both applied by work_dir)
     if tune:
-        database, _ = tune_relax_module(
+        tuned_work_dir, _ = tune_relax_module(
             mod=mod,
             target=tvm_target,
             config=TuningConfig(
@@ -124,12 +123,9 @@ def compile_onnx(
                 work_dir=str(tuning_database_path) if tuning_database_path else None,
             ),
         )
-        if database is not None:
-            mod = apply_tuning_best(mod, database)
+        mod = apply_tuning_best(mod, tuned_work_dir, target=tvm_target)
     elif tuning_database_path:
-        db = get_tuning_database(tuning_database_path)
-        if db is not None:
-            mod = apply_tuning_best(mod, db)
+        mod = apply_tuning_best(mod, tuning_database_path, target=tvm_target)
 
     executable = tvm.relax.build(mod, target=tvm_target)
     tar_path = str(tar_path)

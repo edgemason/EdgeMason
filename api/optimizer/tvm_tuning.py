@@ -119,9 +119,12 @@ def tune_relax_module(
     }
 
     try:
-        # Extract tuning tasks from the Relax module
-        database = ms.tune_relax(
+        # relax_integration.tune_relax (TVM >=0.26) now requires an explicit
+        # params dict; ONNX-imported modules already have weights embedded
+        # as constants in the graph, so there are no extra params to bind.
+        ms.relax_integration.tune_relax(
             mod=mod,
+            params={},
             target=tvm_target,
             work_dir=str(work_path),
             max_trials_global=cfg.max_trials_global,
@@ -131,29 +134,40 @@ def tune_relax_module(
         report["status"] = "completed"
         report["database_workload"] = str(work_path / "database_workload.json")
         report["database_records"] = str(work_path / "database_tuning_record.json")
-        return database, report
+        # Downstream consumers apply the result by work_dir (see
+        # apply_tuning_best), not by holding a Database object -- the tuning
+        # record is what's on disk at work_path.
+        return str(work_path), report
     except Exception as exc:
         if os.environ.get("STRICT_TVM") == "1":
             raise
         report["status"] = "failed"
         report["error"] = str(exc)
-        # Attempt fallback to loading existing database if any
+        # Fall back to an existing database at this work_dir, if any.
         existing_db = get_tuning_database(work_path)
-        return existing_db, report
+        return (str(work_path) if existing_db is not None else None), report
 
 
-def apply_tuning_best(mod: Any, database: Any) -> Any:
-    """Apply the best tuned schedules from a MetaSchedule database to a Relax IRModule."""
-    if database is None:
+def apply_tuning_best(mod: Any, work_dir: Any, target: Any = None) -> Any:
+    """Apply the best tuned schedules at `work_dir` to a Relax IRModule.
+
+    `ms.relax.ApplyHistoryBest` (pre-0.26) doesn't exist in Relax-era TVM;
+    the replacement, `relax.transform.MetaScheduleApplyDatabase`, is applied
+    by work_dir rather than by holding a Database object in memory, and
+    needs an active Target context (`Target.Current()`) to run at all.
+    """
+    if not work_dir:
         return mod
     try:
-        try:
-            from tvm.s_tir import meta_schedule as ms
-        except ImportError:
-            from tvm import meta_schedule as ms  # pre-0.26 layout
+        import tvm
+        from tvm import relax
 
-        if hasattr(ms, "relax") and hasattr(ms.relax, "ApplyHistoryBest"):
-            return ms.relax.ApplyHistoryBest(database)(mod)
+        pass_ = relax.transform.MetaScheduleApplyDatabase(work_dir=str(work_dir))
+        if target is not None:
+            tvm_target = target if isinstance(target, tvm.target.Target) else tvm.target.Target(target)
+            with tvm_target:
+                return pass_(mod)
+        return pass_(mod)
     except Exception:
         if os.environ.get("STRICT_TVM") == "1":
             raise
