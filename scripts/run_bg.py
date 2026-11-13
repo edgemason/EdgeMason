@@ -1,9 +1,11 @@
 import os
-# Pin thread pools to 2 cores to prevent phone-charger under-voltage brownout
-os.environ["OMP_NUM_THREADS"] = "2"
-os.environ["TVM_NUM_THREADS"] = "2"
-os.environ["ORT_NUM_THREADS"] = "2"
-os.environ["OPENBLAS_NUM_THREADS"] = "2"
+# Use all 4 Pi 5 cores for both backends so ORT-vs-TVM is head-to-head.
+# Requires the official 5V/5A PSU + active cooling -- a phone charger will
+# brownout at this thread count, which is why this used to be pinned to 2.
+os.environ["OMP_NUM_THREADS"] = "4"
+os.environ["TVM_NUM_THREADS"] = "4"
+os.environ["ORT_NUM_THREADS"] = "4"
+os.environ["OPENBLAS_NUM_THREADS"] = "4"
 
 import sys
 import time

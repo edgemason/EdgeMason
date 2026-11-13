@@ -52,7 +52,10 @@ def get_tuning_database(work_dir: str | Path | None = None):
     """
     try:
         import tvm
-        from tvm import meta_schedule as ms
+        try:
+            from tvm.s_tir import meta_schedule as ms
+        except ImportError:
+            from tvm import meta_schedule as ms  # pre-0.26 layout
 
         work_path = Path(work_dir) if work_dir else get_default_tuning_dir()
         work_path.mkdir(parents=True, exist_ok=True)
@@ -60,17 +63,17 @@ def get_tuning_database(work_dir: str | Path | None = None):
         workload_path = work_path / "database_workload.json"
         record_path = work_path / "database_tuning_record.json"
 
-        # Touch files if they don't exist
-        if not workload_path.exists():
-            workload_path.write_text("[]", encoding="utf-8")
-        if not record_path.exists():
-            record_path.write_text("[]", encoding="utf-8")
+        # Don't pre-touch these with "[]": JSONDatabase expects JSONL (one
+        # record per line) and creates correctly-formatted empty files
+        # itself when they don't exist yet. A literal "[]" fails to parse.
 
         return ms.database.JSONDatabase(
             path_workload=str(workload_path),
             path_tuning_record=str(record_path),
         )
     except Exception:
+        if os.environ.get("STRICT_TVM") == "1":
+            raise
         return None
 
 
@@ -91,11 +94,14 @@ def tune_relax_module(
     """
     try:
         import tvm
-        from tvm import meta_schedule as ms
     except ImportError as exc:
         raise ImportError(
             "Apache TVM is not installed. Run: pip install apache-tvm"
         ) from exc
+    try:
+        from tvm.s_tir import meta_schedule as ms
+    except ImportError:
+        from tvm import meta_schedule as ms  # pre-0.26 layout
 
     cfg = config or TuningConfig()
     work_path = Path(cfg.work_dir) if cfg.work_dir else get_default_tuning_dir(cfg.hardware_id)
@@ -127,6 +133,8 @@ def tune_relax_module(
         report["database_records"] = str(work_path / "database_tuning_record.json")
         return database, report
     except Exception as exc:
+        if os.environ.get("STRICT_TVM") == "1":
+            raise
         report["status"] = "failed"
         report["error"] = str(exc)
         # Attempt fallback to loading existing database if any
@@ -139,12 +147,16 @@ def apply_tuning_best(mod: Any, database: Any) -> Any:
     if database is None:
         return mod
     try:
-        from tvm import meta_schedule as ms
+        try:
+            from tvm.s_tir import meta_schedule as ms
+        except ImportError:
+            from tvm import meta_schedule as ms  # pre-0.26 layout
 
         if hasattr(ms, "relax") and hasattr(ms.relax, "ApplyHistoryBest"):
             return ms.relax.ApplyHistoryBest(database)(mod)
     except Exception:
-        pass
+        if os.environ.get("STRICT_TVM") == "1":
+            raise
     return mod
 
 

@@ -4,14 +4,26 @@ on:
   workflow_dispatch:
     inputs:
       num_images:
-        description: "Number of Imagenette images to benchmark per model"
+        description: "Number of Imagenette images to benchmark per model (ONNX)"
         required: false
         default: "1000"
+      tvm_num_images:
+        description: "Number of images to benchmark per model (TVM)"
+        required: false
+        default: "50"
+      tvm_max_trials:
+        description: "MetaSchedule trial budget for the TVM tuned candidate"
+        required: false
+        default: "16"
   push:
     branches: [abhay]
     paths:
       - ".github/workflows/benchmark.yml"
       - "scripts/run_ci_benchmark.py"
+      - "scripts/run_ci_benchmark_tvm.py"
+      - "api/optimizer/tvm_runtime.py"
+      - "api/optimizer/tvm_tuning.py"
+      - "api/optimizer/quantizer.py"
 
 jobs:
   benchmark:
@@ -53,13 +65,29 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu || pip install torch torchvision
-          pip install onnx onnxruntime onnxscript pandas numpy pillow
+          pip install onnx onnxruntime onnxscript pandas numpy pillow psutil apache-tvm
 
-      - name: Run benchmark
+      - name: Run ONNX Runtime benchmark
         run: python scripts/run_ci_benchmark.py --hardware-tag ${{ matrix.hardware_tag }} --num-images ${{ github.event.inputs.num_images || '1000' }}
 
-      - name: Upload results
+      - name: Upload ONNX results
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-${{ matrix.hardware_tag }}
           path: reports/data/benchmark_${{ matrix.hardware_tag }}_1000images.csv
+
+      - name: Run TVM benchmark
+        env:
+          STRICT_TVM: "1"
+        run: |
+          python scripts/run_ci_benchmark_tvm.py \
+            --hardware-tag ${{ matrix.hardware_tag }} \
+            --num-images ${{ github.event.inputs.tvm_num_images || '20' }} \
+            --max-trials ${{ github.event.inputs.tvm_max_trials || '16' }}
+
+      - name: Upload TVM results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-tvm-${{ matrix.hardware_tag }}
+          path: reports/data/benchmark_tvm_${{ matrix.hardware_tag }}.csv

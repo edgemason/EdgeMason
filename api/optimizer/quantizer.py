@@ -20,9 +20,14 @@ from api.optimizer.validation import (
 # Enhanced with CPU architecture vector flags (AVX2/FMA for x86, NEON for ARM)
 # ---------------------------------------------------------------------------
 TVM_TARGETS: dict = {
-    "rpi4": {"kind": "llvm", "mcpu": "cortex-a72", "mattr": ["+neon", "+v8a"]},
-    "rpi5": {"kind": "llvm", "mcpu": "cortex-a76", "mattr": ["+neon", "+v8.2a", "+dotprod"]},
-    "x86_64": {"kind": "llvm", "mcpu": "core-avx2", "mattr": ["+avx2", "+fma"]},
+    "rpi4": {"kind": "llvm", "mcpu": "cortex-a72", "mattr": ["+neon", "+v8a"], "mtriple": "aarch64-linux-gnu", "num-cores": 4},
+    "rpi5": {"kind": "llvm", "mcpu": "cortex-a76", "mattr": ["+neon", "+v8.2a", "+dotprod"], "mtriple": "aarch64-linux-gnu", "num-cores": 4},
+    "x86_64": {"kind": "llvm", "mcpu": "core-avx2", "mattr": ["+avx2", "+fma"], "num-cores": 8},
+    # GitHub Actions hosted runners (no physical-hardware thermal/power controls;
+    # these are their own hardware classes, not stand-ins for rpi4/rpi5).
+    "github_x86_64": {"kind": "llvm", "mcpu": "core-avx2", "mattr": ["+avx2", "+fma"], "num-cores": 4},
+    "github_arm64_linux": {"kind": "llvm", "mcpu": "neoverse-n1", "mattr": ["+neon", "+v8.2a", "+dotprod"], "mtriple": "aarch64-linux-gnu", "num-cores": 4},
+    "github_macos_arm64": {"kind": "llvm", "mcpu": "apple-m1", "mattr": ["+neon", "+v8.2a", "+dotprod"], "mtriple": "aarch64-apple-darwin", "num-cores": 3},
 }
 
 
