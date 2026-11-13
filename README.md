@@ -58,7 +58,7 @@ edgemason/
 │   ├── planner/
 │   │   └── rule_based.py           # candidate strategy selection from rules
 │   ├── optimizer/
-│   │   ├── onnx_runtime.py         # inference sessions + latency/memory benchmark
+│   │   ├── benchmark_engine.py     # latency/memory/throughput benchmark (ONNX Runtime + TVM)
 │   │   └── quantizer.py            # fp32 / dynamic int8 / static int8 model gen
 │   └── packager/
 │       └── generator.py            # deployment ZIP (Dockerfile, inference.py, report)
@@ -237,7 +237,7 @@ Most accurate; requires network access to the device.
 ## Quick start
 
 ```bash
-# 1. Install dependencies (uv)
+# 1. Install dependencies (uv): product, dev and research groups, with CPU-only torch
 uv sync
 
 # 2. Run the API server
@@ -310,7 +310,7 @@ uv run python -m api.main   # sanity-check imports
 
 ### Dependencies
 
-- Python `>=3.9,<3.13` (managed venv)
+- Python `>=3.11,<3.12` (managed venv)
 - `fastapi`, `uvicorn`, `pydantic`, `python-multipart`
 - `onnx`, `onnxruntime`
 - `numpy`, `psutil`

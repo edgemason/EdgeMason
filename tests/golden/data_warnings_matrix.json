@@ -1,0 +1,65 @@
+[
+  {
+    "calibration_count": 300,
+    "test_count": 700,
+    "warnings": []
+  },
+  {
+    "calibration_count": 77,
+    "test_count": 179,
+    "warnings": [
+      "Only 77 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+      "Accuracy is based on 179 test images, so it may vary by about \u00b17 points."
+    ]
+  },
+  {
+    "calibration_count": 50,
+    "test_count": 35,
+    "warnings": [
+      "Only 50 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+      "Accuracy is based on 35 test images, so it may vary by about \u00b117 points."
+    ]
+  },
+  {
+    "calibration_count": 15,
+    "test_count": 5,
+    "warnings": [
+      "Only 15 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+      "Accuracy is based on 5 test images, so it may vary by about \u00b144 points."
+    ]
+  },
+  {
+    "calibration_count": 1,
+    "test_count": 99,
+    "warnings": [
+      "Only 1 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+      "Accuracy is based on 99 test images, so it may vary by about \u00b110 points."
+    ]
+  },
+  {
+    "calibration_count": 10,
+    "test_count": 10,
+    "warnings": [
+      "Only 10 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+      "Accuracy is based on 10 test images, so it may vary by about \u00b131 points."
+    ]
+  },
+  {
+    "calibration_count": 100,
+    "test_count": 200,
+    "warnings": []
+  },
+  {
+    "calibration_count": 99,
+    "test_count": 1,
+    "warnings": [
+      "Only 99 calibration images were used. Static INT8 results may be less accurate; 100-500 are recommended.",
+      "Accuracy is based on 1 test images, so it may vary by about \u00b198 points."
+    ]
+  },
+  {
+    "calibration_count": 200,
+    "test_count": 1000,
+    "warnings": []
+  }
+]

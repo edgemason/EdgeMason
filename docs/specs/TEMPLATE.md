@@ -1,5 +1,6 @@
 # <SPEC-ID>: <Title>
 
+**Type:** redesign | feature (approved by user on YYYY-MM-DD)
 **Depends on:** <spec ids, or "none">
 **Gate class:** identical | intended improvement: <metric> must <improve by X / reach Y>
 **Status:** interviewing | agreed | executing | done

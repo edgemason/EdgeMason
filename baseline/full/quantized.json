@@ -1,0 +1,142 @@
+{
+  "efficientnet_b0": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "12f83448a3b7a2d24b1d28e5a588b5fca94ea3859743650f4fc042743a9c5fc2"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "275b5c1a31a1d0b90adc0013ed76e661c28da9451330c2c0b550378059c085a5"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "cb0104bda49d97204f02092bab719f31be4f9c5d01673df3d15b35c0755e2abb"
+    }
+  },
+  "mobilenetv2": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "f9a5cba552865832c19fb91f7784c0ebb0e26cf5d19f1e4c402e9f45015475ed"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "0fd3b4fb7b76bf28a51bb6f731742c8b31e9bbf49a54fb78f59338ce35420437"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "0fdffc1a46580fc83afa5f81fafcafc9fff8b6cc405658e514dbbdddcc34a29a"
+    }
+  },
+  "resnet152": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "3165bc83d33f0c365707935a943e80da21404cf7ed701eda0b8faf0027119220"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "b13c8c7f6f649473410279df48c1ca30d49af69843bda3260ba3061cba7414f4"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "89adcc77fc7dad6e1610b7945a0ca3fd32ba8de99b8298af1ee7a8301a1e53a6"
+    }
+  },
+  "resnet18-v1-13": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "ca26921407a6784e364c9857114c9fd2b44730df8f45b433ad4caa0f80a69da1"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "87e090e8a2e8f7c65dd5f28a5169abda042841b54a40f1ff08bd056b12f5bd8f"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "516f5423cc4d92f00d7955f185a646ad3cc4062859358b9a5adb6b5f853dfe36"
+    }
+  },
+  "resnet18-v1-7": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "688ff016b88ed1a325a8f09f8f9062c282fa654fc79084a629157f97b1794dc3"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "4e8f8653e7a2222b3904cc3fe8e304cd8b339ce1d05fd24688162f86fb6df52c"
+    },
+    "onnx_static_int8": {
+      "error": "InvalidGraph: [ONNXRuntimeError] : 10 : INVALID_GRAPH : Load model from <quantized> failed:This is an invalid model. In Node, (\"resnetv15_conv0_weight_DequantizeLinear\", DequantizeLinear, \"\", -1) : (\"resnetv15_conv0_weight_quantized\": tensor(int8),\"resnetv15_conv0_weight_scale\": tensor(float),\"resnetv15_conv0_weight_zero_point\": tensor(int8),) -> (\"resnetv15_conv0_weight_DequantizeLinear_Output\",) , Error Unrecognized attribute: axis for operator DequantizeLinear",
+      "sha256": null
+    }
+  },
+  "resnet50": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "dbd9187c0b2a9248bd9f3f96780bf6e232163585207fc62bdb977b297d444438"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "74dd49052a67b62deec2768dbefb2d0abea55fee76946ac99c94288aebe5a75c"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "a0b7ad6e62979ceaf62f966bb562f25bb372ba624a443d6837ec30a6e7d0c810"
+    }
+  },
+  "shufflenet-v2-10": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "7aafe8c31e91f7490ce6bbbff990026d939c3a935eb11bfd0caf5a87071014b8"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "8b85e969a0a5518b554c99548379d1ba54d973733a6a12012138d91852308584"
+    },
+    "onnx_static_int8": {
+      "error": "InvalidGraph: [ONNXRuntimeError] : 10 : INVALID_GRAPH : Load model from <quantized> failed:This is an invalid model. In Node, (\"conv1.0.weight_DequantizeLinear\", DequantizeLinear, \"\", -1) : (\"conv1.0.weight_quantized\": tensor(int8),\"conv1.0.weight_scale\": tensor(float),\"conv1.0.weight_zero_point\": tensor(int8),) -> (\"conv1.0.weight_DequantizeLinear_Output\",) , Error Unrecognized attribute: axis for operator DequantizeLinear",
+      "sha256": null
+    }
+  },
+  "shufflenet-v2-13": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "42e32df6c8e738d25329b9cf9108f9809ff9528d556f31933a9a93fc77674a7a"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "378cc07a1046a16b1d235daa4af1f4dcbd7f5759d144c53ba1a8c034ffbb760b"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "126af9b794c4e52c2d574d2b0294f99db26bcd3af512f14f5717b98c864dc9b5"
+    }
+  },
+  "squeezenet1.1-13": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "c6fa5a80c988ec9786b0777ebb6c7b4bd65f90ec66b6d12a9370b2007a15f437"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "5846b40aca708f9e817e19caa3d49e49e81b9bd9ba2fffc70a175a8558904857"
+    },
+    "onnx_static_int8": {
+      "error": null,
+      "sha256": "d01765c0eb60fe671f6000d6dac639e91e89128faa36e80be68a111da2a40b51"
+    }
+  },
+  "squeezenet1.1-7": {
+    "onnx_dynamic_int8": {
+      "error": null,
+      "sha256": "3d050b3f6e3ab74dcc3c7eabade321805f01c8e0d0dc4facd0858e5a7e2effb1"
+    },
+    "onnx_fp32_baseline": {
+      "error": null,
+      "sha256": "1eeff551a67ae8d565ca33b572fc4b66e3ef357b0eb2863bb9ff47a918cc4088"
+    },
+    "onnx_static_int8": {
+      "error": "InvalidGraph: [ONNXRuntimeError] : 10 : INVALID_GRAPH : Load model from <quantized> failed:This is an invalid model. In Node, (\"squeezenet0_conv0_bias_DequantizeLinear\", DequantizeLinear, \"\", -1) : (\"squeezenet0_conv0_bias_quantized\": tensor(int32),\"squeezenet0_conv0_bias_quantized_scale\": tensor(float),\"squeezenet0_conv0_bias_quantized_zero_point\": tensor(int32),) -> (\"squeezenet0_conv0_bias\",) , Error Unrecognized attribute: axis for operator DequantizeLinear",
+      "sha256": null
+    }
+  }
+}

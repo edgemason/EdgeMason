@@ -3,6 +3,7 @@ import subprocess
 import sys
 import zipfile
 from importlib import metadata
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -47,6 +48,7 @@ def test_create_deployment_package(tiny_onnx, tmp_path):
     assert {path.name for path in folder.iterdir()} == {
         "model.onnx",
         "inference.py",
+        "bench.py",
         "requirements.txt",
         "Dockerfile",
         "benchmark_report.json",
@@ -137,3 +139,79 @@ def _installed(name):
     except metadata.PackageNotFoundError:
         return False
 
+
+
+BENCH_TEMPLATE = Path(__file__).resolve().parents[1] / "api" / "packager" / "templates" / "bench.py"
+
+
+# 10. A missing model gives exit code 1 and still writes JSON with an error.
+def test_bench_missing_model_writes_failure_json(tmp_path):
+    out = tmp_path / "measured.json"
+    result = subprocess.run(
+        [sys.executable, str(BENCH_TEMPLATE), "--model", str(tmp_path / "nope.onnx"), "--out", str(out)],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+
+    assert result.returncode != 0
+    data = json.loads(out.read_text())
+    assert data["success"] is False
+    assert data["error"]
+
+
+# 11. --profile turns on ONNX Runtime profiling and names a file that exists.
+def test_bench_profile_flag_writes_profile_file(tiny_onnx, tmp_path):
+    out = tmp_path / "measured.json"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(BENCH_TEMPLATE),
+            "--model", str(tiny_onnx),
+            "--out", str(out),
+            "--profile",
+            "--runs", "10",
+            "--budget", "5",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+
+    assert result.returncode == 0, result.stderr
+    data = json.loads(out.read_text())
+    assert data["settings"]["profile"] is True
+    assert data["profile_path"] is not None
+    assert Path(data["profile_path"]).is_file()
+
+
+# 12. The ONNX ZIP ships bench.py byte-identical to the template and mentions it in the README.
+def test_onnx_package_includes_bench(tiny_onnx, tmp_path):
+    folder = _package(tiny_onnx, tmp_path)
+
+    assert (folder / "bench.py").read_bytes() == BENCH_TEMPLATE.read_bytes()
+    assert "python bench.py" in (folder / "README.md").read_text()
+
+
+# 13. The extracted ONNX ZIP benchmarks itself with no flags and writes measured.json.
+def test_onnx_package_bench_runs_with_no_flags(tiny_onnx, tmp_path):
+    folder = _package(tiny_onnx, tmp_path)
+
+    result = subprocess.run(
+        [sys.executable, "bench.py"], cwd=folder, capture_output=True, text=True, timeout=300
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert json.loads((folder / "measured.json").read_text())["success"] is True
+
+
+# 14. TVM packages do not get bench.py.
+def test_tvm_package_has_no_bench(tiny_onnx, tmp_path):
+    from api.optimizer.tvm_runtime import compile_onnx, is_tvm_available
+
+    if not is_tvm_available():
+        pytest.skip("Apache TVM is not installed")
+    tar_path = compile_onnx(tmp_path / "model.tar", tiny_onnx, {"kind": "llvm"})
+    folder = _package(tar_path, tmp_path, hardware_id="x86_64")
+
+    assert not (folder / "bench.py").exists()

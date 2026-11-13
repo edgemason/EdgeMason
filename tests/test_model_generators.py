@@ -1,10 +1,10 @@
 from pathlib import Path
 
 import pytest
+import torch
+from torchvision import models
 
-torch = pytest.importorskip("torch")
-pytest.importorskip("PIL")
-models = pytest.importorskip("torchvision.models")
+pytestmark = [pytest.mark.research]
 
 from models import model_generators
 

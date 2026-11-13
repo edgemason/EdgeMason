@@ -1,0 +1,282 @@
+{
+  "jetson_nano": {
+    "auto": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cuda"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cpu": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cuda": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cuda"
+        },
+        "cpu_only": {
+          "error": "CUDAExecutionProvider is not available"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "error": "include_tvm cannot be combined with execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "include_tvm cannot be combined with execution_provider=cuda"
+        }
+      }
+    }
+  },
+  "rpi3": {
+    "auto": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cpu": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cuda": {
+      "False": {
+        "cpu_cuda": {
+          "error": "rpi3 does not support execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "rpi3 does not support execution_provider=cuda"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "error": "rpi3 does not support execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "rpi3 does not support execution_provider=cuda"
+        }
+      }
+    }
+  },
+  "rpi4": {
+    "auto": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cpu": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cuda": {
+      "False": {
+        "cpu_cuda": {
+          "error": "rpi4 does not support execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "rpi4 does not support execution_provider=cuda"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "error": "rpi4 does not support execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "rpi4 does not support execution_provider=cuda"
+        }
+      }
+    }
+  },
+  "rpi5": {
+    "auto": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cpu": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cuda": {
+      "False": {
+        "cpu_cuda": {
+          "error": "rpi5 does not support execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "rpi5 does not support execution_provider=cuda"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "error": "rpi5 does not support execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "rpi5 does not support execution_provider=cuda"
+        }
+      }
+    }
+  },
+  "x86_64": {
+    "auto": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cuda"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cpu": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "result": "cpu"
+        },
+        "cpu_only": {
+          "result": "cpu"
+        }
+      }
+    },
+    "cuda": {
+      "False": {
+        "cpu_cuda": {
+          "result": "cuda"
+        },
+        "cpu_only": {
+          "error": "CUDAExecutionProvider is not available"
+        }
+      },
+      "True": {
+        "cpu_cuda": {
+          "error": "include_tvm cannot be combined with execution_provider=cuda"
+        },
+        "cpu_only": {
+          "error": "include_tvm cannot be combined with execution_provider=cuda"
+        }
+      }
+    }
+  }
+}

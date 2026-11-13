@@ -1,0 +1,166 @@
+{
+  "efficientnet_b0": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.0,
+      "top5_accuracy": 0.00558659217877095
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.6424581005586593,
+      "top5_accuracy": 0.8379888268156425
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.13966480446927373,
+      "top5_accuracy": 0.3128491620111732
+    }
+  },
+  "mobilenetv2": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.553072625698324,
+      "top5_accuracy": 0.7541899441340782
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5810055865921788,
+      "top5_accuracy": 0.776536312849162
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5754189944134078,
+      "top5_accuracy": 0.7821229050279329
+    }
+  },
+  "resnet152": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.6703910614525139,
+      "top5_accuracy": 0.88268156424581
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.6871508379888268,
+      "top5_accuracy": 0.888268156424581
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.6871508379888268,
+      "top5_accuracy": 0.888268156424581
+    }
+  },
+  "resnet18-v1-13": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5307262569832403,
+      "top5_accuracy": 0.7318435754189944
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5307262569832403,
+      "top5_accuracy": 0.7318435754189944
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5418994413407822,
+      "top5_accuracy": 0.7430167597765364
+    }
+  },
+  "resnet18-v1-7": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5307262569832403,
+      "top5_accuracy": 0.7318435754189944
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5307262569832403,
+      "top5_accuracy": 0.7318435754189944
+    },
+    "onnx_static_int8": {
+      "error": "InvalidGraph: [ONNXRuntimeError] : 10 : INVALID_GRAPH : Load model from <quantized> failed:This is an invalid model. In Node, (\"resnetv15_conv0_weight_DequantizeLinear\", DequantizeLinear, \"\", -1) : (\"resnetv15_conv0_weight_quantized\": tensor(int8),\"resnetv15_conv0_weight_scale\": tensor(float),\"resnetv15_conv0_weight_zero_point\": tensor(int8),) -> (\"resnetv15_conv0_weight_DequantizeLinear_Output\",) , Error Unrecognized attribute: axis for operator DequantizeLinear"
+    }
+  },
+  "resnet50": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.6256983240223464,
+      "top5_accuracy": 0.8379888268156425
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.6480446927374302,
+      "top5_accuracy": 0.8603351955307262
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.6368715083798883,
+      "top5_accuracy": 0.8547486033519553
+    }
+  },
+  "shufflenet-v2-10": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5195530726256983,
+      "top5_accuracy": 0.7486033519553073
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5195530726256983,
+      "top5_accuracy": 0.7541899441340782
+    },
+    "onnx_static_int8": {
+      "error": "InvalidGraph: [ONNXRuntimeError] : 10 : INVALID_GRAPH : Load model from <quantized> failed:This is an invalid model. In Node, (\"conv1.0.weight_DequantizeLinear\", DequantizeLinear, \"\", -1) : (\"conv1.0.weight_quantized\": tensor(int8),\"conv1.0.weight_scale\": tensor(float),\"conv1.0.weight_zero_point\": tensor(int8),) -> (\"conv1.0.weight_DequantizeLinear_Output\",) , Error Unrecognized attribute: axis for operator DequantizeLinear"
+    }
+  },
+  "shufflenet-v2-13": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5139664804469274,
+      "top5_accuracy": 0.7541899441340782
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.5195530726256983,
+      "top5_accuracy": 0.7541899441340782
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.4972067039106145,
+      "top5_accuracy": 0.770949720670391
+    }
+  },
+  "squeezenet1.1-13": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.3407821229050279,
+      "top5_accuracy": 0.6312849162011173
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.36312849162011174,
+      "top5_accuracy": 0.6368715083798883
+    },
+    "onnx_static_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.3407821229050279,
+      "top5_accuracy": 0.6368715083798883
+    }
+  },
+  "squeezenet1.1-7": {
+    "onnx_dynamic_int8": {
+      "sample_count": 179,
+      "top1_accuracy": 0.3407821229050279,
+      "top5_accuracy": 0.6312849162011173
+    },
+    "onnx_fp32_baseline": {
+      "sample_count": 179,
+      "top1_accuracy": 0.36312849162011174,
+      "top5_accuracy": 0.6368715083798883
+    },
+    "onnx_static_int8": {
+      "error": "InvalidGraph: [ONNXRuntimeError] : 10 : INVALID_GRAPH : Load model from <quantized> failed:This is an invalid model. In Node, (\"squeezenet0_conv0_bias_DequantizeLinear\", DequantizeLinear, \"\", -1) : (\"squeezenet0_conv0_bias_quantized\": tensor(int32),\"squeezenet0_conv0_bias_quantized_scale\": tensor(float),\"squeezenet0_conv0_bias_quantized_zero_point\": tensor(int32),) -> (\"squeezenet0_conv0_bias\",) , Error Unrecognized attribute: axis for operator DequantizeLinear"
+    }
+  }
+}

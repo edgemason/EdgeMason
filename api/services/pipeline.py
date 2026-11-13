@@ -14,7 +14,7 @@ from api.config import (
     BENCHMARK_TIMED_RUNS,
     BENCHMARK_WARMUP_RUNS,
 )
-from api.optimizer.onnx_runtime import benchmark
+from api.optimizer.benchmark_engine import benchmark
 from api.optimizer.quantizer import Quantizer
 from api.optimizer.validation import (
     ValidationData,

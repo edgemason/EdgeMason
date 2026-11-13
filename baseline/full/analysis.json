@@ -1,0 +1,223 @@
+{
+  "efficientnet_b0": {
+    "ir_version": 7,
+    "model_size_mb": 20.16469383239746,
+    "num_nodes": 239,
+    "operator_types": {
+      "Add": 9,
+      "Conv": 81,
+      "Flatten": 1,
+      "Gemm": 1,
+      "GlobalAveragePool": 17,
+      "Mul": 65,
+      "Sigmoid": 65
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 13
+      }
+    ],
+    "total_parameters": 5267540
+  },
+  "mobilenetv2": {
+    "ir_version": 7,
+    "model_size_mb": 13.344080924987793,
+    "num_nodes": 170,
+    "operator_types": {
+      "Add": 10,
+      "Clip": 35,
+      "Constant": 70,
+      "Conv": 52,
+      "Flatten": 1,
+      "Gemm": 1,
+      "GlobalAveragePool": 1
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 13
+      }
+    ],
+    "total_parameters": 3487816
+  },
+  "resnet152": {
+    "ir_version": 7,
+    "model_size_mb": 229.3978967666626,
+    "num_nodes": 360,
+    "operator_types": {
+      "Add": 50,
+      "Conv": 155,
+      "Flatten": 1,
+      "Gemm": 1,
+      "GlobalAveragePool": 1,
+      "MaxPool": 1,
+      "Relu": 151
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 13
+      }
+    ],
+    "total_parameters": 60117096
+  },
+  "resnet18-v1-13": {
+    "ir_version": 3,
+    "model_size_mb": 44.65507793426514,
+    "num_nodes": 69,
+    "operator_types": {
+      "Add": 8,
+      "BatchNormalization": 20,
+      "Conv": 20,
+      "Flatten": 1,
+      "Gemm": 1,
+      "GlobalAveragePool": 1,
+      "MaxPool": 1,
+      "Relu": 17
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 13
+      }
+    ],
+    "total_parameters": 11699112
+  },
+  "resnet18-v1-7": {
+    "ir_version": 3,
+    "model_size_mb": 44.651734352111816,
+    "num_nodes": 69,
+    "operator_types": {
+      "Add": 8,
+      "BatchNormalization": 20,
+      "Conv": 20,
+      "Flatten": 1,
+      "Gemm": 1,
+      "GlobalAveragePool": 1,
+      "MaxPool": 1,
+      "Relu": 17
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 8
+      }
+    ],
+    "total_parameters": 11699112
+  },
+  "resnet50": {
+    "ir_version": 7,
+    "model_size_mb": 97.41439151763916,
+    "num_nodes": 122,
+    "operator_types": {
+      "Add": 16,
+      "Conv": 53,
+      "Flatten": 1,
+      "Gemm": 1,
+      "GlobalAveragePool": 1,
+      "MaxPool": 1,
+      "Relu": 49
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 13
+      }
+    ],
+    "total_parameters": 25530472
+  },
+  "shufflenet-v2-10": {
+    "ir_version": 6,
+    "model_size_mb": 8.791498184204102,
+    "num_nodes": 261,
+    "operator_types": {
+      "BatchNormalization": 56,
+      "Concat": 16,
+      "Constant": 32,
+      "Conv": 56,
+      "Gemm": 1,
+      "MaxPool": 1,
+      "ReduceMean": 1,
+      "Relu": 37,
+      "Reshape": 32,
+      "Split": 13,
+      "Transpose": 16
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 10
+      }
+    ],
+    "total_parameters": 2294784
+  },
+  "shufflenet-v2-13": {
+    "ir_version": 6,
+    "model_size_mb": 8.799816131591797,
+    "num_nodes": 274,
+    "operator_types": {
+      "BatchNormalization": 56,
+      "Concat": 16,
+      "Constant": 45,
+      "Conv": 56,
+      "Gemm": 1,
+      "MaxPool": 1,
+      "ReduceMean": 1,
+      "Relu": 37,
+      "Reshape": 32,
+      "Split": 13,
+      "Transpose": 16
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 13
+      }
+    ],
+    "total_parameters": 2294784
+  },
+  "squeezenet1.1-13": {
+    "ir_version": 3,
+    "model_size_mb": 4.729733467102051,
+    "num_nodes": 67,
+    "operator_types": {
+      "AveragePool": 1,
+      "Concat": 8,
+      "Constant": 1,
+      "Conv": 26,
+      "Dropout": 1,
+      "MaxPool": 3,
+      "Relu": 26,
+      "Reshape": 1
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 13
+      }
+    ],
+    "total_parameters": 1235498
+  },
+  "squeezenet1.1-7": {
+    "ir_version": 3,
+    "model_size_mb": 4.7266082763671875,
+    "num_nodes": 66,
+    "operator_types": {
+      "AveragePool": 1,
+      "Concat": 8,
+      "Conv": 26,
+      "Dropout": 1,
+      "MaxPool": 3,
+      "Relu": 26,
+      "Reshape": 1
+    },
+    "opsets": [
+      {
+        "domain": "",
+        "version": 7
+      }
+    ],
+    "total_parameters": 1235498
+  }
+}

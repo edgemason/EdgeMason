@@ -1,0 +1,82 @@
+{
+  "all_results": [
+    {
+      "accuracy": null,
+      "error": null,
+      "estimated_latency_p50_ms": "<MEASUREMENT>",
+      "estimated_memory_mb": "<MEASUREMENT>",
+      "framework": "onnxruntime",
+      "latency_avg_ms": "<MEASUREMENT>",
+      "latency_p50_ms": "<MEASUREMENT>",
+      "latency_p95_ms": "<MEASUREMENT>",
+      "latency_scaling_factor": 11.8,
+      "memory_delta_mb": "<MEASUREMENT>",
+      "model_size_mb": 0.0,
+      "name": "onnx_fp32_baseline",
+      "provider": "CPUExecutionProvider",
+      "success": true,
+      "throughput_fps": "<MEASUREMENT>",
+      "timed_runs": 100,
+      "warmup_runs": 10
+    }
+  ],
+  "analysis": {
+    "model_family": "matmul",
+    "model_size_mb": 0.0002803802490234375,
+    "total_parameters": 40
+  },
+  "candidates_explored": 1,
+  "constraints": {
+    "execution_provider": "cpu",
+    "include_tvm": false,
+    "max_latency_ms": null,
+    "max_memory_mb": null,
+    "priority": "latency"
+  },
+  "data_split": {
+    "calibration_samples": 0,
+    "test_samples": 0
+  },
+  "download_url": "<PATH>",
+  "execution_provider": "cpu",
+  "hardware_target": "rpi4",
+  "plan": {
+    "rules_applied": [
+      "Always include FP32 baseline."
+    ],
+    "skipped": [
+      {
+        "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+        "strategy": "tvm_opt_level_3"
+      },
+      {
+        "reason": "Static INT8 was skipped because calibration data was unavailable.",
+        "strategy": "onnx_static_int8"
+      },
+      {
+        "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+        "strategy": "tvm_int8_quantized"
+      }
+    ]
+  },
+  "warnings": [],
+  "winner": {
+    "accuracy": null,
+    "error": null,
+    "estimated_latency_p50_ms": "<MEASUREMENT>",
+    "estimated_memory_mb": "<MEASUREMENT>",
+    "framework": "onnxruntime",
+    "latency_avg_ms": "<MEASUREMENT>",
+    "latency_p50_ms": "<MEASUREMENT>",
+    "latency_p95_ms": "<MEASUREMENT>",
+    "latency_scaling_factor": 11.8,
+    "memory_delta_mb": "<MEASUREMENT>",
+    "model_size_mb": 0.0,
+    "name": "onnx_fp32_baseline",
+    "provider": "CPUExecutionProvider",
+    "success": true,
+    "throughput_fps": "<MEASUREMENT>",
+    "timed_runs": 100,
+    "warmup_runs": 10
+  }
+}

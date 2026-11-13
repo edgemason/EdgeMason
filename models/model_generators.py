@@ -51,8 +51,11 @@ def load_torchvision_model(name: str) -> tuple[torch.nn.Module, Any]:
     elif name == "resnet152":
         weights = models.ResNet152_Weights.DEFAULT
         model = models.resnet152(weights=weights)
+    elif name == "efficientnet_b0":
+        weights = models.EfficientNet_B0_Weights.DEFAULT
+        model = models.efficientnet_b0(weights=weights)
     else:
-        raise ValueError(f"Unknown model {name!r}. Choose from {MODELS}.")
+        raise ValueError(f"Unknown model {name!r}. Choose from {MODELS + ('efficientnet_b0',)}.")
 
     model.eval()
     return model, weights
@@ -124,6 +127,22 @@ def save_sample_inputs(
             json.dump(weights.meta["categories"], f)
 
 
+def generate_efficientnet_b0(
+    output_dir: str | Path = OUTPUT_DIR,
+    opset_version: int = 13,
+) -> Path:
+    """Export EfficientNet B0 (torchvision) to ONNX.
+
+    Follows the same pattern as the other torchvision generators.
+    """
+    output_dir = Path(output_dir)
+    model, weights = load_torchvision_model("efficientnet_b0")
+    model_input = make_model_input(weights)
+    out_path = output_dir / "efficientnet_b0.onnx"
+    export_to_onnx(model, model_input, out_path, opset_version=opset_version)
+    return out_path
+
+
 def generate_all(
     output_dir: str | Path = OUTPUT_DIR,
     opset_version: int = 13,
@@ -150,6 +169,11 @@ def generate_all(
         save_sample_inputs(name, weights, model_input, output_dir)
         print(f"[4/4] Done: {out_path} ({out_path.stat().st_size / 1024 / 1024:.2f} MB)")
         exported[name] = out_path
+
+    print("[1/2] Generating efficientnet_b0 ...")
+    efficientnet_path = generate_efficientnet_b0(output_dir, opset_version=opset_version)
+    print(f"[2/2] Done: {efficientnet_path} ({efficientnet_path.stat().st_size / 1024 / 1024:.2f} MB)")
+    exported["efficientnet_b0"] = efficientnet_path
     return exported
 
 

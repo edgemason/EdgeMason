@@ -1,0 +1,1144 @@
+{
+  "efficientnet_b0": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 20.16469383239746,
+        "operator_counts": {
+          "Add": 9,
+          "Conv": 81,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 17,
+          "Mul": 65,
+          "Sigmoid": 65
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 20.16469383239746,
+        "operator_counts": {
+          "Add": 9,
+          "Conv": 81,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 17,
+          "Mul": 65,
+          "Sigmoid": 65
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "mobilenetv2": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 13.344080924987793,
+        "operator_counts": {
+          "Add": 10,
+          "Clip": 35,
+          "Constant": 70,
+          "Conv": 52,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 13.344080924987793,
+        "operator_counts": {
+          "Add": 10,
+          "Clip": 35,
+          "Constant": 70,
+          "Conv": 52,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "resnet152": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 229.3978967666626,
+        "operator_counts": {
+          "Add": 50,
+          "Conv": 155,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 151
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 229.3978967666626,
+        "operator_counts": {
+          "Add": 50,
+          "Conv": 155,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 151
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "resnet18-v1-13": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 44.65507793426514,
+        "operator_counts": {
+          "Add": 8,
+          "BatchNormalization": 20,
+          "Conv": 20,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 17
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 44.65507793426514,
+        "operator_counts": {
+          "Add": 8,
+          "BatchNormalization": 20,
+          "Conv": 20,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 17
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "resnet18-v1-7": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 44.651734352111816,
+        "operator_counts": {
+          "Add": 8,
+          "BatchNormalization": 20,
+          "Conv": 20,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 17
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 44.651734352111816,
+        "operator_counts": {
+          "Add": 8,
+          "BatchNormalization": 20,
+          "Conv": 20,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 17
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "resnet50": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 97.41439151763916,
+        "operator_counts": {
+          "Add": 16,
+          "Conv": 53,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 49
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 97.41439151763916,
+        "operator_counts": {
+          "Add": 16,
+          "Conv": 53,
+          "Flatten": 1,
+          "Gemm": 1,
+          "GlobalAveragePool": 1,
+          "MaxPool": 1,
+          "Relu": 49
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "shufflenet-v2-10": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 8.791498184204102,
+        "operator_counts": {
+          "BatchNormalization": 56,
+          "Concat": 16,
+          "Constant": 32,
+          "Conv": 56,
+          "Gemm": 1,
+          "MaxPool": 1,
+          "ReduceMean": 1,
+          "Relu": 37,
+          "Reshape": 32,
+          "Split": 13,
+          "Transpose": 16
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 8.791498184204102,
+        "operator_counts": {
+          "BatchNormalization": 56,
+          "Concat": 16,
+          "Constant": 32,
+          "Conv": 56,
+          "Gemm": 1,
+          "MaxPool": 1,
+          "ReduceMean": 1,
+          "Relu": 37,
+          "Reshape": 32,
+          "Split": 13,
+          "Transpose": 16
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "shufflenet-v2-13": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 8.799816131591797,
+        "operator_counts": {
+          "BatchNormalization": 56,
+          "Concat": 16,
+          "Constant": 45,
+          "Conv": 56,
+          "Gemm": 1,
+          "MaxPool": 1,
+          "ReduceMean": 1,
+          "Relu": 37,
+          "Reshape": 32,
+          "Split": 13,
+          "Transpose": 16
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 8.799816131591797,
+        "operator_counts": {
+          "BatchNormalization": 56,
+          "Concat": 16,
+          "Constant": 45,
+          "Conv": 56,
+          "Gemm": 1,
+          "MaxPool": 1,
+          "ReduceMean": 1,
+          "Relu": 37,
+          "Reshape": 32,
+          "Split": 13,
+          "Transpose": 16
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "squeezenet1.1-13": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 4.729733467102051,
+        "operator_counts": {
+          "AveragePool": 1,
+          "Concat": 8,
+          "Constant": 1,
+          "Conv": 26,
+          "Dropout": 1,
+          "MaxPool": 3,
+          "Relu": 26,
+          "Reshape": 1
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 4.729733467102051,
+        "operator_counts": {
+          "AveragePool": 1,
+          "Concat": 8,
+          "Constant": 1,
+          "Conv": 26,
+          "Dropout": 1,
+          "MaxPool": 3,
+          "Relu": 26,
+          "Reshape": 1
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "squeezenet1.1-7": {
+    "false": {
+      "candidate_count": 1,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        }
+      ],
+      "input": {
+        "has_calibration_data": false,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 4.7266082763671875,
+        "operator_counts": {
+          "AveragePool": 1,
+          "Concat": 8,
+          "Conv": 26,
+          "Dropout": 1,
+          "MaxPool": 3,
+          "Relu": 26,
+          "Reshape": 1
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "Static INT8 was skipped because calibration data was unavailable.",
+          "strategy": "onnx_static_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": [
+        "This model is a CNN, so INT8 needs calibration images. Upload a calibration file to get static INT8; without one only FP32 is available."
+      ]
+    },
+    "true": {
+      "candidate_count": 2,
+      "candidates": [
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_fp32_baseline",
+          "quantization": "fp32",
+          "reason": "FP32 baseline is always included for comparison.",
+          "requires_calibration": false
+        },
+        {
+          "framework": "onnxruntime",
+          "name": "onnx_static_int8",
+          "quantization": "static_int8",
+          "reason": "Static INT8 is selected because calibration data is available.",
+          "requires_calibration": true
+        }
+      ],
+      "input": {
+        "has_calibration_data": true,
+        "include_tvm": false,
+        "max_latency_ms": null,
+        "model_size_mb": 4.7266082763671875,
+        "operator_counts": {
+          "AveragePool": 1,
+          "Concat": 8,
+          "Conv": 26,
+          "Dropout": 1,
+          "MaxPool": 3,
+          "Relu": 26,
+          "Reshape": 1
+        }
+      },
+      "model_family": "cnn",
+      "planner": "rule_based",
+      "rules_applied": [
+        "Always include FP32 baseline.",
+        "Calibration data provided -> static INT8.",
+        "Model is a CNN (Conv-heavy) -> no dynamic INT8; static INT8 is the INT8 option."
+      ],
+      "skipped": [
+        {
+          "reason": "TVM candidates are opt-in because compilation and evaluation can be slow.",
+          "strategy": "tvm_opt_level_3"
+        },
+        {
+          "reason": "Dynamic INT8 was skipped because the model is a CNN: quantizing activations at run time before every Conv makes it slower than FP32. Static INT8 is used for CNNs instead.",
+          "strategy": "onnx_dynamic_int8"
+        },
+        {
+          "reason": "TVM INT8 was skipped because TVM was not enabled or calibration data was unavailable.",
+          "strategy": "tvm_int8_quantized"
+        }
+      ],
+      "warnings": []
+    }
+  }
+}

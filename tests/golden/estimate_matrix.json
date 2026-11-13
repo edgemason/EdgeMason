@@ -1,0 +1,132 @@
+{
+  "jetson_nano": {
+    "dynamic_int8": {
+      "latency_p50_ms": 107.0,
+      "latency_scaling_factor": 10.7,
+      "memory_mb": 115.0,
+      "target_hardware": "jetson_nano"
+    },
+    "fp32": {
+      "latency_p50_ms": 82.0,
+      "latency_scaling_factor": 8.2,
+      "memory_mb": 115.0,
+      "target_hardware": "jetson_nano"
+    },
+    "static_int8": {
+      "latency_p50_ms": 107.0,
+      "latency_scaling_factor": 10.7,
+      "memory_mb": 115.0,
+      "target_hardware": "jetson_nano"
+    },
+    "unknown_q": {
+      "latency_p50_ms": 82.0,
+      "latency_scaling_factor": 8.2,
+      "memory_mb": 115.0,
+      "target_hardware": "jetson_nano"
+    }
+  },
+  "rpi3": {
+    "dynamic_int8": {
+      "latency_p50_ms": 240.0,
+      "latency_scaling_factor": 24.0,
+      "memory_mb": 120.0,
+      "target_hardware": "rpi3"
+    },
+    "fp32": {
+      "latency_p50_ms": 185.0,
+      "latency_scaling_factor": 18.5,
+      "memory_mb": 120.0,
+      "target_hardware": "rpi3"
+    },
+    "static_int8": {
+      "latency_p50_ms": 240.0,
+      "latency_scaling_factor": 24.0,
+      "memory_mb": 120.0,
+      "target_hardware": "rpi3"
+    },
+    "unknown_q": {
+      "latency_p50_ms": 185.0,
+      "latency_scaling_factor": 18.5,
+      "memory_mb": 120.0,
+      "target_hardware": "rpi3"
+    }
+  },
+  "rpi4": {
+    "dynamic_int8": {
+      "latency_p50_ms": 153.0,
+      "latency_scaling_factor": 15.3,
+      "memory_mb": 110.0,
+      "target_hardware": "rpi4"
+    },
+    "fp32": {
+      "latency_p50_ms": 118.0,
+      "latency_scaling_factor": 11.8,
+      "memory_mb": 110.0,
+      "target_hardware": "rpi4"
+    },
+    "static_int8": {
+      "latency_p50_ms": 153.0,
+      "latency_scaling_factor": 15.3,
+      "memory_mb": 110.0,
+      "target_hardware": "rpi4"
+    },
+    "unknown_q": {
+      "latency_p50_ms": 118.0,
+      "latency_scaling_factor": 11.8,
+      "memory_mb": 110.0,
+      "target_hardware": "rpi4"
+    }
+  },
+  "rpi5": {
+    "dynamic_int8": {
+      "latency_p50_ms": 45.0,
+      "latency_scaling_factor": 4.5,
+      "memory_mb": 105.0,
+      "target_hardware": "rpi5"
+    },
+    "fp32": {
+      "latency_p50_ms": 45.0,
+      "latency_scaling_factor": 4.5,
+      "memory_mb": 105.0,
+      "target_hardware": "rpi5"
+    },
+    "static_int8": {
+      "latency_p50_ms": 45.0,
+      "latency_scaling_factor": 4.5,
+      "memory_mb": 105.0,
+      "target_hardware": "rpi5"
+    },
+    "unknown_q": {
+      "latency_p50_ms": 45.0,
+      "latency_scaling_factor": 4.5,
+      "memory_mb": 105.0,
+      "target_hardware": "rpi5"
+    }
+  },
+  "x86_64": {
+    "dynamic_int8": {
+      "latency_p50_ms": 10.0,
+      "latency_scaling_factor": 1.0,
+      "memory_mb": 100.0,
+      "target_hardware": "x86_64"
+    },
+    "fp32": {
+      "latency_p50_ms": 10.0,
+      "latency_scaling_factor": 1.0,
+      "memory_mb": 100.0,
+      "target_hardware": "x86_64"
+    },
+    "static_int8": {
+      "latency_p50_ms": 10.0,
+      "latency_scaling_factor": 1.0,
+      "memory_mb": 100.0,
+      "target_hardware": "x86_64"
+    },
+    "unknown_q": {
+      "latency_p50_ms": 10.0,
+      "latency_scaling_factor": 1.0,
+      "memory_mb": 100.0,
+      "target_hardware": "x86_64"
+    }
+  }
+}
