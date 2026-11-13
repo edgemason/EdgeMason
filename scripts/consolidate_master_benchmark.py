@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd, numpy as np
 
 # Load datasets
@@ -14,13 +16,19 @@ rpi5_onnx = rpi5_df[rpi5_df['framework'] == 'onnxruntime'].copy()
 rpi5_onnx['precision'] = rpi5_onnx['strategy'].apply(lambda x: 'fp32' if 'fp32' in x else 'int8')
 rpi5_onnx = rpi5_onnx.rename(columns={'latency_p50_ms': 'latency_p50_ms', 'latency_p95_ms': 'latency_p95_ms', 'throughput_fps': 'throughput_fps'})
 
+frames = [gpu_df[cols], graviton_df[cols], x86_df[cols], rpi5_onnx[cols]]
+
+# Optional: GitHub Actions CI hardware (x86_64 / ARM64 Linux / Apple Silicon macOS),
+# only included once their CSVs have been downloaded from the workflow run.
+for tag in ['github_x86_64', 'github_arm64_linux', 'github_macos_arm64']:
+    ci_path = f'reports/data/benchmark_{tag}_1000images.csv'
+    if os.path.exists(ci_path):
+        frames.append(pd.read_csv(ci_path)[cols])
+    else:
+        print(f"Skipping {ci_path}: not downloaded yet")
+
 # Combine
-all_df = pd.concat([
-    gpu_df[cols],
-    graviton_df[cols],
-    x86_df[cols],
-    rpi5_onnx[cols]
-], ignore_index=True)
+all_df = pd.concat(frames, ignore_index=True)
 
 all_df.to_csv('reports/data/master_1000images_multihardware_benchmark.csv', index=False)
 print("Consolidated master dataset written to reports/data/master_1000images_multihardware_benchmark.csv")

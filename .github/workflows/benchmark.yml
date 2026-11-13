@@ -1,0 +1,60 @@
+name: Multi-Architecture CPU Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_images:
+        description: "Number of Imagenette images to benchmark per model"
+        required: false
+        default: "1000"
+
+jobs:
+  benchmark:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            hardware_tag: github_x86_64
+          - os: ubuntu-24.04-arm
+            hardware_tag: github_arm64_linux
+          - os: macos-latest
+            hardware_tag: github_macos_arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache Imagenette dataset
+        uses: actions/cache@v4
+        with:
+          path: dataset/imagenette2-160.tgz
+          key: imagenette2-160-tgz-v1
+
+      - name: Download Imagenette dataset
+        run: |
+          mkdir -p dataset
+          cd dataset
+          if [ ! -f imagenette2-160.tgz ]; then
+            curl -sSL -o imagenette2-160.tgz https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-160.tgz
+          fi
+          tar -xzf imagenette2-160.tgz
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu || pip install torch torchvision
+          pip install onnx onnxruntime pandas numpy pillow
+
+      - name: Run benchmark
+        run: python scripts/run_ci_benchmark.py --hardware-tag ${{ matrix.hardware_tag }} --num-images ${{ inputs.num_images }}
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.hardware_tag }}
+          path: reports/data/benchmark_${{ matrix.hardware_tag }}_1000images.csv
