@@ -162,11 +162,15 @@ def apply_tuning_best(mod: Any, work_dir: Any, target: Any = None) -> Any:
         import tvm
         from tvm import relax
 
-        pass_ = relax.transform.MetaScheduleApplyDatabase(work_dir=str(work_dir))
+        # Both constructing the pass AND calling it need an active Target
+        # context -- Target.Current() is read at construction time, not
+        # only when the pass actually runs.
         if target is not None:
             tvm_target = target if isinstance(target, tvm.target.Target) else tvm.target.Target(target)
             with tvm_target:
+                pass_ = relax.transform.MetaScheduleApplyDatabase(work_dir=str(work_dir))
                 return pass_(mod)
+        pass_ = relax.transform.MetaScheduleApplyDatabase(work_dir=str(work_dir))
         return pass_(mod)
     except Exception:
         if os.environ.get("STRICT_TVM") == "1":
