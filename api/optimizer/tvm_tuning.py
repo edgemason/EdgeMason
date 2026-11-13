@@ -14,11 +14,10 @@ schedules that match or beat vendor libraries.
 
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -29,17 +28,22 @@ class TuningConfig:
     max_trials_global: int = 16
     num_trials_per_iter: int = 4
     strategy: str = "evolutionary"  # "evolutionary" or "random"
-    work_dir: Optional[str] = None
+    work_dir: str | None = None
     timeout_sec_per_trial: int = 30
     cost_model: str = "xgb"  # "xgb" or "random"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 def get_default_tuning_dir(hardware_id: str = "x86_64") -> Path:
     """Return the default directory for persisting TVM tuning records."""
-    base = Path(__file__).resolve().parent.parent.parent / "profiles" / "tvm_tuning" / hardware_id
+    base = (
+        Path(__file__).resolve().parent.parent.parent
+        / "profiles"
+        / "tvm_tuning"
+        / hardware_id
+    )
     base.mkdir(parents=True, exist_ok=True)
     return base
 
@@ -51,11 +55,10 @@ def get_tuning_database(work_dir: str | Path | None = None):
         JSONDatabase instance if TVM is available and directory exists, else None.
     """
     try:
-        import tvm
         try:
             from tvm.s_tir import meta_schedule as ms
         except ImportError:
-            from tvm import meta_schedule as ms  # pre-0.26 layout
+            from tvm import meta_schedule as ms  # type: ignore[attr-defined]
 
         work_path = Path(work_dir) if work_dir else get_default_tuning_dir()
         work_path.mkdir(parents=True, exist_ok=True)
@@ -80,8 +83,8 @@ def get_tuning_database(work_dir: str | Path | None = None):
 def tune_relax_module(
     mod: Any,
     target: Any,
-    config: Optional[TuningConfig] = None,
-) -> tuple[Any, Dict[str, Any]]:
+    config: TuningConfig | None = None,
+) -> tuple[Any, dict[str, Any]]:
     """Tune compute-heavy kernels in a Relax IRModule using MetaSchedule.
 
     Args:
@@ -101,13 +104,17 @@ def tune_relax_module(
     try:
         from tvm.s_tir import meta_schedule as ms
     except ImportError:
-        from tvm import meta_schedule as ms  # pre-0.26 layout
+        from tvm import meta_schedule as ms  # type: ignore[attr-defined]
 
     cfg = config or TuningConfig()
-    work_path = Path(cfg.work_dir) if cfg.work_dir else get_default_tuning_dir(cfg.hardware_id)
+    work_path = (
+        Path(cfg.work_dir) if cfg.work_dir else get_default_tuning_dir(cfg.hardware_id)
+    )
     work_path.mkdir(parents=True, exist_ok=True)
 
-    tvm_target = target if isinstance(target, tvm.target.Target) else tvm.target.Target(target)
+    tvm_target = (
+        target if isinstance(target, tvm.target.Target) else tvm.target.Target(target)
+    )
 
     report = {
         "hardware_id": cfg.hardware_id,
@@ -129,7 +136,7 @@ def tune_relax_module(
             work_dir=str(work_path),
             max_trials_global=cfg.max_trials_global,
             num_trials_per_iter=min(cfg.num_trials_per_iter, cfg.max_trials_global),
-            strategy=cfg.strategy,
+            strategy=cfg.strategy,  # type: ignore[arg-type]
         )
         report["status"] = "completed"
         report["database_workload"] = str(work_path / "database_workload.json")
@@ -166,9 +173,15 @@ def apply_tuning_best(mod: Any, work_dir: Any, target: Any = None) -> Any:
         # context -- Target.Current() is read at construction time, not
         # only when the pass actually runs.
         if target is not None:
-            tvm_target = target if isinstance(target, tvm.target.Target) else tvm.target.Target(target)
+            tvm_target = (
+                target
+                if isinstance(target, tvm.target.Target)
+                else tvm.target.Target(target)
+            )
             with tvm_target:
-                pass_ = relax.transform.MetaScheduleApplyDatabase(work_dir=str(work_dir))
+                pass_ = relax.transform.MetaScheduleApplyDatabase(
+                    work_dir=str(work_dir)
+                )
                 return pass_(mod)
         pass_ = relax.transform.MetaScheduleApplyDatabase(work_dir=str(work_dir))
         return pass_(mod)
@@ -178,7 +191,7 @@ def apply_tuning_best(mod: Any, work_dir: Any, target: Any = None) -> Any:
     return mod
 
 
-def configure_runtime_threads(num_threads: Optional[int] = None) -> int:
+def configure_runtime_threads(num_threads: int | None = None) -> int:
     """Ensure TVM uses all available physical CPU cores for parallel execution.
 
     Without this, TVM defaults to a single thread while ONNX Runtime uses all cores,
@@ -193,7 +206,7 @@ def configure_runtime_threads(num_threads: Optional[int] = None) -> int:
         import tvm
 
         if hasattr(tvm.runtime, "set_num_threads"):
-            tvm.runtime.set_num_threads(threads)
+            tvm.runtime.set_num_threads(threads)  # type: ignore[attr-defined]
     except Exception:
         pass
     return threads

@@ -27,7 +27,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.optimizer.quantizer import TVM_TARGETS
 from api.optimizer.tvm_runtime import compile_onnx, load_vm, run_vm
-from scripts.run_ci_benchmark import MODEL_CONSTRUCTORS, PREPROCESS, export_models
+from scripts.run_ci_benchmark import (
+    MODEL_CONSTRUCTORS,
+    export_models,
+    preprocess_image,
+)
 
 os.environ.setdefault("STRICT_TVM", "1")
 
@@ -48,7 +52,7 @@ def benchmark_candidate(tar_path: str, selected_paths: list[str]) -> dict:
     vm, device = load_vm(tar_path)
     order = ["input"]
 
-    warm_img = PREPROCESS(Image.open(selected_paths[0]).convert("RGB")).unsqueeze(0).numpy().astype(np.float32)
+    warm_img = preprocess_image(Image.open(selected_paths[0]).convert("RGB"))
     for _ in range(15):
         run_vm(vm, device, {"input": warm_img}, order)
 
@@ -56,7 +60,7 @@ def benchmark_candidate(tar_path: str, selected_paths: list[str]) -> dict:
     t_start = time.perf_counter()
     for p in selected_paths:
         img = Image.open(p).convert("RGB")
-        x = PREPROCESS(img).unsqueeze(0).numpy().astype(np.float32)
+        x = preprocess_image(img)
         t0 = time.perf_counter()
         run_vm(vm, device, {"input": x}, order)
         latencies.append((time.perf_counter() - t0) * 1000.0)
@@ -75,14 +79,24 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="TVM Relax benchmark for CI runners.")
     parser.add_argument("--hardware-tag", required=True)
     parser.add_argument("--num-images", type=int, default=50)
-    parser.add_argument("--max-trials", type=int, default=32, help="MetaSchedule trial budget for the 'tuned' candidate")
-    parser.add_argument("--skip-tuned", action="store_true",
-                         help="Skip the tuned candidate entirely. Currently needed: tune_relax's "
-                              "TuneContext constructor segfaults/TypeErrors in apache-tvm 0.25-0.27 "
-                              "regardless of inputs -- a confirmed upstream bug, not fixable here. "
-                              "A segfault bypasses Python's try/except, so it can take the whole job "
-                              "down; don't rely on per-candidate error handling to contain it.")
-    parser.add_argument("--models", default="mobilenetv2,shufflenetv2,squeezenet,resnet18,resnet50")
+    parser.add_argument(
+        "--max-trials",
+        type=int,
+        default=32,
+        help="MetaSchedule trial budget for the 'tuned' candidate",
+    )
+    parser.add_argument(
+        "--skip-tuned",
+        action="store_true",
+        help="Skip the tuned candidate entirely. Currently needed: tune_relax's "
+        "TuneContext constructor segfaults/TypeErrors in apache-tvm 0.25-0.27 "
+        "regardless of inputs -- a confirmed upstream bug, not fixable here. "
+        "A segfault bypasses Python's try/except, so it can take the whole job "
+        "down; don't rely on per-candidate error handling to contain it.",
+    )
+    parser.add_argument(
+        "--models", default="mobilenetv2,shufflenetv2,squeezenet,resnet18,resnet50"
+    )
     parser.add_argument("--dataset-dir", default="dataset/imagenette2-160/val")
     args = parser.parse_args()
 
@@ -119,16 +133,31 @@ def main() -> None:
         try:
             compile_onnx(untuned_tar, onnx_path, target, tune=False)
             compile_sec = round(time.time() - t0, 1)
-            row = {"hardware": args.hardware_tag, "model": f"{name}.onnx", "strategy": "tvm_untuned",
-                   "framework": "tvm", "tuning_trials": 0, "compile_sec": compile_sec}
+            row = {
+                "hardware": args.hardware_tag,
+                "model": f"{name}.onnx",
+                "strategy": "tvm_untuned",
+                "framework": "tvm",
+                "tuning_trials": 0,
+                "compile_sec": compile_sec,
+            }
             row.update(benchmark_candidate(untuned_tar, selected_paths))
-            print(f"[{name.upper()}] tvm_untuned | p50: {row['latency_p50_ms']:.2f} ms | "
-                  f"FPS: {row['throughput_fps']:.2f} | compile: {compile_sec}s")
+            print(
+                f"[{name.upper()}] tvm_untuned | p50: {row['latency_p50_ms']:.2f} ms | "
+                f"FPS: {row['throughput_fps']:.2f} | compile: {compile_sec}s"
+            )
             results.append(row)
         except Exception as e:
             print(f"[{name.upper()}] tvm_untuned FAILED: {e}")
-            results.append({"hardware": args.hardware_tag, "model": f"{name}.onnx", "strategy": "tvm_untuned",
-                             "framework": "tvm", "error": str(e)})
+            results.append(
+                {
+                    "hardware": args.hardware_tag,
+                    "model": f"{name}.onnx",
+                    "strategy": "tvm_untuned",
+                    "framework": "tvm",
+                    "error": str(e),
+                }
+            )
 
         if args.skip_tuned:
             continue
@@ -138,19 +167,40 @@ def main() -> None:
         tuning_dir = f"profiles/tvm_tuning/ci_{args.hardware_tag}/{name}"
         t0 = time.time()
         try:
-            compile_onnx(tuned_tar, onnx_path, target, tune=True,
-                         tuning_database_path=tuning_dir, max_tuning_trials=args.max_trials)
+            compile_onnx(
+                tuned_tar,
+                onnx_path,
+                target,
+                tune=True,
+                tuning_database_path=tuning_dir,
+                max_tuning_trials=args.max_trials,
+            )
             compile_sec = round(time.time() - t0, 1)
-            row = {"hardware": args.hardware_tag, "model": f"{name}.onnx", "strategy": "tvm_tuned",
-                   "framework": "tvm", "tuning_trials": args.max_trials, "compile_sec": compile_sec}
+            row = {
+                "hardware": args.hardware_tag,
+                "model": f"{name}.onnx",
+                "strategy": "tvm_tuned",
+                "framework": "tvm",
+                "tuning_trials": args.max_trials,
+                "compile_sec": compile_sec,
+            }
             row.update(benchmark_candidate(tuned_tar, selected_paths))
-            print(f"[{name.upper()}] tvm_tuned | p50: {row['latency_p50_ms']:.2f} ms | "
-                  f"FPS: {row['throughput_fps']:.2f} | tuning+compile: {compile_sec}s")
+            print(
+                f"[{name.upper()}] tvm_tuned | p50: {row['latency_p50_ms']:.2f} ms | "
+                f"FPS: {row['throughput_fps']:.2f} | tuning+compile: {compile_sec}s"
+            )
             results.append(row)
         except Exception as e:
             print(f"[{name.upper()}] tvm_tuned FAILED: {e}")
-            results.append({"hardware": args.hardware_tag, "model": f"{name}.onnx", "strategy": "tvm_tuned",
-                             "framework": "tvm", "error": str(e)})
+            results.append(
+                {
+                    "hardware": args.hardware_tag,
+                    "model": f"{name}.onnx",
+                    "strategy": "tvm_tuned",
+                    "framework": "tvm",
+                    "error": str(e),
+                }
+            )
 
     df = pd.DataFrame(results)
     out_csv = f"reports/data/benchmark_tvm_{args.hardware_tag}.csv"
