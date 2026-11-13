@@ -116,11 +116,7 @@ class Quantizer:
         # place QDQ operators without failing on unknown shapes.
         preprocessed_path = self.output_dir / "_preprocessed_for_quant.onnx"
         try:
-            quant_pre_process(
-                input_model_path=model_path,
-                output_model_path=str(preprocessed_path),
-                skip_symbolic_shape=False,
-            )
+            quant_pre_process(model_path, str(preprocessed_path), skip_symbolic_shape=True)
             quant_source = str(preprocessed_path)
         except Exception:
             # Fall back to raw model if preprocess fails on an uncommon op.
