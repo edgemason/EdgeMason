@@ -76,6 +76,12 @@ def main() -> None:
     parser.add_argument("--hardware-tag", required=True)
     parser.add_argument("--num-images", type=int, default=50)
     parser.add_argument("--max-trials", type=int, default=32, help="MetaSchedule trial budget for the 'tuned' candidate")
+    parser.add_argument("--skip-tuned", action="store_true",
+                         help="Skip the tuned candidate entirely. Currently needed: tune_relax's "
+                              "TuneContext constructor segfaults/TypeErrors in apache-tvm 0.25-0.27 "
+                              "regardless of inputs -- a confirmed upstream bug, not fixable here. "
+                              "A segfault bypasses Python's try/except, so it can take the whole job "
+                              "down; don't rely on per-candidate error handling to contain it.")
     parser.add_argument("--models", default="mobilenetv2,shufflenetv2,squeezenet,resnet18,resnet50")
     parser.add_argument("--dataset-dir", default="dataset/imagenette2-160/val")
     args = parser.parse_args()
@@ -123,6 +129,9 @@ def main() -> None:
             print(f"[{name.upper()}] tvm_untuned FAILED: {e}")
             results.append({"hardware": args.hardware_tag, "model": f"{name}.onnx", "strategy": "tvm_untuned",
                              "framework": "tvm", "error": str(e)})
+
+        if args.skip_tuned:
+            continue
 
         print(f"\n=== {name}: compiling TVM tuned ({args.max_trials} trials) ===")
         tuned_tar = f"temp_models/{name}_tvm_tuned_{args.hardware_tag}.tar"

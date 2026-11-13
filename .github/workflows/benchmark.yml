@@ -83,7 +83,8 @@ jobs:
           python scripts/run_ci_benchmark_tvm.py \
             --hardware-tag ${{ matrix.hardware_tag }} \
             --num-images ${{ github.event.inputs.tvm_num_images || '20' }} \
-            --max-trials ${{ github.event.inputs.tvm_max_trials || '16' }}
+            --max-trials ${{ github.event.inputs.tvm_max_trials || '16' }} \
+            --skip-tuned
 
       - name: Upload TVM results
         if: always()
