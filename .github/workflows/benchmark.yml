@@ -87,6 +87,11 @@ jobs:
       - name: Run TVM benchmark
         env:
           STRICT_TVM: "1"
+          # torch bundles its own OpenMP runtime; xgboost's brew-installed
+          # libomp loading later in the same process aborts with "libomp.dylib
+          # already initialized" (exit 134) unless this is set. Standard fix
+          # for this well-known torch/libomp macOS conflict.
+          KMP_DUPLICATE_LIB_OK: "TRUE"
         run: |
           python scripts/run_ci_benchmark_tvm.py \
             --hardware-tag ${{ matrix.hardware_tag }} \
