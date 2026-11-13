@@ -10,7 +10,7 @@ on:
       tvm_num_images:
         description: "Number of images to benchmark per model (TVM)"
         required: false
-        default: "50"
+        default: "1000"
       tvm_max_trials:
         description: "MetaSchedule trial budget for the TVM tuned candidate"
         required: false
@@ -38,7 +38,9 @@ jobs:
           - os: macos-latest
             hardware_tag: github_macos_arm64
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
+    # TVM untuned runs unvectorized scalar loops by design, so 1000 images
+    # on resnet50/resnet18 alone can take ~80-110 min per architecture.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
@@ -82,7 +84,7 @@ jobs:
         run: |
           python scripts/run_ci_benchmark_tvm.py \
             --hardware-tag ${{ matrix.hardware_tag }} \
-            --num-images ${{ github.event.inputs.tvm_num_images || '20' }} \
+            --num-images ${{ github.event.inputs.tvm_num_images || '1000' }} \
             --max-trials ${{ github.event.inputs.tvm_max_trials || '16' }} \
             --skip-tuned
 
