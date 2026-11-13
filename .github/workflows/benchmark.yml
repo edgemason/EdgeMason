@@ -7,6 +7,11 @@ on:
         description: "Number of Imagenette images to benchmark per model"
         required: false
         default: "1000"
+  push:
+    branches: [abhay]
+    paths:
+      - ".github/workflows/benchmark.yml"
+      - "scripts/run_ci_benchmark.py"
 
 jobs:
   benchmark:
@@ -51,7 +56,7 @@ jobs:
           pip install onnx onnxruntime pandas numpy pillow
 
       - name: Run benchmark
-        run: python scripts/run_ci_benchmark.py --hardware-tag ${{ matrix.hardware_tag }} --num-images ${{ inputs.num_images }}
+        run: python scripts/run_ci_benchmark.py --hardware-tag ${{ matrix.hardware_tag }} --num-images ${{ github.event.inputs.num_images || '50' }}
 
       - name: Upload results
         uses: actions/upload-artifact@v4
