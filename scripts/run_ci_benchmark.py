@@ -41,6 +41,7 @@ MODEL_CONSTRUCTORS = {
     ),
     "resnet18": lambda: models.resnet18(weights=models.ResNet18_Weights.DEFAULT),
     "resnet50": lambda: models.resnet50(weights=models.ResNet50_Weights.DEFAULT),
+    "resnet152": lambda: models.resnet152(weights=models.ResNet152_Weights.DEFAULT),
 }
 
 PREPROCESS = transforms.Compose(
@@ -229,7 +230,7 @@ def main():
     results = run_benchmark(args.hardware_tag, selected_paths, args.num_threads)
 
     df = pd.DataFrame(results)
-    out_csv = f"reports/data/benchmark_{args.hardware_tag}_1000images.csv"
+    out_csv = f"reports/data/benchmark_{args.hardware_tag}_{len(selected_paths)}images.csv"
     df.to_csv(out_csv, index=False)
     print("\n" + "=" * 70)
     print(f"{args.hardware_tag.upper()} BENCHMARK COMPLETE -> {out_csv}")

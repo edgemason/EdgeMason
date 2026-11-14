@@ -85,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-${{ matrix.hardware_tag }}
-          path: reports/data/benchmark_${{ matrix.hardware_tag }}_1000images.csv
+          path: reports/data/benchmark_${{ matrix.hardware_tag }}_${{ github.event.inputs.num_images || '1000' }}images.csv
 
       - name: Run TVM benchmark
         env:
