@@ -1,7 +1,17 @@
 {
   "initializers": [
     {
-      "dtype": "INT8",
+      "dtype": "UINT8",
+      "name": "H_zero_point",
+      "shape": []
+    },
+    {
+      "dtype": "FLOAT",
+      "name": "H_scale",
+      "shape": []
+    },
+    {
+      "dtype": "UINT8",
       "name": "X_zero_point",
       "shape": []
     },
@@ -11,15 +21,15 @@
       "shape": []
     },
     {
-      "dtype": "INT8",
-      "name": "W_zero_point",
+      "dtype": "FLOAT",
+      "name": "W_scale",
       "shape": [
         4
       ]
     },
     {
-      "dtype": "FLOAT",
-      "name": "W_scale",
+      "dtype": "INT8",
+      "name": "W_zero_point",
       "shape": [
         4
       ]
@@ -33,24 +43,11 @@
         3,
         3
       ]
-    },
-    {
-      "dtype": "INT8",
-      "name": "Y_zero_point",
-      "shape": []
-    },
-    {
-      "dtype": "FLOAT",
-      "name": "Y_scale",
-      "shape": []
     }
   ],
   "op_types": [
-    "Conv",
     "DequantizeLinear",
-    "DequantizeLinear",
-    "DequantizeLinear",
-    "QuantizeLinear",
+    "QLinearConv",
     "QuantizeLinear"
   ]
 }

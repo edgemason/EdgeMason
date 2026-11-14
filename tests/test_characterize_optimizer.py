@@ -62,43 +62,27 @@ def _initializer_info(model_path):
 
 def test_static_int8_conv(tiny_conv):
     model_path, calib_path = tiny_conv
-    q = Quantizer(str(tmp_path if False else model_path.parent / "out"))
+    q = Quantizer(str(model_path.parent / "out"))
     out = q.create_static_int8(str(model_path), str(calib_path))
 
     loaded = onnx.load(out)
-    # weight dequant zero-point is int8
-    weight_zp = None
-    weight_scale = None
-    weight_axis = None
-    for node in loaded.graph.node:
-        if node.op_type == "DequantizeLinear":
-            # identify weight dequant by presence of axis attr
-            axis_attr = [a for a in node.attribute if a.name == "axis"]
-            if axis_attr:
-                weight_zp = node.input[2]
-                weight_scale = node.input[1]
-                weight_axis = axis_attr[0].i
-    assert weight_zp is not None
-    zp_tensor = [i for i in loaded.graph.initializer if i.name == weight_zp][0]
-    assert zp_tensor.data_type == onnx.TensorProto.INT8
-    scale_tensor = [i for i in loaded.graph.initializer if i.name == weight_scale][0]
-    assert list(scale_tensor.dims) == [4]
-    assert weight_axis == 0
-    # activation zero-point int8
-    # find X dequant (no axis attr) zero point dtype
-    for node in loaded.graph.node:
-        if node.op_type == "DequantizeLinear":
-            axis_attr = [a for a in node.attribute if a.name == "axis"]
-            if not axis_attr:
-                act_zp_name = node.input[2]
-                act_zp = [i for i in loaded.graph.initializer if i.name == act_zp_name][0]
-                assert act_zp.data_type == onnx.TensorProto.INT8
-                break
+    # P2.4: the graph carries a real integer convolution, not fp32 Conv + Q/DQ.
+    op_types = _op_type_list(out)
+    assert "QLinearConv" in op_types
+    assert "Conv" not in op_types
+
+    conv = next(node for node in loaded.graph.node if node.op_type == "QLinearConv")
+    # QLinearConv inputs: x, x_scale, x_zero_point, w, w_scale, w_zero_point,
+    # y_scale, y_zero_point.
+    initializers = {item.name: item for item in loaded.graph.initializer}
+    assert initializers[conv.input[2]].data_type == onnx.TensorProto.UINT8  # activations
+    assert initializers[conv.input[5]].data_type == onnx.TensorProto.INT8  # weights
+    assert list(initializers[conv.input[4]].dims) == [4]  # per-channel weight scale
 
     assert_matches_golden(
         "static_int8_tiny_conv",
         {
-            "op_types": _op_type_list(out),
+            "op_types": op_types,
             "initializers": _initializer_info(out),
         },
     )
