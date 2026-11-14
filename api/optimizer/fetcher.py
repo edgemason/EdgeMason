@@ -24,8 +24,9 @@ import argparse
 import json
 import re
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, TypedDict
+from typing import TypedDict
 
 import onnx
 

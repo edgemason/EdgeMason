@@ -81,7 +81,7 @@ def test_int8_boundary_has_every_qdq_node_with_resolved_layer_and_tensor():
     assert "squeezenet0_conv0_fwd" in table["compute"]
     assert table["compute"]["squeezenet0_conv0_fwd"]["op_type"] == "Conv"
 
-    for name, entry in table["boundary"].items():
+    for entry in table["boundary"].values():
         assert entry["op_type"] in QDQ_OPS
         assert entry["serves_layer"] in table["compute"]
         assert entry["tensor"]
