@@ -1,0 +1,241 @@
+"""P2.6: pilot sweep runner.
+
+These tests use a tiny four-conv model and stub the benchmark step, so the fast
+gate exercises config generation, lookup building, seam measurement, the
+additive prediction and the failed-row path without timing real models.
+"""
+
+import json
+from pathlib import Path
+
+import numpy as np
+import onnx
+import pytest
+from onnx import TensorProto, helper
+
+from api.optimizer import sweep_runner
+from api.optimizer.quantizer import Quantizer
+
+CONV_CHANNELS = [3, 4, 4, 4, 4]
+INPUT_SHAPE = (1, 3, 8, 8)
+
+
+def _tiny_conv_model(tmp_path: Path) -> Path:
+    nodes = []
+    initializers = []
+    source = "X"
+    rng = np.random.default_rng(0)
+    for index in range(4):
+        weights = rng.random((CONV_CHANNELS[index + 1], CONV_CHANNELS[index], 3, 3)).astype(
+            np.float32
+        )
+        bias = rng.random((CONV_CHANNELS[index + 1],)).astype(np.float32)
+        nodes.append(
+            helper.make_node(
+                "Conv",
+                [source, f"W{index}", f"B{index}"],
+                [f"C{index}"],
+                name=f"conv{index}",
+                kernel_shape=[3, 3],
+                pads=[1, 1, 1, 1],
+            )
+        )
+        initializers.append(
+            helper.make_tensor(
+                f"W{index}", TensorProto.FLOAT, weights.shape, weights.tobytes(), raw=True
+            )
+        )
+        initializers.append(
+            helper.make_tensor(
+                f"B{index}", TensorProto.FLOAT, bias.shape, bias.tobytes(), raw=True
+            )
+        )
+        source = f"C{index}"
+
+    graph = helper.make_graph(
+        nodes,
+        "tiny_conv",
+        [helper.make_tensor_value_info("X", TensorProto.FLOAT, list(INPUT_SHAPE))],
+        [helper.make_tensor_value_info(source, TensorProto.FLOAT, [1, 4, 8, 8])],
+        initializer=initializers,
+    )
+    model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 13)])
+    model.ir_version = 9
+    path = tmp_path / "tiny_conv.onnx"
+    onnx.save(model, path)
+    return path
+
+
+def _calibration() -> np.ndarray:
+    return np.random.default_rng(0).random((4, 3, 8, 8), dtype=np.float32)
+
+
+def _ok_benchmark(*args, **kwargs) -> dict:
+    return {"success": True, "error": None, "latency_ms": {"p50": 1.5, "p90": 1.8}}
+
+
+def _sweep(model_path: Path, tmp_path: Path, monkeypatch, target: int = 8):
+    monkeypatch.setattr(sweep_runner, "_benchmark_model", _ok_benchmark)
+    register = tmp_path / "register.jsonl"
+    rows = sweep_runner.run_sweep(
+        str(model_path),
+        _calibration(),
+        register_path=str(register),
+        seed=7,
+        target=target,
+        work_dir=str(tmp_path / "work"),
+        isolated=False,
+    )
+    return rows, register
+
+
+def test_configs_are_reproducible_and_span_seam_counts(tmp_path, monkeypatch):
+    """Spec #1: same seed -> same configs; the sweep's seam counts vary."""
+    layers = ["conv0", "conv1", "conv2", "conv3"]
+    first = sweep_runner.generate_configs(layers, seed=7, target=12)
+    second = sweep_runner.generate_configs(layers, seed=7, target=12)
+    assert [(c.config_id, c.fp32_nodes) for c in first] == [
+        (c.config_id, c.fp32_nodes) for c in second
+    ]
+    assert {len(c.fp32_nodes) for c in first} >= {0, 1, len(layers)}
+
+    rows, _ = _sweep(_tiny_conv_model(tmp_path), tmp_path, monkeypatch, target=12)
+    assert len({row["seam_count"] for row in rows}) > 1
+
+
+def test_one_config_row_has_measurements_prediction_and_seam_count(tmp_path, monkeypatch):
+    """Spec #2: a successful row carries measured p50/p90, additive_pred and seam count."""
+    model_path = _tiny_conv_model(tmp_path)
+    rows, _ = _sweep(model_path, tmp_path, monkeypatch, target=4)
+
+    row = rows[0]
+    assert row["status"] == "ok"
+    assert row["error"] is None
+    assert row["measured_p50_us"] == pytest.approx(1500.0)
+    assert row["measured_p90_us"] == pytest.approx(1800.0)
+    assert row["additive_pred_us"] > 0
+    assert isinstance(row["seam_count"], int)
+    assert row["fp32_nodes"] == []
+
+
+def test_failed_config_is_recorded_and_sweep_continues(tmp_path, monkeypatch):
+    """Spec #3 / B-59: a raising config becomes a failed row; later rows still run."""
+    model_path = _tiny_conv_model(tmp_path)
+    monkeypatch.setattr(sweep_runner, "_benchmark_model", _ok_benchmark)
+
+    original = Quantizer.create_mixed_int8
+    calls = {"n": 0}
+
+    def flaky(self, *args, **kwargs):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise RuntimeError("simulated quantizer failure")
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr(Quantizer, "create_mixed_int8", flaky)
+
+    register = tmp_path / "register.jsonl"
+    rows = sweep_runner.run_sweep(
+        str(model_path),
+        _calibration(),
+        register_path=str(register),
+        seed=7,
+        target=8,
+        work_dir=str(tmp_path / "work"),
+        isolated=False,
+    )
+
+    assert len(rows) >= 3
+    assert len({row["config_id"] for row in rows}) == len(rows)
+    assert [row["status"] for row in rows].count("failed") == 1
+    failed = next(row for row in rows if row["status"] == "failed")
+    assert "simulated quantizer failure" in failed["error"]
+    assert failed["measured_p50_us"] is None
+
+    written = [json.loads(line) for line in register.read_text().splitlines()]
+    assert len(written) == len(rows)
+    assert any(row["status"] == "failed" for row in written)
+
+
+def test_benchmark_failure_is_recorded_as_failed_row(tmp_path, monkeypatch):
+    """Spec #3 / B-59: a run that reports failure is kept as a failed row."""
+    model_path = _tiny_conv_model(tmp_path)
+
+    def failed_benchmark(*args, **kwargs) -> dict:
+        return {
+            "success": False,
+            "error": "simulated OOM",
+            "latency_ms": {"p50": 0.0, "p90": 0.0},
+        }
+
+    monkeypatch.setattr(sweep_runner, "_benchmark_model", failed_benchmark)
+    rows = sweep_runner.run_sweep(
+        str(model_path),
+        _calibration(),
+        register_path=str(tmp_path / "register.jsonl"),
+        seed=7,
+        target=4,
+        work_dir=str(tmp_path / "work"),
+        isolated=False,
+    )
+
+    assert rows
+    assert all(row["status"] == "failed" for row in rows)
+    assert all("simulated OOM" in row["error"] for row in rows)
+
+
+@pytest.mark.slow
+def test_real_benchmark_records_measured_timing(tmp_path):
+    """The shared bench protocol produces real p50/p90 values when not stubbed."""
+    model_path = _tiny_conv_model(tmp_path)
+    rows = sweep_runner.run_sweep(
+        str(model_path),
+        _calibration(),
+        register_path=str(tmp_path / "register.jsonl"),
+        seed=7,
+        target=4,
+        work_dir=str(tmp_path / "work"),
+        warmup_runs=1,
+        benchmark_runs=3,
+        time_budget_seconds=1.0,
+        isolated=False,
+    )
+
+    ok_rows = [row for row in rows if row["status"] == "ok"]
+    assert ok_rows
+    assert all(row["measured_p50_us"] > 0 for row in ok_rows)
+    assert all(row["measured_p90_us"] >= row["measured_p50_us"] for row in ok_rows)
+
+
+def test_additive_prediction_is_an_exact_hand_sum():
+    """Spec #4: additive prediction is the plain sum of per-layer lookup costs."""
+    lookup = {
+        "a": sweep_runner.LayerTiming(fp32_us=1.5, int8_us=4.0),
+        "b": sweep_runner.LayerTiming(fp32_us=2.0, int8_us=5.5),
+        "c": sweep_runner.LayerTiming(fp32_us=10.0, int8_us=0.5),
+    }
+    assert sweep_runner.compute_additive_prediction(lookup, []) == 10.0
+    assert sweep_runner.compute_additive_prediction(lookup, ["b"]) == 6.5
+    assert sweep_runner.compute_additive_prediction(lookup, ["a", "c"]) == 17.0
+
+    with pytest.raises(KeyError, match="missing"):
+        sweep_runner.compute_additive_prediction(lookup, ["not_a_layer"])
+
+
+def test_empty_fp32_list_has_zero_seams_and_stays_all_int8(tmp_path, monkeypatch):
+    """Spec #5: the pure-int8 config has no seams and no fp32 conv."""
+    model_path = _tiny_conv_model(tmp_path)
+    rows, _ = _sweep(model_path, tmp_path, monkeypatch, target=4)
+
+    pure = next(row for row in rows if row["fp32_nodes"] == [])
+    assert pure["status"] == "ok"
+    assert pure["seam_count"] == 0
+
+    table = sweep_runner.build_lookup_table(
+        str(model_path),
+        _calibration(),
+        quantizer=Quantizer(str(tmp_path / "lookup_models")),
+        work_dir=tmp_path / "lookup_work",
+    )
+    assert table.layers
+    assert table.int8_boundary  # baseline boundary table is available
