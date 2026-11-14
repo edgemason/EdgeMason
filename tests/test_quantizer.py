@@ -126,11 +126,12 @@ def test_static_int8_uses_one_weight_scale_per_output_channel(tmp_path):
 
     quantized = onnx.load(output)
     initializers = {init.name: numpy_helper.to_array(init) for init in quantized.graph.initializer}
+    # QOperator emits QLinearConv; its weight scale is input 4 (x, x_scale,
+    # x_zero_point, w, w_scale, w_zero_point, y_scale, y_zero_point).
     weight_scales = [
-        initializers[node.input[1]]
+        initializers[node.input[4]]
         for node in quantized.graph.node
-        if node.op_type == "DequantizeLinear" and initializers.get(node.input[0]) is not None
-        and initializers[node.input[0]].ndim == 4
+        if node.op_type == "QLinearConv"
     ]
     assert len(weight_scales) == 1
     scale = weight_scales[0]

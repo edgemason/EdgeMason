@@ -6,6 +6,7 @@ from onnxruntime.quantization import (
     quantize_dynamic,
     quantize_static,
     CalibrationDataReader,
+    QuantFormat,
     QuantType,
 )
 from onnxruntime.quantization.shape_inference import quant_pre_process
@@ -116,13 +117,23 @@ class Quantizer:
             model_output=str(out_path),
             calibration_data_reader=reader,
             weight_type=QuantType.QInt8,
-            activation_type=QuantType.QInt8,
+            # ORT's CPU (MLAS) QLinearConv expects uint8 activations. With
+            # QInt8 activations the QDQ graph only fuses two of squeezenet's
+            # 26 convolutions to integer kernels; the rest stay fp32 Conv
+            # wrapped in Q/DQ (B-62). QUInt8 fuses all 26.
+            activation_type=QuantType.QUInt8,
+            # Emit QLinearConv directly instead of relying on ORT's QDQ
+            # fusion pass, so the integer kernel is still present when graph
+            # optimisations are disabled (e.g. profiling traces).
+            quant_format=QuantFormat.QOperator,
             # One scale per output channel instead of one per layer, so
             # channels with small weights keep their precision. MobileNetV2
             # top-1 on held-out images: 51.4% -> 57.5% (FP32: 58.1%).
-            # ONNX Runtime advises reduce_range=True with per-channel only on
-            # x86 CPUs without VNNI; not needed on VNNI x86 or ARM.
+            # reduce_range is only advised with per-channel on x86 CPUs
+            # without VNNI; it costs accuracy, so leave it off on VNNI x86
+            # and ARM.
             per_channel=True,
+            reduce_range=False,
         )
         return str(out_path)
 

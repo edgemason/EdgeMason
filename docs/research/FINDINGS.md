@@ -109,3 +109,51 @@ code path produced each number.
    `CALIBRATION_FRACTION = 0.3` and `SPLIT_SEED = 0`
    (`api/optimizer/validation.py:16-20`). The studies' split is seeded differently and uses a
    different fraction.
+
+---
+
+## P2.4 measurement (2026-11-14): static INT8 now uses integer Conv kernels
+
+Host: Intel Core i7-13620H (`x86_64`, `avx2` + `avx_vnni`), ONNX Runtime 1.27.0, CPU EP.
+Model: `squeezenet1.1-13.onnx`. Data: `imagenetv2_mobilenetv2_256.npz`, split by
+`split_calibration_and_test` (`CALIBRATION_FRACTION=0.3`, `SPLIT_SEED=0`) into 77 calibration and
+179 test images.
+
+Shipped config: `weight_type=QInt8`, `activation_type=QUInt8`,
+`quant_format=QuantFormat.QOperator`, `per_channel=True`, `reduce_range=False`.
+
+| Measure | FP32 | Static INT8 (new) | Change |
+|---|---|---|---|
+| Conv kernels in saved graph | 26 `Conv` | 26 `QLinearConv` | all integer |
+| Conv kernel op types in ORT trace | 26 `Conv` | 26 `QLinearConv` | all integer |
+| Sum of Conv kernel time | 6079.7 µs | 2272.7 µs | **−62.6%** (0.374×) |
+| `squeezenet0_conv0_fwd` kernel time | 554.7 µs | 536.0 µs | −3.4% (input-bound outlier) |
+| top-1 (179 test images) | 0.363128 | 0.363128 | **0.000000** |
+| top-5 (179 test images) | 0.636872 | 0.620112 | −0.016760 |
+| end-to-end p50, 1 thread | 5.240 ms | 2.139 ms | **−59.2%** |
+| model size | 4.959 MB | 1.295 MB | −73.9% |
+
+**Tolerance:** the recorded claim is 2.3 top-1 points (`reports/EdgeMason_Report.md:52`, sourced by
+F-09 from `reports/data/quantization_analysis.json`). P2.4's drop is **0.000**, i.e. the new INT8
+model matches FP32 top-1 on this split.
+
+**What made the difference.** A config matrix on the same model/split showed the activation type,
+not `reduce_range`, controls fusion:
+
+| Config | Conv kernels after ORT optimisation | top-1 |
+|---|---|---|
+| `QInt8` + QDQ + per-channel (old shipped) | 2 `QLinearConv`, 24 fp32 `Conv` | 0.340782 |
+| `QUInt8` + QDQ + per-channel | 26 `QLinearConv` | 0.346369 |
+| `QInt8` + QOperator + per-channel | 26 `QLinearConv` (slow: `conv0` ≈ 3.1 ms) | — |
+| **`QUInt8` + QOperator + per-channel** | **26 `QLinearConv`** | **0.363128** |
+| `QUInt8` + QOperator + `reduce_range=True` | 26 `QLinearConv` (no speed gain) | 0.335196 |
+
+`reduce_range=True` does not improve speed here and costs almost three top-1 points, so it stays
+off. `QOperator` is preferred over QDQ because the integer kernel is present even when ORT graph
+optimisations are disabled (the setting the P2.3 fetcher needs to see every node).
+
+**Commands.** Kernel times come from the P2.3 fetcher on optimisation-disabled traces (1 warm-up +
+3 timed runs, 1 thread), with a random input; `conv0` is input-bound, so the 26-kernel sum is the
+meaningful comparison. End-to-end p50 uses `scripts/quantization_analysis.py`'s method (10 warm-up
++ 50 timed runs, 1 thread, one real test image). Accuracy uses `api.optimizer.validation.evaluate_onnx`
+on the same 179-image test split as `reports/data/quantization_analysis.json`.
