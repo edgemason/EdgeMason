@@ -1,0 +1,7 @@
+{
+  "model_path": "squeezenet1.1-13.fp32.onnx",
+  "warmup_runs": 1,
+  "benchmark_runs": 3,
+  "profile_path": "squeezenet1.1-13.fp32.trace.json",
+  "success": true
+}
