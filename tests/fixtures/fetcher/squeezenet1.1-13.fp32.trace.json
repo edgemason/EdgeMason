@@ -1,0 +1,11766 @@
+[
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4366,
+  "ts": 1,
+  "ph": "X",
+  "name": "model_loading_uri",
+  "args": {}
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2724,
+  "ts": 4443,
+  "ph": "X",
+  "name": "session_initialization",
+  "args": {}
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 1536,
+  "ts": 7247,
+  "ph": "X",
+  "name": "squeezenet0_conv0_fwd_kernel_time",
+  "args": {
+   "activation_size": "602112",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_size": "3154176",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      3,
+      224,
+      224
+     ]
+    },
+    {
+     "float": [
+      64,
+      3,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "node_index": "0",
+   "parameter_size": "7168"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 133,
+  "ts": 8786,
+  "ph": "X",
+  "name": "squeezenet0_relu0_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "node_index": "1",
+   "output_size": "3154176",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "activation_size": "3154176",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 418,
+  "ts": 8921,
+  "ph": "X",
+  "name": "squeezenet0_pool0_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "activation_size": "3154176",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "2",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "output_size": "774400",
+   "op_name": "MaxPool"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 134,
+  "ts": 9343,
+  "ph": "X",
+  "name": "squeezenet0_conv1_fwd_kernel_time",
+  "args": {
+   "output_size": "193600",
+   "parameter_size": "4160",
+   "activation_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "3",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 5,
+  "ts": 9478,
+  "ph": "X",
+  "name": "squeezenet0_relu1_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "node_index": "4",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "193600",
+   "output_size": "193600",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 564,
+  "ts": 9484,
+  "ph": "X",
+  "name": "squeezenet0_conv3_fwd_kernel_time",
+  "args": {
+   "node_index": "7",
+   "activation_size": "193600",
+   "output_size": "774400",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "parameter_size": "37120",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 16,
+  "ts": 10050,
+  "ph": "X",
+  "name": "squeezenet0_relu3_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "8",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "output_size": "774400",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 308,
+  "ts": 10068,
+  "ph": "X",
+  "name": "squeezenet0_conv2_fwd_kernel_time",
+  "args": {
+   "output_size": "774400",
+   "op_name": "Conv",
+   "activation_size": "193600",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "node_index": "5",
+   "parameter_size": "4352",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 10378,
+  "ph": "X",
+  "name": "squeezenet0_relu2_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "activation_size": "774400",
+   "node_index": "6",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 682,
+  "ts": 10394,
+  "ph": "X",
+  "name": "squeezenet0_concat0_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "9",
+   "activation_size": "1548800",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "output_size": "1548800",
+   "thread_scheduling_stats": "",
+   "op_name": "Concat"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 211,
+  "ts": 11078,
+  "ph": "X",
+  "name": "squeezenet0_conv4_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_size": "193600",
+   "node_index": "10",
+   "activation_size": "1548800",
+   "parameter_size": "8256",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 12,
+  "ts": 11291,
+  "ph": "X",
+  "name": "squeezenet0_relu4_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "11",
+   "thread_scheduling_stats": "",
+   "output_size": "193600",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "193600",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 603,
+  "ts": 11305,
+  "ph": "X",
+  "name": "squeezenet0_conv6_fwd_kernel_time",
+  "args": {
+   "output_size": "774400",
+   "parameter_size": "37120",
+   "node_index": "14",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "193600",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 16,
+  "ts": 11910,
+  "ph": "X",
+  "name": "squeezenet0_relu6_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "node_index": "15",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 81,
+  "ts": 11928,
+  "ph": "X",
+  "name": "squeezenet0_conv5_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "node_index": "12",
+   "activation_size": "193600",
+   "parameter_size": "4352",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 15,
+  "ts": 12012,
+  "ph": "X",
+  "name": "squeezenet0_relu5_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "node_index": "13",
+   "output_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 82,
+  "ts": 12029,
+  "ph": "X",
+  "name": "squeezenet0_concat1_kernel_time",
+  "args": {
+   "output_size": "1548800",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Concat",
+   "node_index": "16",
+   "activation_size": "1548800"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 110,
+  "ts": 12114,
+  "ph": "X",
+  "name": "squeezenet0_pool1_fwd_kernel_time",
+  "args": {
+   "activation_size": "1548800",
+   "thread_scheduling_stats": "",
+   "output_size": "373248",
+   "node_index": "17",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "op_name": "MaxPool",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 71,
+  "ts": 12226,
+  "ph": "X",
+  "name": "squeezenet0_conv7_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "373248",
+   "output_size": "93312",
+   "parameter_size": "16512",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "18"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 12299,
+  "ph": "X",
+  "name": "squeezenet0_relu7_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "activation_size": "93312",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_size": "93312",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "node_index": "19",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 531,
+  "ts": 12303,
+  "ph": "X",
+  "name": "squeezenet0_conv9_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "147968",
+   "op_name": "Conv",
+   "output_size": "373248",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "22",
+   "activation_size": "93312",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 12836,
+  "ph": "X",
+  "name": "squeezenet0_relu9_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "23",
+   "activation_size": "373248",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 63,
+  "ts": 12845,
+  "ph": "X",
+  "name": "squeezenet0_conv8_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "16896",
+   "output_size": "373248",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "activation_size": "93312",
+   "op_name": "Conv",
+   "node_index": "20",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 12909,
+  "ph": "X",
+  "name": "squeezenet0_relu8_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "21",
+   "thread_scheduling_stats": "",
+   "output_size": "373248",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "373248",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 30,
+  "ts": 12917,
+  "ph": "X",
+  "name": "squeezenet0_concat2_kernel_time",
+  "args": {
+   "output_size": "746496",
+   "op_name": "Concat",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "activation_size": "746496",
+   "node_index": "24"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 126,
+  "ts": 12949,
+  "ph": "X",
+  "name": "squeezenet0_conv10_fwd_kernel_time",
+  "args": {
+   "node_index": "25",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "activation_size": "746496",
+   "output_size": "93312",
+   "op_name": "Conv",
+   "parameter_size": "32896"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 13077,
+  "ph": "X",
+  "name": "squeezenet0_relu10_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_size": "93312",
+   "thread_scheduling_stats": "",
+   "node_index": "26",
+   "op_name": "Relu",
+   "activation_size": "93312",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 533,
+  "ts": 13081,
+  "ph": "X",
+  "name": "squeezenet0_conv12_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_size": "373248",
+   "parameter_size": "147968",
+   "op_name": "Conv",
+   "node_index": "29",
+   "activation_size": "93312"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 13616,
+  "ph": "X",
+  "name": "squeezenet0_relu12_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "node_index": "30",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "373248",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 62,
+  "ts": 13625,
+  "ph": "X",
+  "name": "squeezenet0_conv11_fwd_kernel_time",
+  "args": {
+   "node_index": "27",
+   "op_name": "Conv",
+   "output_size": "373248",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "parameter_size": "16896",
+   "activation_size": "93312",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 13689,
+  "ph": "X",
+  "name": "squeezenet0_relu11_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "node_index": "28",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_size": "373248",
+   "parameter_size": "0",
+   "activation_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 28,
+  "ts": 13698,
+  "ph": "X",
+  "name": "squeezenet0_concat3_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_size": "746496",
+   "parameter_size": "0",
+   "node_index": "31",
+   "op_name": "Concat",
+   "activation_size": "746496",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 60,
+  "ts": 13729,
+  "ph": "X",
+  "name": "squeezenet0_pool2_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "op_name": "MaxPool",
+   "node_index": "32",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "746496",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 45,
+  "ts": 13791,
+  "ph": "X",
+  "name": "squeezenet0_conv13_fwd_kernel_time",
+  "args": {
+   "node_index": "33",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "173056",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ],
+   "parameter_size": "49344",
+   "output_size": "32448",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 13837,
+  "ph": "X",
+  "name": "squeezenet0_relu13_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "node_index": "34",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "output_size": "32448",
+   "activation_size": "32448",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 278,
+  "ts": 13840,
+  "ph": "X",
+  "name": "squeezenet0_conv15_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "332544",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "node_index": "37",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "output_size": "129792",
+   "activation_size": "32448"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 14121,
+  "ph": "X",
+  "name": "squeezenet0_relu15_fwd_kernel_time",
+  "args": {
+   "node_index": "38",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "activation_size": "129792",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 34,
+  "ts": 14125,
+  "ph": "X",
+  "name": "squeezenet0_conv14_fwd_kernel_time",
+  "args": {
+   "parameter_size": "37632",
+   "thread_scheduling_stats": "",
+   "op_name": "Conv",
+   "activation_size": "32448",
+   "output_size": "129792",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "35",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 14161,
+  "ph": "X",
+  "name": "squeezenet0_relu14_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "output_size": "129792",
+   "node_index": "36"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8,
+  "ts": 14165,
+  "ph": "X",
+  "name": "squeezenet0_concat4_kernel_time",
+  "args": {
+   "op_name": "Concat",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "39",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "259584",
+   "parameter_size": "0",
+   "activation_size": "259584",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 62,
+  "ts": 14175,
+  "ph": "X",
+  "name": "squeezenet0_conv16_fwd_kernel_time",
+  "args": {
+   "output_size": "32448",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ],
+   "parameter_size": "73920",
+   "activation_size": "259584",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "op_name": "Conv",
+   "node_index": "40"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 14238,
+  "ph": "X",
+  "name": "squeezenet0_relu16_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "activation_size": "32448",
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "node_index": "41",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "32448",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 282,
+  "ts": 14241,
+  "ph": "X",
+  "name": "squeezenet0_conv18_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "parameter_size": "332544",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "129792",
+   "activation_size": "32448",
+   "op_name": "Conv",
+   "node_index": "44"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 14525,
+  "ph": "X",
+  "name": "squeezenet0_relu18_fwd_kernel_time",
+  "args": {
+   "activation_size": "129792",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "output_size": "129792",
+   "node_index": "45",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 33,
+  "ts": 14529,
+  "ph": "X",
+  "name": "squeezenet0_conv17_fwd_kernel_time",
+  "args": {
+   "output_size": "129792",
+   "node_index": "42",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "parameter_size": "37632",
+   "activation_size": "32448",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 14565,
+  "ph": "X",
+  "name": "squeezenet0_relu17_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "node_index": "43",
+   "parameter_size": "0",
+   "activation_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 9,
+  "ts": 14569,
+  "ph": "X",
+  "name": "squeezenet0_concat5_kernel_time",
+  "args": {
+   "node_index": "46",
+   "thread_scheduling_stats": "",
+   "output_size": "259584",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "op_name": "Concat",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "259584"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 82,
+  "ts": 14580,
+  "ph": "X",
+  "name": "squeezenet0_conv19_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "node_index": "47",
+   "activation_size": "259584",
+   "thread_scheduling_stats": "",
+   "output_size": "43264",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "98560"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 14664,
+  "ph": "X",
+  "name": "squeezenet0_relu19_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "48",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "43264",
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "43264"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 484,
+  "ts": 14667,
+  "ph": "X",
+  "name": "squeezenet0_conv21_fwd_kernel_time",
+  "args": {
+   "node_index": "51",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "op_name": "Conv",
+   "activation_size": "43264",
+   "parameter_size": "590848",
+   "output_size": "173056"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 5,
+  "ts": 15154,
+  "ph": "X",
+  "name": "squeezenet0_relu21_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "node_index": "52",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 58,
+  "ts": 15160,
+  "ph": "X",
+  "name": "squeezenet0_conv20_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "activation_size": "43264",
+   "output_size": "173056",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "node_index": "49",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "66560",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 15219,
+  "ph": "X",
+  "name": "squeezenet0_relu20_fwd_kernel_time",
+  "args": {
+   "node_index": "50",
+   "activation_size": "173056",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "output_size": "173056",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 11,
+  "ts": 15225,
+  "ph": "X",
+  "name": "squeezenet0_concat6_kernel_time",
+  "args": {
+   "op_name": "Concat",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "346112",
+   "activation_size": "346112",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "node_index": "53"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 113,
+  "ts": 15237,
+  "ph": "X",
+  "name": "squeezenet0_conv22_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "346112",
+   "output_size": "43264",
+   "node_index": "54",
+   "parameter_size": "131328",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 15351,
+  "ph": "X",
+  "name": "squeezenet0_relu22_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "output_size": "43264",
+   "activation_size": "43264",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "55",
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 494,
+  "ts": 15354,
+  "ph": "X",
+  "name": "squeezenet0_conv24_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "58",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "590848",
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "activation_size": "43264"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 6,
+  "ts": 15851,
+  "ph": "X",
+  "name": "squeezenet0_relu24_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "activation_size": "173056",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "59",
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 59,
+  "ts": 15858,
+  "ph": "X",
+  "name": "squeezenet0_conv23_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "activation_size": "43264",
+   "output_size": "173056",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "56",
+   "parameter_size": "66560",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 15919,
+  "ph": "X",
+  "name": "squeezenet0_relu23_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "57",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "output_size": "173056"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 12,
+  "ts": 15924,
+  "ph": "X",
+  "name": "squeezenet0_concat7_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_size": "346112",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "60",
+   "activation_size": "346112",
+   "op_name": "Concat"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 43,
+  "ts": 15939,
+  "ph": "X",
+  "name": "squeezenet0_dropout0_fwd_kernel_time",
+  "args": {
+   "parameter_size": "4",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": []
+    }
+   ],
+   "output_size": "346112",
+   "activation_size": "346112",
+   "provider": "CPUExecutionProvider",
+   "node_index": "61",
+   "thread_scheduling_stats": "",
+   "op_name": "Dropout",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 1793,
+  "ts": 15983,
+  "ph": "X",
+  "name": "squeezenet0_conv25_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "activation_size": "346112",
+   "parameter_size": "2052000",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1000,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      1000
+     ]
+    }
+   ],
+   "node_index": "62",
+   "provider": "CPUExecutionProvider",
+   "output_size": "676000"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 15,
+  "ts": 17781,
+  "ph": "X",
+  "name": "squeezenet0_relu25_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "676000",
+   "node_index": "63",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "676000",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 62,
+  "ts": 17798,
+  "ph": "X",
+  "name": "squeezenet0_pool3_fwd_kernel_time",
+  "args": {
+   "node_index": "64",
+   "op_name": "AveragePool",
+   "output_size": "4000",
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "activation_size": "676000",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 17861,
+  "ph": "X",
+  "name": "squeezenet0_flatten0_reshape0_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "activation_size": "4000",
+   "node_index": "65",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000
+     ]
+    }
+   ],
+   "output_size": "4000",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    },
+    {
+     "int64": [
+      2
+     ]
+    }
+   ],
+   "op_name": "Reshape",
+   "parameter_size": "16",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 10624,
+  "ts": 7246,
+  "ph": "X",
+  "name": "SequentialExecutor::Execute",
+  "args": {}
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 10641,
+  "ts": 7237,
+  "ph": "X",
+  "name": "model_run",
+  "args": {}
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 647,
+  "ts": 18095,
+  "ph": "X",
+  "name": "squeezenet0_conv0_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "node_index": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      3,
+      224,
+      224
+     ]
+    },
+    {
+     "float": [
+      64,
+      3,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "parameter_size": "7168",
+   "output_size": "3154176",
+   "op_name": "Conv",
+   "activation_size": "602112"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 138,
+  "ts": 18745,
+  "ph": "X",
+  "name": "squeezenet0_relu0_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "activation_size": "3154176",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "output_size": "3154176",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "node_index": "1"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 495,
+  "ts": 18886,
+  "ph": "X",
+  "name": "squeezenet0_pool0_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "MaxPool",
+   "parameter_size": "0",
+   "node_index": "2",
+   "activation_size": "3154176",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 103,
+  "ts": 19384,
+  "ph": "X",
+  "name": "squeezenet0_conv1_fwd_kernel_time",
+  "args": {
+   "parameter_size": "4160",
+   "node_index": "3",
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "193600",
+   "activation_size": "774400",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 6,
+  "ts": 19489,
+  "ph": "X",
+  "name": "squeezenet0_relu1_fwd_kernel_time",
+  "args": {
+   "node_index": "4",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "193600",
+   "output_size": "193600",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 645,
+  "ts": 19497,
+  "ph": "X",
+  "name": "squeezenet0_conv3_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "output_size": "774400",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "193600",
+   "node_index": "7",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "37120",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 21,
+  "ts": 20143,
+  "ph": "X",
+  "name": "squeezenet0_relu3_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "8",
+   "output_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "activation_size": "774400",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 86,
+  "ts": 20166,
+  "ph": "X",
+  "name": "squeezenet0_conv2_fwd_kernel_time",
+  "args": {
+   "output_size": "774400",
+   "op_name": "Conv",
+   "parameter_size": "4352",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "5",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "193600",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 18,
+  "ts": 20253,
+  "ph": "X",
+  "name": "squeezenet0_relu2_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "6",
+   "activation_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "774400",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 89,
+  "ts": 20272,
+  "ph": "X",
+  "name": "squeezenet0_concat0_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "1548800",
+   "node_index": "9",
+   "output_size": "1548800",
+   "op_name": "Concat",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 178,
+  "ts": 20363,
+  "ph": "X",
+  "name": "squeezenet0_conv4_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "1548800",
+   "node_index": "10",
+   "parameter_size": "8256",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "output_size": "193600",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 5,
+  "ts": 20544,
+  "ph": "X",
+  "name": "squeezenet0_relu4_fwd_kernel_time",
+  "args": {
+   "output_size": "193600",
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "11",
+   "activation_size": "193600",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 634,
+  "ts": 20550,
+  "ph": "X",
+  "name": "squeezenet0_conv6_fwd_kernel_time",
+  "args": {
+   "node_index": "14",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "193600",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "parameter_size": "37120",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 21,
+  "ts": 21186,
+  "ph": "X",
+  "name": "squeezenet0_relu6_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "15",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "output_size": "774400",
+   "activation_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 84,
+  "ts": 21208,
+  "ph": "X",
+  "name": "squeezenet0_conv5_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "parameter_size": "4352",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "activation_size": "193600",
+   "node_index": "12",
+   "output_size": "774400",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 24,
+  "ts": 21294,
+  "ph": "X",
+  "name": "squeezenet0_relu5_fwd_kernel_time",
+  "args": {
+   "activation_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "13",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_size": "774400",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 73,
+  "ts": 21319,
+  "ph": "X",
+  "name": "squeezenet0_concat1_kernel_time",
+  "args": {
+   "output_size": "1548800",
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "node_index": "16",
+   "activation_size": "1548800",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Concat",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 110,
+  "ts": 21395,
+  "ph": "X",
+  "name": "squeezenet0_pool1_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "MaxPool",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_size": "373248",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "1548800",
+   "node_index": "17"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 70,
+  "ts": 21507,
+  "ph": "X",
+  "name": "squeezenet0_conv7_fwd_kernel_time",
+  "args": {
+   "activation_size": "373248",
+   "thread_scheduling_stats": "",
+   "parameter_size": "16512",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "node_index": "18",
+   "output_size": "93312",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 21578,
+  "ph": "X",
+  "name": "squeezenet0_relu7_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "19",
+   "activation_size": "93312",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_size": "93312"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 565,
+  "ts": 21583,
+  "ph": "X",
+  "name": "squeezenet0_conv9_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "373248",
+   "activation_size": "93312",
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "node_index": "22",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "147968"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8,
+  "ts": 22149,
+  "ph": "X",
+  "name": "squeezenet0_relu9_fwd_kernel_time",
+  "args": {
+   "node_index": "23",
+   "output_size": "373248",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "373248",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 66,
+  "ts": 22158,
+  "ph": "X",
+  "name": "squeezenet0_conv8_fwd_kernel_time",
+  "args": {
+   "parameter_size": "16896",
+   "thread_scheduling_stats": "",
+   "output_size": "373248",
+   "node_index": "20",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "activation_size": "93312",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 22226,
+  "ph": "X",
+  "name": "squeezenet0_relu8_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "373248",
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "node_index": "21",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 32,
+  "ts": 22235,
+  "ph": "X",
+  "name": "squeezenet0_concat2_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_size": "746496",
+   "provider": "CPUExecutionProvider",
+   "node_index": "24",
+   "parameter_size": "0",
+   "activation_size": "746496",
+   "op_name": "Concat",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 142,
+  "ts": 22269,
+  "ph": "X",
+  "name": "squeezenet0_conv10_fwd_kernel_time",
+  "args": {
+   "output_size": "93312",
+   "node_index": "25",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "32896",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "activation_size": "746496",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 22412,
+  "ph": "X",
+  "name": "squeezenet0_relu10_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "node_index": "26",
+   "activation_size": "93312",
+   "thread_scheduling_stats": "",
+   "output_size": "93312",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 563,
+  "ts": 22417,
+  "ph": "X",
+  "name": "squeezenet0_conv12_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "thread_scheduling_stats": "",
+   "node_index": "29",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "93312",
+   "parameter_size": "147968",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8,
+  "ts": 22982,
+  "ph": "X",
+  "name": "squeezenet0_relu12_fwd_kernel_time",
+  "args": {
+   "node_index": "30",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "373248",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "output_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 67,
+  "ts": 22992,
+  "ph": "X",
+  "name": "squeezenet0_conv11_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "93312",
+   "output_size": "373248",
+   "op_name": "Conv",
+   "node_index": "27",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "parameter_size": "16896"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8,
+  "ts": 23061,
+  "ph": "X",
+  "name": "squeezenet0_relu11_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "28",
+   "output_size": "373248",
+   "activation_size": "373248",
+   "parameter_size": "0",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 30,
+  "ts": 23070,
+  "ph": "X",
+  "name": "squeezenet0_concat3_kernel_time",
+  "args": {
+   "node_index": "31",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "746496",
+   "activation_size": "746496",
+   "parameter_size": "0",
+   "op_name": "Concat"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 63,
+  "ts": 23102,
+  "ph": "X",
+  "name": "squeezenet0_pool2_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "activation_size": "746496",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "MaxPool",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "node_index": "32"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 47,
+  "ts": 23167,
+  "ph": "X",
+  "name": "squeezenet0_conv13_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "node_index": "33",
+   "parameter_size": "49344",
+   "output_size": "32448",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 23216,
+  "ph": "X",
+  "name": "squeezenet0_relu13_fwd_kernel_time",
+  "args": {
+   "node_index": "34",
+   "activation_size": "32448",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "output_size": "32448"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 336,
+  "ts": 23219,
+  "ph": "X",
+  "name": "squeezenet0_conv15_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "332544",
+   "activation_size": "32448",
+   "node_index": "37",
+   "output_size": "129792",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 23556,
+  "ph": "X",
+  "name": "squeezenet0_relu15_fwd_kernel_time",
+  "args": {
+   "node_index": "38",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "129792"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 35,
+  "ts": 23561,
+  "ph": "X",
+  "name": "squeezenet0_conv14_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "node_index": "35",
+   "output_size": "129792",
+   "activation_size": "32448",
+   "parameter_size": "37632",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 23598,
+  "ph": "X",
+  "name": "squeezenet0_relu14_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "node_index": "36",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "parameter_size": "0",
+   "activation_size": "129792",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 10,
+  "ts": 23603,
+  "ph": "X",
+  "name": "squeezenet0_concat4_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "node_index": "39",
+   "op_name": "Concat",
+   "parameter_size": "0",
+   "activation_size": "259584",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "259584"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 65,
+  "ts": 23615,
+  "ph": "X",
+  "name": "squeezenet0_conv16_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "activation_size": "259584",
+   "output_size": "32448",
+   "parameter_size": "73920",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "op_name": "Conv",
+   "node_index": "40"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 23682,
+  "ph": "X",
+  "name": "squeezenet0_relu16_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "activation_size": "32448",
+   "thread_scheduling_stats": "",
+   "output_size": "32448",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "41"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 298,
+  "ts": 23685,
+  "ph": "X",
+  "name": "squeezenet0_conv18_fwd_kernel_time",
+  "args": {
+   "node_index": "44",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "activation_size": "32448",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "parameter_size": "332544"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 23985,
+  "ph": "X",
+  "name": "squeezenet0_relu18_fwd_kernel_time",
+  "args": {
+   "output_size": "129792",
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "129792",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "node_index": "45"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 35,
+  "ts": 23990,
+  "ph": "X",
+  "name": "squeezenet0_conv17_fwd_kernel_time",
+  "args": {
+   "node_index": "42",
+   "thread_scheduling_stats": "",
+   "output_size": "129792",
+   "activation_size": "32448",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "37632",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 24027,
+  "ph": "X",
+  "name": "squeezenet0_relu17_fwd_kernel_time",
+  "args": {
+   "node_index": "43",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "129792",
+   "activation_size": "129792"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 9,
+  "ts": 24032,
+  "ph": "X",
+  "name": "squeezenet0_concat5_kernel_time",
+  "args": {
+   "output_size": "259584",
+   "node_index": "46",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "259584",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 87,
+  "ts": 24043,
+  "ph": "X",
+  "name": "squeezenet0_conv19_fwd_kernel_time",
+  "args": {
+   "node_index": "47",
+   "op_name": "Conv",
+   "output_size": "43264",
+   "activation_size": "259584",
+   "parameter_size": "98560",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 24131,
+  "ph": "X",
+  "name": "squeezenet0_relu19_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "node_index": "48",
+   "provider": "CPUExecutionProvider",
+   "output_size": "43264",
+   "parameter_size": "0",
+   "activation_size": "43264",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 518,
+  "ts": 24134,
+  "ph": "X",
+  "name": "squeezenet0_conv21_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "node_index": "51",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "590848",
+   "activation_size": "43264",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 24654,
+  "ph": "X",
+  "name": "squeezenet0_relu21_fwd_kernel_time",
+  "args": {
+   "node_index": "52",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 59,
+  "ts": 24660,
+  "ph": "X",
+  "name": "squeezenet0_conv20_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "49",
+   "parameter_size": "66560",
+   "thread_scheduling_stats": "",
+   "output_size": "173056",
+   "activation_size": "43264",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 24720,
+  "ph": "X",
+  "name": "squeezenet0_relu20_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "output_size": "173056",
+   "node_index": "50",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 24725,
+  "ph": "X",
+  "name": "squeezenet0_concat6_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "node_index": "53",
+   "parameter_size": "0",
+   "output_size": "346112",
+   "thread_scheduling_stats": "",
+   "activation_size": "346112"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 113,
+  "ts": 24740,
+  "ph": "X",
+  "name": "squeezenet0_conv22_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "node_index": "54",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "346112",
+   "provider": "CPUExecutionProvider",
+   "output_size": "43264",
+   "op_name": "Conv",
+   "parameter_size": "131328"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 24855,
+  "ph": "X",
+  "name": "squeezenet0_relu22_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "node_index": "55",
+   "output_size": "43264",
+   "activation_size": "43264",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 511,
+  "ts": 24859,
+  "ph": "X",
+  "name": "squeezenet0_conv24_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "590848",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "node_index": "58",
+   "activation_size": "43264"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 25372,
+  "ph": "X",
+  "name": "squeezenet0_relu24_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "173056",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "59",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 59,
+  "ts": 25377,
+  "ph": "X",
+  "name": "squeezenet0_conv23_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "activation_size": "43264",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "parameter_size": "66560",
+   "provider": "CPUExecutionProvider",
+   "node_index": "56",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 5,
+  "ts": 25441,
+  "ph": "X",
+  "name": "squeezenet0_relu23_fwd_kernel_time",
+  "args": {
+   "node_index": "57",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "parameter_size": "0",
+   "activation_size": "173056",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 25447,
+  "ph": "X",
+  "name": "squeezenet0_concat7_kernel_time",
+  "args": {
+   "op_name": "Concat",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "node_index": "60",
+   "parameter_size": "0",
+   "output_size": "346112",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "346112"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 42,
+  "ts": 25461,
+  "ph": "X",
+  "name": "squeezenet0_dropout0_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "activation_size": "346112",
+   "op_name": "Dropout",
+   "node_index": "61",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": []
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "346112",
+   "parameter_size": "4"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 1678,
+  "ts": 25505,
+  "ph": "X",
+  "name": "squeezenet0_conv25_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "node_index": "62",
+   "parameter_size": "2052000",
+   "activation_size": "346112",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1000,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      1000
+     ]
+    }
+   ],
+   "output_size": "676000",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 27186,
+  "ph": "X",
+  "name": "squeezenet0_relu25_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "676000",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "63",
+   "activation_size": "676000",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 60,
+  "ts": 27200,
+  "ph": "X",
+  "name": "squeezenet0_pool3_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    }
+   ],
+   "activation_size": "676000",
+   "output_size": "4000",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "node_index": "64",
+   "op_name": "AveragePool",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 27262,
+  "ph": "X",
+  "name": "squeezenet0_flatten0_reshape0_kernel_time",
+  "args": {
+   "node_index": "65",
+   "output_size": "4000",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000
+     ]
+    }
+   ],
+   "parameter_size": "16",
+   "thread_scheduling_stats": "",
+   "activation_size": "4000",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    },
+    {
+     "int64": [
+      2
+     ]
+    }
+   ],
+   "op_name": "Reshape"
+  }
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 9175,
+  "ts": 18094,
+  "ph": "X",
+  "name": "SequentialExecutor::Execute",
+  "args": {}
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 9193,
+  "ts": 18083,
+  "ph": "X",
+  "name": "model_run",
+  "args": {}
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 622,
+  "ts": 27324,
+  "ph": "X",
+  "name": "squeezenet0_conv0_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      3,
+      224,
+      224
+     ]
+    },
+    {
+     "float": [
+      64,
+      3,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "3154176",
+   "parameter_size": "7168",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "node_index": "0",
+   "activation_size": "602112"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 119,
+  "ts": 27949,
+  "ph": "X",
+  "name": "squeezenet0_relu0_fwd_kernel_time",
+  "args": {
+   "output_size": "3154176",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "node_index": "1",
+   "activation_size": "3154176",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 255,
+  "ts": 28070,
+  "ph": "X",
+  "name": "squeezenet0_pool0_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "op_name": "MaxPool",
+   "parameter_size": "0",
+   "activation_size": "3154176",
+   "node_index": "2"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 86,
+  "ts": 28328,
+  "ph": "X",
+  "name": "squeezenet0_conv1_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "activation_size": "774400",
+   "output_size": "193600",
+   "parameter_size": "4160",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "node_index": "3",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 5,
+  "ts": 28417,
+  "ph": "X",
+  "name": "squeezenet0_relu1_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "193600",
+   "thread_scheduling_stats": "",
+   "output_size": "193600",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "node_index": "4"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 628,
+  "ts": 28423,
+  "ph": "X",
+  "name": "squeezenet0_conv3_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "7",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "193600",
+   "parameter_size": "37120",
+   "output_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 22,
+  "ts": 29053,
+  "ph": "X",
+  "name": "squeezenet0_relu3_fwd_kernel_time",
+  "args": {
+   "activation_size": "774400",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "node_index": "8",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "774400",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 86,
+  "ts": 29076,
+  "ph": "X",
+  "name": "squeezenet0_conv2_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "activation_size": "193600",
+   "node_index": "5",
+   "parameter_size": "4352",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 16,
+  "ts": 29164,
+  "ph": "X",
+  "name": "squeezenet0_relu2_fwd_kernel_time",
+  "args": {
+   "output_size": "774400",
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "6",
+   "thread_scheduling_stats": "",
+   "activation_size": "774400",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 71,
+  "ts": 29182,
+  "ph": "X",
+  "name": "squeezenet0_concat0_kernel_time",
+  "args": {
+   "output_size": "1548800",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "activation_size": "1548800",
+   "node_index": "9",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 172,
+  "ts": 29255,
+  "ph": "X",
+  "name": "squeezenet0_conv4_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "node_index": "10",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "8256",
+   "provider": "CPUExecutionProvider",
+   "output_size": "193600",
+   "activation_size": "1548800"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 5,
+  "ts": 29429,
+  "ph": "X",
+  "name": "squeezenet0_relu4_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_size": "193600",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "193600",
+   "op_name": "Relu",
+   "node_index": "11",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 628,
+  "ts": 29435,
+  "ph": "X",
+  "name": "squeezenet0_conv6_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "37120",
+   "thread_scheduling_stats": "",
+   "output_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "node_index": "14",
+   "activation_size": "193600",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 20,
+  "ts": 30065,
+  "ph": "X",
+  "name": "squeezenet0_relu6_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "node_index": "15",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "activation_size": "774400",
+   "output_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 83,
+  "ts": 30087,
+  "ph": "X",
+  "name": "squeezenet0_conv5_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "4352",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "output_size": "774400",
+   "node_index": "12",
+   "activation_size": "193600"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 15,
+  "ts": 30172,
+  "ph": "X",
+  "name": "squeezenet0_relu5_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "output_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "774400",
+   "node_index": "13"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 72,
+  "ts": 30189,
+  "ph": "X",
+  "name": "squeezenet0_concat1_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_size": "1548800",
+   "thread_scheduling_stats": "",
+   "activation_size": "1548800",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "op_name": "Concat",
+   "node_index": "16"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 113,
+  "ts": 30262,
+  "ph": "X",
+  "name": "squeezenet0_pool1_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "op_name": "MaxPool",
+   "output_size": "373248",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "17",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "1548800"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 70,
+  "ts": 30378,
+  "ph": "X",
+  "name": "squeezenet0_conv7_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "parameter_size": "16512",
+   "node_index": "18",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_size": "93312",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 30449,
+  "ph": "X",
+  "name": "squeezenet0_relu7_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_size": "93312",
+   "activation_size": "93312",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "node_index": "19",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 555,
+  "ts": 30454,
+  "ph": "X",
+  "name": "squeezenet0_conv9_fwd_kernel_time",
+  "args": {
+   "node_index": "22",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "output_size": "373248",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "parameter_size": "147968",
+   "activation_size": "93312"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 31011,
+  "ph": "X",
+  "name": "squeezenet0_relu9_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_size": "373248",
+   "node_index": "23",
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "activation_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 64,
+  "ts": 31019,
+  "ph": "X",
+  "name": "squeezenet0_conv8_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "parameter_size": "16896",
+   "activation_size": "93312",
+   "thread_scheduling_stats": "",
+   "node_index": "20",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_size": "373248",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 31085,
+  "ph": "X",
+  "name": "squeezenet0_relu8_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "node_index": "21",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "output_size": "373248",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "373248",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 30,
+  "ts": 31094,
+  "ph": "X",
+  "name": "squeezenet0_concat2_kernel_time",
+  "args": {
+   "output_size": "746496",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "node_index": "24",
+   "activation_size": "746496",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 129,
+  "ts": 31126,
+  "ph": "X",
+  "name": "squeezenet0_conv10_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "746496",
+   "parameter_size": "32896",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "node_index": "25",
+   "output_size": "93312"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 31256,
+  "ph": "X",
+  "name": "squeezenet0_relu10_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "output_size": "93312",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "activation_size": "93312",
+   "node_index": "26"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 546,
+  "ts": 31260,
+  "ph": "X",
+  "name": "squeezenet0_conv12_fwd_kernel_time",
+  "args": {
+   "node_index": "29",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "147968",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "activation_size": "93312",
+   "output_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 31808,
+  "ph": "X",
+  "name": "squeezenet0_relu12_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "373248",
+   "node_index": "30"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 63,
+  "ts": 31817,
+  "ph": "X",
+  "name": "squeezenet0_conv11_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "node_index": "27",
+   "activation_size": "93312",
+   "thread_scheduling_stats": "",
+   "output_size": "373248",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "parameter_size": "16896"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 31882,
+  "ph": "X",
+  "name": "squeezenet0_relu11_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "node_index": "28",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "373248",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 28,
+  "ts": 31891,
+  "ph": "X",
+  "name": "squeezenet0_concat3_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "op_name": "Concat",
+   "node_index": "31",
+   "output_size": "746496",
+   "activation_size": "746496",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 60,
+  "ts": 31921,
+  "ph": "X",
+  "name": "squeezenet0_pool2_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "activation_size": "746496",
+   "provider": "CPUExecutionProvider",
+   "node_index": "32",
+   "op_name": "MaxPool"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 45,
+  "ts": 31983,
+  "ph": "X",
+  "name": "squeezenet0_conv13_fwd_kernel_time",
+  "args": {
+   "parameter_size": "49344",
+   "provider": "CPUExecutionProvider",
+   "node_index": "33",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "32448"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 32029,
+  "ph": "X",
+  "name": "squeezenet0_relu13_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "output_size": "32448",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "34",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "activation_size": "32448",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 293,
+  "ts": 32032,
+  "ph": "X",
+  "name": "squeezenet0_conv15_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "activation_size": "32448",
+   "output_size": "129792",
+   "node_index": "37",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "332544"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 32326,
+  "ph": "X",
+  "name": "squeezenet0_relu15_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "activation_size": "129792",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "38",
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "output_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 35,
+  "ts": 32331,
+  "ph": "X",
+  "name": "squeezenet0_conv14_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "node_index": "35",
+   "output_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "activation_size": "32448",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "37632",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 32368,
+  "ph": "X",
+  "name": "squeezenet0_relu14_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "output_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "36",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "activation_size": "129792",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 10,
+  "ts": 32372,
+  "ph": "X",
+  "name": "squeezenet0_concat4_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "259584",
+   "op_name": "Concat",
+   "activation_size": "259584",
+   "node_index": "39",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 64,
+  "ts": 32384,
+  "ph": "X",
+  "name": "squeezenet0_conv16_fwd_kernel_time",
+  "args": {
+   "output_size": "32448",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "activation_size": "259584",
+   "parameter_size": "73920",
+   "node_index": "40",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 32450,
+  "ph": "X",
+  "name": "squeezenet0_relu16_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "node_index": "41",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "32448",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "32448",
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 284,
+  "ts": 32453,
+  "ph": "X",
+  "name": "squeezenet0_conv18_fwd_kernel_time",
+  "args": {
+   "parameter_size": "332544",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "activation_size": "32448",
+   "node_index": "44",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 32739,
+  "ph": "X",
+  "name": "squeezenet0_relu18_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "thread_scheduling_stats": "",
+   "activation_size": "129792",
+   "parameter_size": "0",
+   "node_index": "45",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 34,
+  "ts": 32744,
+  "ph": "X",
+  "name": "squeezenet0_conv17_fwd_kernel_time",
+  "args": {
+   "parameter_size": "37632",
+   "output_size": "129792",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "activation_size": "32448",
+   "node_index": "42"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 32779,
+  "ph": "X",
+  "name": "squeezenet0_relu17_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "output_size": "129792",
+   "parameter_size": "0",
+   "activation_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "43",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 9,
+  "ts": 32784,
+  "ph": "X",
+  "name": "squeezenet0_concat5_kernel_time",
+  "args": {
+   "output_size": "259584",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "activation_size": "259584",
+   "node_index": "46",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 84,
+  "ts": 32795,
+  "ph": "X",
+  "name": "squeezenet0_conv19_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "98560",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "node_index": "47",
+   "provider": "CPUExecutionProvider",
+   "output_size": "43264",
+   "op_name": "Conv",
+   "activation_size": "259584"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 32880,
+  "ph": "X",
+  "name": "squeezenet0_relu19_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "43264",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_size": "43264",
+   "parameter_size": "0",
+   "node_index": "48",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 495,
+  "ts": 32884,
+  "ph": "X",
+  "name": "squeezenet0_conv21_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "parameter_size": "590848",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "activation_size": "43264",
+   "provider": "CPUExecutionProvider",
+   "node_index": "51",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 33381,
+  "ph": "X",
+  "name": "squeezenet0_relu21_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "op_name": "Relu",
+   "activation_size": "173056",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "node_index": "52",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 57,
+  "ts": 33386,
+  "ph": "X",
+  "name": "squeezenet0_conv20_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "49",
+   "activation_size": "43264",
+   "parameter_size": "66560",
+   "provider": "CPUExecutionProvider",
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 33445,
+  "ph": "X",
+  "name": "squeezenet0_relu20_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "node_index": "50",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "parameter_size": "0",
+   "output_size": "173056"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 33450,
+  "ph": "X",
+  "name": "squeezenet0_concat6_kernel_time",
+  "args": {
+   "activation_size": "346112",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "parameter_size": "0",
+   "node_index": "53",
+   "output_size": "346112",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 110,
+  "ts": 33464,
+  "ph": "X",
+  "name": "squeezenet0_conv22_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "node_index": "54",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "346112",
+   "parameter_size": "131328",
+   "output_size": "43264",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 33575,
+  "ph": "X",
+  "name": "squeezenet0_relu22_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "43264",
+   "node_index": "55",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "activation_size": "43264",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 492,
+  "ts": 33579,
+  "ph": "X",
+  "name": "squeezenet0_conv24_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "43264",
+   "parameter_size": "590848",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "node_index": "58",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 34073,
+  "ph": "X",
+  "name": "squeezenet0_relu24_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "node_index": "59",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 57,
+  "ts": 34078,
+  "ph": "X",
+  "name": "squeezenet0_conv23_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "56",
+   "provider": "CPUExecutionProvider",
+   "output_size": "173056",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "activation_size": "43264",
+   "parameter_size": "66560",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 34137,
+  "ph": "X",
+  "name": "squeezenet0_relu23_fwd_kernel_time",
+  "args": {
+   "activation_size": "173056",
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "output_size": "173056",
+   "node_index": "57",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 34143,
+  "ph": "X",
+  "name": "squeezenet0_concat7_kernel_time",
+  "args": {
+   "output_size": "346112",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "activation_size": "346112",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "node_index": "60",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 41,
+  "ts": 34157,
+  "ph": "X",
+  "name": "squeezenet0_dropout0_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "node_index": "61",
+   "activation_size": "346112",
+   "parameter_size": "4",
+   "op_name": "Dropout",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": []
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "346112"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 1658,
+  "ts": 34199,
+  "ph": "X",
+  "name": "squeezenet0_conv25_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "output_size": "676000",
+   "parameter_size": "2052000",
+   "activation_size": "346112",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1000,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      1000
+     ]
+    }
+   ],
+   "node_index": "62",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 35860,
+  "ph": "X",
+  "name": "squeezenet0_relu25_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "activation_size": "676000",
+   "parameter_size": "0",
+   "output_size": "676000",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "node_index": "63",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 59,
+  "ts": 35875,
+  "ph": "X",
+  "name": "squeezenet0_pool3_fwd_kernel_time",
+  "args": {
+   "op_name": "AveragePool",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "676000",
+   "output_size": "4000",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "node_index": "64",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 35935,
+  "ph": "X",
+  "name": "squeezenet0_flatten0_reshape0_kernel_time",
+  "args": {
+   "op_name": "Reshape",
+   "output_size": "4000",
+   "thread_scheduling_stats": "",
+   "activation_size": "4000",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    },
+    {
+     "int64": [
+      2
+     ]
+    }
+   ],
+   "parameter_size": "16",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000
+     ]
+    }
+   ],
+   "node_index": "65",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8617,
+  "ts": 27324,
+  "ph": "X",
+  "name": "SequentialExecutor::Execute",
+  "args": {}
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8633,
+  "ts": 27316,
+  "ph": "X",
+  "name": "model_run",
+  "args": {}
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 625,
+  "ts": 35988,
+  "ph": "X",
+  "name": "squeezenet0_conv0_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      3,
+      224,
+      224
+     ]
+    },
+    {
+     "float": [
+      64,
+      3,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "parameter_size": "7168",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "activation_size": "602112",
+   "node_index": "0",
+   "output_size": "3154176",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 125,
+  "ts": 36615,
+  "ph": "X",
+  "name": "squeezenet0_relu0_fwd_kernel_time",
+  "args": {
+   "output_size": "3154176",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "node_index": "1",
+   "activation_size": "3154176",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 254,
+  "ts": 36743,
+  "ph": "X",
+  "name": "squeezenet0_pool0_fwd_kernel_time",
+  "args": {
+   "output_size": "774400",
+   "activation_size": "3154176",
+   "thread_scheduling_stats": "",
+   "node_index": "2",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "MaxPool",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      111,
+      111
+     ]
+    }
+   ],
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 85,
+  "ts": 36999,
+  "ph": "X",
+  "name": "squeezenet0_conv1_fwd_kernel_time",
+  "args": {
+   "node_index": "3",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "output_size": "193600",
+   "thread_scheduling_stats": "",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "4160",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 5,
+  "ts": 37086,
+  "ph": "X",
+  "name": "squeezenet0_relu1_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "193600",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "4",
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "output_size": "193600",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 619,
+  "ts": 37092,
+  "ph": "X",
+  "name": "squeezenet0_conv3_fwd_kernel_time",
+  "args": {
+   "node_index": "7",
+   "provider": "CPUExecutionProvider",
+   "output_size": "774400",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "parameter_size": "37120",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "193600"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 17,
+  "ts": 37712,
+  "ph": "X",
+  "name": "squeezenet0_relu3_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "8",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_size": "774400",
+   "parameter_size": "0",
+   "activation_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 81,
+  "ts": 37731,
+  "ph": "X",
+  "name": "squeezenet0_conv2_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "activation_size": "193600",
+   "provider": "CPUExecutionProvider",
+   "output_size": "774400",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "5",
+   "op_name": "Conv",
+   "parameter_size": "4352",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 15,
+  "ts": 37813,
+  "ph": "X",
+  "name": "squeezenet0_relu2_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "activation_size": "774400",
+   "output_size": "774400",
+   "op_name": "Relu",
+   "parameter_size": "0",
+   "node_index": "6",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 71,
+  "ts": 37829,
+  "ph": "X",
+  "name": "squeezenet0_concat0_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "op_name": "Concat",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "1548800",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "activation_size": "1548800",
+   "provider": "CPUExecutionProvider",
+   "node_index": "9"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 158,
+  "ts": 37902,
+  "ph": "X",
+  "name": "squeezenet0_conv4_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      16,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      16
+     ]
+    }
+   ],
+   "activation_size": "1548800",
+   "node_index": "10",
+   "parameter_size": "8256",
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "output_size": "193600",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 38062,
+  "ph": "X",
+  "name": "squeezenet0_relu4_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_size": "193600",
+   "op_name": "Relu",
+   "node_index": "11",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "activation_size": "193600",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    }
+   ],
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 619,
+  "ts": 38068,
+  "ph": "X",
+  "name": "squeezenet0_conv6_fwd_kernel_time",
+  "args": {
+   "activation_size": "193600",
+   "op_name": "Conv",
+   "parameter_size": "37120",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "node_index": "14",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "774400",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 17,
+  "ts": 38689,
+  "ph": "X",
+  "name": "squeezenet0_relu6_fwd_kernel_time",
+  "args": {
+   "activation_size": "774400",
+   "output_size": "774400",
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "node_index": "15",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 80,
+  "ts": 38707,
+  "ph": "X",
+  "name": "squeezenet0_conv5_fwd_kernel_time",
+  "args": {
+   "activation_size": "193600",
+   "parameter_size": "4352",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "node_index": "12",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      16,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      64,
+      16,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "output_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 15,
+  "ts": 38789,
+  "ph": "X",
+  "name": "squeezenet0_relu5_fwd_kernel_time",
+  "args": {
+   "output_size": "774400",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "node_index": "13",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "774400"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 69,
+  "ts": 38806,
+  "ph": "X",
+  "name": "squeezenet0_concat1_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "output_size": "1548800",
+   "activation_size": "1548800",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    },
+    {
+     "float": [
+      1,
+      64,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "node_index": "16"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 105,
+  "ts": 38877,
+  "ph": "X",
+  "name": "squeezenet0_pool1_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      55,
+      55
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "op_name": "MaxPool",
+   "output_size": "373248",
+   "node_index": "17",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "1548800"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 76,
+  "ts": 38984,
+  "ph": "X",
+  "name": "squeezenet0_conv7_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      128,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_size": "93312",
+   "op_name": "Conv",
+   "activation_size": "373248",
+   "thread_scheduling_stats": "",
+   "parameter_size": "16512",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "18"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 39062,
+  "ph": "X",
+  "name": "squeezenet0_relu7_fwd_kernel_time",
+  "args": {
+   "activation_size": "93312",
+   "node_index": "19",
+   "output_size": "93312",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 563,
+  "ts": 39066,
+  "ph": "X",
+  "name": "squeezenet0_conv9_fwd_kernel_time",
+  "args": {
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "147968",
+   "output_size": "373248",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "node_index": "22",
+   "op_name": "Conv",
+   "activation_size": "93312"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8,
+  "ts": 39631,
+  "ph": "X",
+  "name": "squeezenet0_relu9_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "node_index": "23",
+   "activation_size": "373248",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 64,
+  "ts": 39640,
+  "ph": "X",
+  "name": "squeezenet0_conv8_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "activation_size": "93312",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_size": "373248",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "node_index": "20",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "parameter_size": "16896"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 39705,
+  "ph": "X",
+  "name": "squeezenet0_relu8_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "node_index": "21",
+   "output_size": "373248",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 30,
+  "ts": 39714,
+  "ph": "X",
+  "name": "squeezenet0_concat2_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "output_size": "746496",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Concat",
+   "node_index": "24",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "746496"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 129,
+  "ts": 39745,
+  "ph": "X",
+  "name": "squeezenet0_conv10_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "32896",
+   "output_size": "93312",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      32,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      32
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "activation_size": "746496",
+   "node_index": "25"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 39877,
+  "ph": "X",
+  "name": "squeezenet0_relu10_fwd_kernel_time",
+  "args": {
+   "activation_size": "93312",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "output_size": "93312",
+   "node_index": "26"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 548,
+  "ts": 39881,
+  "ph": "X",
+  "name": "squeezenet0_conv12_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "parameter_size": "147968",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "29",
+   "activation_size": "93312"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 40430,
+  "ph": "X",
+  "name": "squeezenet0_relu12_fwd_kernel_time",
+  "args": {
+   "output_size": "373248",
+   "node_index": "30",
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "op_name": "Relu",
+   "activation_size": "373248",
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 64,
+  "ts": 40439,
+  "ph": "X",
+  "name": "squeezenet0_conv11_fwd_kernel_time",
+  "args": {
+   "node_index": "27",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_size": "373248",
+   "op_name": "Conv",
+   "parameter_size": "16896",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      32,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      128,
+      32,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      128
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "93312"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 7,
+  "ts": 40505,
+  "ph": "X",
+  "name": "squeezenet0_relu11_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "28",
+   "output_size": "373248",
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "activation_size": "373248"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 29,
+  "ts": 40513,
+  "ph": "X",
+  "name": "squeezenet0_concat3_kernel_time",
+  "args": {
+   "node_index": "31",
+   "thread_scheduling_stats": "",
+   "op_name": "Concat",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "output_size": "746496",
+   "provider": "CPUExecutionProvider",
+   "activation_size": "746496",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    },
+    {
+     "float": [
+      1,
+      128,
+      27,
+      27
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 60,
+  "ts": 40544,
+  "ph": "X",
+  "name": "squeezenet0_pool2_fwd_kernel_time",
+  "args": {
+   "output_size": "173056",
+   "activation_size": "746496",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      27,
+      27
+     ]
+    }
+   ],
+   "node_index": "32",
+   "op_name": "MaxPool",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 48,
+  "ts": 40605,
+  "ph": "X",
+  "name": "squeezenet0_conv13_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      256,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "49344",
+   "provider": "CPUExecutionProvider",
+   "output_size": "32448",
+   "op_name": "Conv",
+   "activation_size": "173056",
+   "node_index": "33"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 40655,
+  "ph": "X",
+  "name": "squeezenet0_relu13_fwd_kernel_time",
+  "args": {
+   "node_index": "34",
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "output_size": "32448",
+   "parameter_size": "0",
+   "thread_scheduling_stats": "",
+   "activation_size": "32448",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 290,
+  "ts": 40658,
+  "ph": "X",
+  "name": "squeezenet0_conv15_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "op_name": "Conv",
+   "node_index": "37",
+   "output_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "332544",
+   "activation_size": "32448"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 40950,
+  "ph": "X",
+  "name": "squeezenet0_relu15_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "129792",
+   "node_index": "38",
+   "output_size": "129792",
+   "parameter_size": "0",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 35,
+  "ts": 40955,
+  "ph": "X",
+  "name": "squeezenet0_conv14_fwd_kernel_time",
+  "args": {
+   "op_name": "Conv",
+   "parameter_size": "37632",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "thread_scheduling_stats": "",
+   "activation_size": "32448",
+   "provider": "CPUExecutionProvider",
+   "node_index": "35",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 40992,
+  "ph": "X",
+  "name": "squeezenet0_relu14_fwd_kernel_time",
+  "args": {
+   "activation_size": "129792",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "node_index": "36",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 10,
+  "ts": 40997,
+  "ph": "X",
+  "name": "squeezenet0_concat4_kernel_time",
+  "args": {
+   "output_size": "259584",
+   "op_name": "Concat",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "activation_size": "259584",
+   "node_index": "39",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 65,
+  "ts": 41009,
+  "ph": "X",
+  "name": "squeezenet0_conv16_fwd_kernel_time",
+  "args": {
+   "activation_size": "259584",
+   "output_size": "32448",
+   "thread_scheduling_stats": "",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      48,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      48
+     ]
+    }
+   ],
+   "parameter_size": "73920",
+   "node_index": "40",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 41077,
+  "ph": "X",
+  "name": "squeezenet0_relu16_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "32448",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "node_index": "41",
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "activation_size": "32448"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 293,
+  "ts": 41080,
+  "ph": "X",
+  "name": "squeezenet0_conv18_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "332544",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "output_size": "129792",
+   "thread_scheduling_stats": "",
+   "node_index": "44",
+   "op_name": "Conv",
+   "activation_size": "32448"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 41375,
+  "ph": "X",
+  "name": "squeezenet0_relu18_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "45",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "output_size": "129792",
+   "thread_scheduling_stats": "",
+   "activation_size": "129792"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 34,
+  "ts": 41380,
+  "ph": "X",
+  "name": "squeezenet0_conv17_fwd_kernel_time",
+  "args": {
+   "output_size": "129792",
+   "parameter_size": "37632",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": "",
+   "node_index": "42",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      48,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      192,
+      48,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      192
+     ]
+    }
+   ],
+   "activation_size": "32448"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 3,
+  "ts": 41416,
+  "ph": "X",
+  "name": "squeezenet0_relu17_fwd_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "thread_scheduling_stats": "",
+   "node_index": "43",
+   "output_size": "129792",
+   "activation_size": "129792"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 10,
+  "ts": 41420,
+  "ph": "X",
+  "name": "squeezenet0_concat5_kernel_time",
+  "args": {
+   "activation_size": "259584",
+   "node_index": "46",
+   "thread_scheduling_stats": "",
+   "op_name": "Concat",
+   "provider": "CPUExecutionProvider",
+   "output_size": "259584",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      192,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 84,
+  "ts": 41432,
+  "ph": "X",
+  "name": "squeezenet0_conv19_fwd_kernel_time",
+  "args": {
+   "parameter_size": "98560",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "47",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      384,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      384,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "output_size": "43264",
+   "activation_size": "259584"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 41518,
+  "ph": "X",
+  "name": "squeezenet0_relu19_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "op_name": "Relu",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "43264",
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "0",
+   "output_size": "43264",
+   "node_index": "48"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 490,
+  "ts": 41521,
+  "ph": "X",
+  "name": "squeezenet0_conv21_fwd_kernel_time",
+  "args": {
+   "node_index": "51",
+   "op_name": "Conv",
+   "thread_scheduling_stats": "",
+   "parameter_size": "590848",
+   "output_size": "173056",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "43264"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 42013,
+  "ph": "X",
+  "name": "squeezenet0_relu21_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "activation_size": "173056",
+   "output_size": "173056",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "node_index": "52",
+   "provider": "CPUExecutionProvider"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 58,
+  "ts": 42022,
+  "ph": "X",
+  "name": "squeezenet0_conv20_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "parameter_size": "66560",
+   "op_name": "Conv",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "43264",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "node_index": "49"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 42081,
+  "ph": "X",
+  "name": "squeezenet0_relu20_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "node_index": "50",
+   "output_size": "173056",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "activation_size": "173056",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 42086,
+  "ph": "X",
+  "name": "squeezenet0_concat6_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "op_name": "Concat",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "346112",
+   "output_size": "346112",
+   "thread_scheduling_stats": "",
+   "node_index": "53",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 110,
+  "ts": 42101,
+  "ph": "X",
+  "name": "squeezenet0_conv22_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_size": "43264",
+   "node_index": "54",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      64,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      64
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "activation_size": "346112",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "parameter_size": "131328",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 2,
+  "ts": 42212,
+  "ph": "X",
+  "name": "squeezenet0_relu22_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "output_size": "43264",
+   "parameter_size": "0",
+   "node_index": "55",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Relu",
+   "activation_size": "43264",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 497,
+  "ts": 42215,
+  "ph": "X",
+  "name": "squeezenet0_conv24_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      3,
+      3
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "parameter_size": "590848",
+   "node_index": "58",
+   "thread_scheduling_stats": "",
+   "output_size": "173056",
+   "op_name": "Conv",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "43264"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 42714,
+  "ph": "X",
+  "name": "squeezenet0_relu24_fwd_kernel_time",
+  "args": {
+   "op_name": "Relu",
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "0",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "node_index": "59",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "output_size": "173056"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 57,
+  "ts": 42720,
+  "ph": "X",
+  "name": "squeezenet0_conv23_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      64,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      256,
+      64,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      256
+     ]
+    }
+   ],
+   "output_size": "173056",
+   "parameter_size": "66560",
+   "thread_scheduling_stats": "",
+   "activation_size": "43264",
+   "node_index": "56",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Conv"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 42779,
+  "ph": "X",
+  "name": "squeezenet0_relu23_fwd_kernel_time",
+  "args": {
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "activation_size": "173056",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "provider": "CPUExecutionProvider",
+   "output_size": "173056",
+   "node_index": "57",
+   "op_name": "Relu"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 12,
+  "ts": 42784,
+  "ph": "X",
+  "name": "squeezenet0_concat7_kernel_time",
+  "args": {
+   "parameter_size": "0",
+   "output_size": "346112",
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1,
+      256,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "Concat",
+   "node_index": "60",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "346112"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 43,
+  "ts": 42798,
+  "ph": "X",
+  "name": "squeezenet0_dropout0_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": []
+    }
+   ],
+   "parameter_size": "4",
+   "output_size": "346112",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "activation_size": "346112",
+   "node_index": "61",
+   "op_name": "Dropout"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 1644,
+  "ts": 42843,
+  "ph": "X",
+  "name": "squeezenet0_conv25_fwd_kernel_time",
+  "args": {
+   "output_size": "676000",
+   "activation_size": "346112",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      512,
+      13,
+      13
+     ]
+    },
+    {
+     "float": [
+      1000,
+      512,
+      1,
+      1
+     ]
+    },
+    {
+     "float": [
+      1000
+     ]
+    }
+   ],
+   "op_name": "Conv",
+   "parameter_size": "2052000",
+   "node_index": "62",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "thread_scheduling_stats": ""
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 13,
+  "ts": 44489,
+  "ph": "X",
+  "name": "squeezenet0_relu25_fwd_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "op_name": "Relu",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "output_size": "676000",
+   "activation_size": "676000",
+   "node_index": "63",
+   "thread_scheduling_stats": "",
+   "parameter_size": "0",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 59,
+  "ts": 44503,
+  "ph": "X",
+  "name": "squeezenet0_pool3_fwd_kernel_time",
+  "args": {
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    }
+   ],
+   "provider": "CPUExecutionProvider",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      13,
+      13
+     ]
+    }
+   ],
+   "op_name": "AveragePool",
+   "parameter_size": "0",
+   "output_size": "4000",
+   "activation_size": "676000",
+   "node_index": "64"
+  }
+ },
+ {
+  "cat": "Node",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 4,
+  "ts": 44564,
+  "ph": "X",
+  "name": "squeezenet0_flatten0_reshape0_kernel_time",
+  "args": {
+   "provider": "CPUExecutionProvider",
+   "parameter_size": "16",
+   "input_type_shape": [
+    {
+     "float": [
+      1,
+      1000,
+      1,
+      1
+     ]
+    },
+    {
+     "int64": [
+      2
+     ]
+    }
+   ],
+   "activation_size": "4000",
+   "node_index": "65",
+   "thread_scheduling_stats": "",
+   "output_type_shape": [
+    {
+     "float": [
+      1,
+      1000
+     ]
+    }
+   ],
+   "output_size": "4000",
+   "op_name": "Reshape"
+  }
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8582,
+  "ts": 35987,
+  "ph": "X",
+  "name": "SequentialExecutor::Execute",
+  "args": {}
+ },
+ {
+  "cat": "Session",
+  "pid": 2277551,
+  "tid": 2277551,
+  "dur": 8594,
+  "ts": 35980,
+  "ph": "X",
+  "name": "model_run",
+  "args": {}
+ }
+]
