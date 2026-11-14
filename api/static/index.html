@@ -247,11 +247,22 @@
             <div class="space-y-4 pt-2 border-t border-slate-800">
               <div class="flex items-center justify-between">
                 <div>
-                  <span class="text-xs font-medium text-white block">Include Apache TVM Relay Compiler</span>
+                  <span class="text-xs font-medium text-white block">Include Apache TVM Relax Compiler</span>
                   <span class="text-[11px] text-slate-500">Evaluates TVM Opt-Level-3 alongside ONNX Runtime</span>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" id="includeTvm" class="sr-only peer" checked>
+                  <div class="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-medium text-white block">Enable TVM MetaSchedule Tuning</span>
+                  <span class="text-[11px] text-slate-500">Searches hardware-optimal loop schedules for fast CPU/edge inference</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="enableTvmTuning" class="sr-only peer">
                   <div class="w-10 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                 </label>
               </div>
@@ -547,6 +558,7 @@
       formData.append('priority', document.getElementById('prioritySelect').value);
       formData.append('execution_provider', document.getElementById('executionProvider').value);
       formData.append('include_tvm', document.getElementById('includeTvm').checked);
+      formData.append('enable_tvm_tuning', document.getElementById('enableTvmTuning').checked);
 
       const maxLat = document.getElementById('maxLatency').value;
       if (maxLat) formData.append('max_latency_ms', maxLat);

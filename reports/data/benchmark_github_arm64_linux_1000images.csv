@@ -1,0 +1,11 @@
+hardware,model,strategy,precision,model_size_mb,num_images_tested,latency_p50_ms,latency_p95_ms,throughput_fps,total_time_sec
+github_arm64_linux,mobilenetv2.onnx,onnx_fp32,fp32,13.34,1000,7.1009,8.2332,78.94,12.67
+github_arm64_linux,mobilenetv2.onnx,onnx_int8,int8,3.72,1000,3.1546,3.3953,120.83,8.28
+github_arm64_linux,shufflenetv2.onnx,onnx_fp32,fp32,8.78,1000,4.256,4.476,106.65,9.38
+github_arm64_linux,shufflenetv2.onnx,onnx_int8,int8,2.59,1000,4.4923,4.7459,104.01,9.61
+github_arm64_linux,squeezenet.onnx,onnx_fp32,fp32,4.73,1000,5.6048,5.8821,93.07,10.74
+github_arm64_linux,squeezenet.onnx,onnx_int8,int8,1.3,1000,2.3529,2.6317,137.31,7.28
+github_arm64_linux,resnet18.onnx,onnx_fp32,fp32,44.58,1000,23.0813,24.76,34.98,28.58
+github_arm64_linux,resnet18.onnx,onnx_int8,int8,11.28,1000,6.7106,6.9611,84.94,11.77
+github_arm64_linux,resnet50.onnx,onnx_fp32,fp32,97.41,1000,52.474,60.4423,17.11,58.44
+github_arm64_linux,resnet50.onnx,onnx_int8,int8,24.87,1000,15.6089,16.2581,47.78,20.93

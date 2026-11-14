@@ -94,7 +94,8 @@ with st.sidebar:
         help="CPU by default. Auto uses the GPU if the target supports it; CUDA requires an NVIDIA GPU."
     )
     
-    include_tvm = st.toggle("Include Apache TVM Relay", value=True, help="Compiles TVM Opt-Level-3 candidates alongside ONNX Runtime.")
+    include_tvm = st.toggle("Include Apache TVM Relax", value=True, help="Compiles TVM Opt-Level-3 candidates alongside ONNX Runtime.")
+    enable_tvm_tuning = st.toggle("Enable TVM MetaSchedule Tuning", value=False, help="Runs autotuning search for hardware-optimal loop schedules.")
     
     st.markdown("---")
     st.subheader("🛑 Hard Constraints (Optional)")
@@ -173,6 +174,7 @@ if st.button("🚀 Run Full Optimization & Benchmark Pipeline", type="primary", 
                 "priority": priority,
                 "execution_provider": execution_provider,
                 "include_tvm": str(include_tvm).lower(),
+                "enable_tvm_tuning": str(enable_tvm_tuning).lower(),
             }
             if max_latency_ms > 0:
                 data["max_latency_ms"] = max_latency_ms

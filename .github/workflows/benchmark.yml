@@ -1,0 +1,109 @@
+name: Multi-Architecture CPU Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_images:
+        description: "Number of Imagenette images to benchmark per model (ONNX)"
+        required: false
+        default: "1000"
+      tvm_num_images:
+        description: "Number of images to benchmark per model (TVM)"
+        required: false
+        default: "1000"
+      tvm_max_trials:
+        description: "MetaSchedule trial budget for the TVM tuned candidate"
+        required: false
+        default: "64"
+  push:
+    branches: [abhay]
+    paths:
+      - ".github/workflows/benchmark.yml"
+      - "scripts/run_ci_benchmark.py"
+      - "scripts/run_ci_benchmark_tvm.py"
+      - "api/optimizer/tvm_runtime.py"
+      - "api/optimizer/tvm_tuning.py"
+      - "api/optimizer/quantizer.py"
+
+jobs:
+  benchmark:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            hardware_tag: github_x86_64
+          - os: ubuntu-24.04-arm
+            hardware_tag: github_arm64_linux
+          - os: macos-latest
+            hardware_tag: github_macos_arm64
+    runs-on: ${{ matrix.os }}
+    # TVM untuned runs unvectorized scalar loops by design (~80-110 min for
+    # 1000 images alone), plus tuning adds real time on top. Per-model tuning
+    # is now hard-capped at --tuning-timeout-sec (see run_ci_benchmark_tvm.py)
+    # since a 100% build-failure model (hit on resnet50/x86_64) would
+    # otherwise loop forever -- this job timeout is now just a safety margin
+    # on top of that, not the only backstop.
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install libomp (macOS only, required by xgboost)
+        if: runner.os == 'macOS'
+        run: brew install libomp
+
+      - name: Cache Imagenette dataset
+        uses: actions/cache@v4
+        with:
+          path: dataset/imagenette2-160.tgz
+          key: imagenette2-160-tgz-v1
+
+      - name: Download Imagenette dataset
+        run: |
+          mkdir -p dataset
+          cd dataset
+          if [ ! -f imagenette2-160.tgz ]; then
+            curl -sSL -o imagenette2-160.tgz https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-160.tgz
+          fi
+          tar -xzf imagenette2-160.tgz
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu || pip install torch torchvision
+          pip install onnx onnxruntime onnxscript pandas numpy pillow psutil cloudpickle xgboost
+          pip install apache-tvm "apache-tvm-ffi==0.1.14.post0"
+
+      - name: Run ONNX Runtime benchmark
+        run: python scripts/run_ci_benchmark.py --hardware-tag ${{ matrix.hardware_tag }} --num-images ${{ github.event.inputs.num_images || '1000' }}
+
+      - name: Upload ONNX results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.hardware_tag }}
+          path: reports/data/benchmark_${{ matrix.hardware_tag }}_1000images.csv
+
+      - name: Run TVM benchmark
+        env:
+          STRICT_TVM: "1"
+          # torch bundles its own OpenMP runtime; xgboost's brew-installed
+          # libomp loading later in the same process aborts with "libomp.dylib
+          # already initialized" (exit 134) unless this is set. Standard fix
+          # for this well-known torch/libomp macOS conflict.
+          KMP_DUPLICATE_LIB_OK: "TRUE"
+        run: |
+          python scripts/run_ci_benchmark_tvm.py \
+            --hardware-tag ${{ matrix.hardware_tag }} \
+            --num-images ${{ github.event.inputs.tvm_num_images || '1000' }} \
+            --max-trials ${{ github.event.inputs.tvm_max_trials || '64' }}
+
+      - name: Upload TVM results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-tvm-${{ matrix.hardware_tag }}
+          path: reports/data/benchmark_tvm_${{ matrix.hardware_tag }}.csv

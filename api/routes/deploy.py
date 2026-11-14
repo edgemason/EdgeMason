@@ -60,6 +60,7 @@ async def deploy_model(
     calibration_file: Optional[UploadFile] = File(None),
     execution_provider: str = Form("auto"),
     include_tvm: bool = Form(False),
+    enable_tvm_tuning: bool = Form(False),
 ):
     require_suffix(file, {".onnx"}, "model must be an .onnx file")
     resolved_provider = _validate_form(
@@ -102,6 +103,7 @@ async def deploy_model(
                     requested_provider=execution_provider,
                     execution_provider=resolved_provider,
                     include_tvm=include_tvm,
+                    enable_tvm_tuning=enable_tvm_tuning,
                 )
             )
 

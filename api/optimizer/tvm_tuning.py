@@ -1,0 +1,212 @@
+"""TVM Tuning Module for EdgeForge / EdgeMason.
+
+Provides MetaSchedule auto-tuning, schedule database persistence, and optimization
+pipeline passes for Apache TVM (Relax).
+
+Why TVM needs tuning:
+Unlike ONNX Runtime which uses pre-compiled, vendor-optimized libraries (oneDNN,
+Eigen, MKL), TVM generates code from scratch using TensorIR. Without tuning, TVM
+generates generic naive nested loops that run scalar and unvectorized on CPUs.
+MetaSchedule searches the space of loop transformations (tiling, unrolling,
+vectorization, thread binding, cache allocation) to find hardware-optimal
+schedules that match or beat vendor libraries.
+"""
+
+from __future__ import annotations
+
+import os
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any
+
+
+@dataclass
+class TuningConfig:
+    """Configuration for TVM MetaSchedule tuning."""
+
+    hardware_id: str = "x86_64"
+    max_trials_global: int = 16
+    num_trials_per_iter: int = 4
+    strategy: str = "evolutionary"  # "evolutionary" or "random"
+    work_dir: str | None = None
+    timeout_sec_per_trial: int = 30
+    cost_model: str = "xgb"  # "xgb" or "random"
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def get_default_tuning_dir(hardware_id: str = "x86_64") -> Path:
+    """Return the default directory for persisting TVM tuning records."""
+    base = (
+        Path(__file__).resolve().parent.parent.parent
+        / "profiles"
+        / "tvm_tuning"
+        / hardware_id
+    )
+    base.mkdir(parents=True, exist_ok=True)
+    return base
+
+
+def get_tuning_database(work_dir: str | Path | None = None):
+    """Load or initialize a MetaSchedule JSONDatabase.
+
+    Returns:
+        JSONDatabase instance if TVM is available and directory exists, else None.
+    """
+    try:
+        try:
+            from tvm.s_tir import meta_schedule as ms
+        except ImportError:
+            from tvm import meta_schedule as ms  # type: ignore[attr-defined]
+
+        work_path = Path(work_dir) if work_dir else get_default_tuning_dir()
+        work_path.mkdir(parents=True, exist_ok=True)
+
+        workload_path = work_path / "database_workload.json"
+        record_path = work_path / "database_tuning_record.json"
+
+        # Don't pre-touch these with "[]": JSONDatabase expects JSONL (one
+        # record per line) and creates correctly-formatted empty files
+        # itself when they don't exist yet. A literal "[]" fails to parse.
+
+        return ms.database.JSONDatabase(
+            path_workload=str(workload_path),
+            path_tuning_record=str(record_path),
+        )
+    except Exception:
+        if os.environ.get("STRICT_TVM") == "1":
+            raise
+        return None
+
+
+def tune_relax_module(
+    mod: Any,
+    target: Any,
+    config: TuningConfig | None = None,
+) -> tuple[Any, dict[str, Any]]:
+    """Tune compute-heavy kernels in a Relax IRModule using MetaSchedule.
+
+    Args:
+        mod: TVM Relax IRModule.
+        target: TVM Target instance or dict.
+        config: Optional TuningConfig specifying trial budget and paths.
+
+    Returns:
+        tuple (database, tuning_report_dict)
+    """
+    try:
+        import tvm
+    except ImportError as exc:
+        raise ImportError(
+            "Apache TVM is not installed. Run: pip install apache-tvm"
+        ) from exc
+    try:
+        from tvm.s_tir import meta_schedule as ms
+    except ImportError:
+        from tvm import meta_schedule as ms  # type: ignore[attr-defined]
+
+    cfg = config or TuningConfig()
+    work_path = (
+        Path(cfg.work_dir) if cfg.work_dir else get_default_tuning_dir(cfg.hardware_id)
+    )
+    work_path.mkdir(parents=True, exist_ok=True)
+
+    tvm_target = (
+        target if isinstance(target, tvm.target.Target) else tvm.target.Target(target)
+    )
+
+    report = {
+        "hardware_id": cfg.hardware_id,
+        "max_trials_global": cfg.max_trials_global,
+        "work_dir": str(work_path),
+        "status": "pending",
+        "tasks_tuned": 0,
+        "error": None,
+    }
+
+    try:
+        # relax_integration.tune_relax (TVM >=0.26) now requires an explicit
+        # params dict; ONNX-imported modules already have weights embedded
+        # as constants in the graph, so there are no extra params to bind.
+        ms.relax_integration.tune_relax(
+            mod=mod,
+            params={},
+            target=tvm_target,
+            work_dir=str(work_path),
+            max_trials_global=cfg.max_trials_global,
+            num_trials_per_iter=min(cfg.num_trials_per_iter, cfg.max_trials_global),
+            strategy=cfg.strategy,  # type: ignore[arg-type]
+        )
+        report["status"] = "completed"
+        report["database_workload"] = str(work_path / "database_workload.json")
+        report["database_records"] = str(work_path / "database_tuning_record.json")
+        # Downstream consumers apply the result by work_dir (see
+        # apply_tuning_best), not by holding a Database object -- the tuning
+        # record is what's on disk at work_path.
+        return str(work_path), report
+    except Exception as exc:
+        if os.environ.get("STRICT_TVM") == "1":
+            raise
+        report["status"] = "failed"
+        report["error"] = str(exc)
+        # Fall back to an existing database at this work_dir, if any.
+        existing_db = get_tuning_database(work_path)
+        return (str(work_path) if existing_db is not None else None), report
+
+
+def apply_tuning_best(mod: Any, work_dir: Any, target: Any = None) -> Any:
+    """Apply the best tuned schedules at `work_dir` to a Relax IRModule.
+
+    `ms.relax.ApplyHistoryBest` (pre-0.26) doesn't exist in Relax-era TVM;
+    the replacement, `relax.transform.MetaScheduleApplyDatabase`, is applied
+    by work_dir rather than by holding a Database object in memory, and
+    needs an active Target context (`Target.Current()`) to run at all.
+    """
+    if not work_dir:
+        return mod
+    try:
+        import tvm
+        from tvm import relax
+
+        # Both constructing the pass AND calling it need an active Target
+        # context -- Target.Current() is read at construction time, not
+        # only when the pass actually runs.
+        if target is not None:
+            tvm_target = (
+                target
+                if isinstance(target, tvm.target.Target)
+                else tvm.target.Target(target)
+            )
+            with tvm_target:
+                pass_ = relax.transform.MetaScheduleApplyDatabase(
+                    work_dir=str(work_dir)
+                )
+                return pass_(mod)
+        pass_ = relax.transform.MetaScheduleApplyDatabase(work_dir=str(work_dir))
+        return pass_(mod)
+    except Exception:
+        if os.environ.get("STRICT_TVM") == "1":
+            raise
+    return mod
+
+
+def configure_runtime_threads(num_threads: int | None = None) -> int:
+    """Ensure TVM uses all available physical CPU cores for parallel execution.
+
+    Without this, TVM defaults to a single thread while ONNX Runtime uses all cores,
+    leading to an artificial 4x-16x latency disadvantage.
+    """
+    import psutil
+
+    threads = num_threads or psutil.cpu_count(logical=False) or 4
+    os.environ["TVM_NUM_THREADS"] = str(threads)
+    os.environ["OMP_NUM_THREADS"] = str(threads)
+    try:
+        import tvm
+
+        if hasattr(tvm.runtime, "set_num_threads"):
+            tvm.runtime.set_num_threads(threads)  # type: ignore[attr-defined]
+    except Exception:
+        pass
+    return threads

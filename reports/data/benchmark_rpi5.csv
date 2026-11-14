@@ -1,0 +1,11 @@
+hardware,model,model_size_mb,parameters,model_family,strategy,framework,success,latency_p50_ms,latency_p95_ms,throughput_fps,memory_delta_mb,top1_accuracy,top5_accuracy,winner
+rpi5,mobilenetv2.onnx,13.296359062194824,3475008,cnn,onnx_fp32_baseline,onnxruntime,True,33.4513,33.7739,29.87,36.359,0.0,0.0,False
+rpi5,mobilenetv2.onnx,13.296359062194824,3475008,cnn,onnx_static_int8,onnxruntime,True,24.471,26.7501,40.29,36.031,0.0,0.0,True
+rpi5,resnet18.onnx,44.5687141418457,11680872,cnn,onnx_fp32_baseline,onnxruntime,True,129.3378,133.2066,7.7,63.531,0.0,0.0,False
+rpi5,resnet18.onnx,44.5687141418457,11680872,cnn,onnx_static_int8,onnxruntime,True,120.2738,121.8893,8.3,41.344,0.0,0.0,True
+rpi5,resnet50.onnx,97.32979393005371,25507944,cnn,onnx_fp32_baseline,onnxruntime,True,294.2367,297.2943,3.39,123.516,0.0,0.0,True
+rpi5,resnet50.onnx,97.32979393005371,25507944,cnn,onnx_static_int8,onnxruntime,True,296.2805,299.5918,3.37,86.406,0.0,0.0,False
+rpi5,shufflenetv2.onnx,8.758358001708984,2263878,cnn,onnx_fp32_baseline,onnxruntime,True,14.5032,14.7689,68.72,28.266,0.0,0.0,False
+rpi5,shufflenetv2.onnx,8.758358001708984,2263878,cnn,onnx_static_int8,onnxruntime,True,14.3597,14.514,69.54,22.797,0.0,0.0,True
+rpi5,squeezenet.onnx,4.720821380615234,1233288,cnn,onnx_fp32_baseline,onnxruntime,True,28.7525,29.0873,34.72,21.312,0.0,0.0,False
+rpi5,squeezenet.onnx,4.720821380615234,1233288,cnn,onnx_static_int8,onnxruntime,True,27.5221,27.8899,36.24,20.297,0.0,0.0,True

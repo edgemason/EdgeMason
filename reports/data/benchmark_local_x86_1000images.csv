@@ -1,0 +1,11 @@
+hardware,model,strategy,precision,model_size_mb,num_images_tested,latency_p50_ms,latency_p95_ms,throughput_fps,total_time_sec
+x86_64_intel_cpu,mobilenetv2.onnx,onnx_fp32,fp32,13.3,1000,5.2319,10.0766,55.99,17.86
+x86_64_intel_cpu,mobilenetv2.onnx,onnx_int8,int8,3.57,1000,7.6411,9.8585,76.31,13.1
+x86_64_intel_cpu,shufflenetv2.onnx,onnx_fp32,fp32,8.76,1000,7.7278,14.8738,67.94,14.72
+x86_64_intel_cpu,shufflenetv2.onnx,onnx_int8,int8,2.5,1000,15.4703,23.3782,44.4,22.52
+x86_64_intel_cpu,squeezenet.onnx,onnx_fp32,fp32,4.72,1000,5.1282,6.6611,86.95,11.5
+x86_64_intel_cpu,squeezenet.onnx,onnx_int8,int8,1.27,1000,10.5658,14.7621,59.94,16.68
+x86_64_intel_cpu,resnet18.onnx,onnx_fp32,fp32,44.57,1000,21.8184,54.8782,28.48,35.11
+x86_64_intel_cpu,resnet18.onnx,onnx_int8,int8,11.23,1000,27.7398,33.7105,29.02,34.46
+x86_64_intel_cpu,resnet50.onnx,onnx_fp32,fp32,97.33,1000,53.1247,72.1319,15.83,63.16
+x86_64_intel_cpu,resnet50.onnx,onnx_int8,int8,24.61,1000,54.5916,62.088,16.33,61.25
