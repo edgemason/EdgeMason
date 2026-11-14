@@ -9,6 +9,7 @@ from onnxruntime.quantization import (
     QuantFormat,
     QuantType,
 )
+from onnxruntime.quantization.registry import QLinearOpsRegistry
 from onnxruntime.quantization.shape_inference import quant_pre_process
 import numpy as np
 
@@ -36,6 +37,28 @@ def _tvm_target(hardware_id: str) -> dict:
     return TVM_TARGETS.get(hardware_id, {"kind": "llvm"})
 
 
+class _NumpyDataReader(CalibrationDataReader):
+    """Feed one calibration sample per call, in the caller's order."""
+
+    def __init__(self, data: np.ndarray, input_name: str) -> None:
+        self.data = data
+        self.input_name = input_name
+        self.idx = 0
+
+    def get_next(self) -> dict[str, np.ndarray]:
+        if self.idx >= len(self.data):
+            return {}
+        # ONNX Runtime expects a dict: {input_name: numpy_array}
+        item = {
+            self.input_name: np.asarray(
+                self.data[self.idx : self.idx + 1],
+                dtype=np.float32,
+            )
+        }
+        self.idx += 1
+        return item
+
+
 class Quantizer:
     def __init__(self, output_dir: str = "./temp_models"):
         self.output_dir = Path(output_dir)
@@ -60,7 +83,72 @@ class Quantizer:
     def create_static_int8(self, model_path: str, calibration_data: CalibrationData) -> str:
         """Static INT8: both weights and activations quantized using calibration data."""
         out_path = self.output_dir / "model_static_int8.onnx"
+        reader = self._calibration_reader(model_path, calibration_data)
 
+        # Pre-processing (fuse Conv+BatchNorm, infer shapes) is recommended by
+        # ONNX Runtime but optional, so quantize the original if it fails.
+        source_path = self._preprocess(model_path, "model_static_int8_prepped.onnx")
+        self._quantize_static(source_path, str(out_path), reader)
+        return str(out_path)
+
+    def excludable_node_names(self, model_path: str) -> list[str]:
+        """Node names `create_mixed_int8` accepts in its fp32 list.
+
+        `quantize_static` sees the graph *after* `quant_pre_process`, which
+        renames and inserts nodes, so only these names are valid exclusions.
+        A node is excludable when ONNX Runtime has a QLinear implementation for
+        its op type; nodes without a name cannot be addressed.
+        """
+        source_path = self._preprocess(model_path, "model_mixed_int8_prepped.onnx")
+        graph = onnx.load(source_path).graph
+        return [
+            node.name
+            for node in graph.node
+            if node.name and node.op_type in QLinearOpsRegistry
+        ]
+
+    def create_mixed_int8(
+        self,
+        model_path: str,
+        calibration_data: CalibrationData,
+        fp32_node_names: list[str],
+    ) -> str:
+        """Quantize all but `fp32_node_names` to INT8.
+
+        Names must be the *pre-processed* ONNX node names returned by
+        `excludable_node_names`, not the raw model's names. Any name that is
+        missing, unnamed, or for an op with no QLinear implementation raises
+        instead of being silently ignored: a layer the caller believes is fp32
+        would otherwise be quantized, corrupting every downstream result.
+        """
+        out_path = self.output_dir / "model_mixed_int8.onnx"
+        source_path = self._preprocess(model_path, "model_mixed_int8_prepped.onnx")
+        self._validate_fp32_node_names(source_path, fp32_node_names)
+
+        reader = self._calibration_reader(model_path, calibration_data)
+        self._quantize_static(
+            source_path,
+            str(out_path),
+            reader,
+            nodes_to_exclude=fp32_node_names,
+        )
+        return str(out_path)
+
+    def _preprocess(self, model_path: str, prepped_name: str) -> str:
+        """Run `quant_pre_process` into the output dir, falling back to the original."""
+        prepped_path = self.output_dir / prepped_name
+        try:
+            quant_pre_process(model_path, str(prepped_path), skip_symbolic_shape=True)
+            return str(prepped_path)
+        except Exception:
+            return model_path
+
+    def _calibration_reader(
+        self,
+        model_path: str,
+        calibration_data: CalibrationData,
+    ) -> CalibrationDataReader:
+        """Validate calibration data and wrap it in a reader for the model input."""
         calib_data = (
             calibration_data
             if isinstance(calibration_data, np.ndarray)
@@ -82,39 +170,40 @@ class Quantizer:
             if isinstance(expected, int) and expected > 0 and actual != expected:
                 raise ValueError("calibration data shape does not match model input")
 
-        class NumpyDataReader(CalibrationDataReader):
-            def __init__(self, data, input_name):
-                self.data = data
-                self.input_name = input_name
-                self.idx = 0
+        return _NumpyDataReader(calib_data, input_name)
 
-            def get_next(self):
-                if self.idx >= len(self.data):
-                    return {}
-                # ONNX Runtime expects a dict: {input_name: numpy_array}
-                item = {
-                    self.input_name: np.asarray(
-                        self.data[self.idx : self.idx + 1],
-                        dtype=np.float32,
-                    )
-                }
-                self.idx += 1
-                return item
+    def _validate_fp32_node_names(
+        self,
+        source_path: str,
+        fp32_node_names: list[str],
+    ) -> None:
+        """Reject names that `quantize_static` would silently ignore."""
+        graph = onnx.load(source_path).graph
+        named_ops = {node.name: node.op_type for node in graph.node if node.name}
+        for name in fp32_node_names:
+            if name not in named_ops:
+                raise ValueError(
+                    f"fp32 node {name!r} is not a named node in the pre-processed "
+                    "graph; use Quantizer.excludable_node_names() for valid names"
+                )
+            if named_ops[name] not in QLinearOpsRegistry:
+                raise ValueError(
+                    f"fp32 node {name!r} has op type {named_ops[name]!r}, which has "
+                    "no QLinear implementation and is never quantized; "
+                    "remove it from the fp32 list"
+                )
 
-        reader = NumpyDataReader(calib_data, input_name)
-
-        # Pre-processing (fuse Conv+BatchNorm, infer shapes) is recommended by
-        # ONNX Runtime but optional, so quantize the original if it fails.
-        prepped_path = self.output_dir / "model_static_int8_prepped.onnx"
-        try:
-            quant_pre_process(model_path, str(prepped_path), skip_symbolic_shape=True)
-            source_path = str(prepped_path)
-        except Exception:
-            source_path = model_path
-
+    def _quantize_static(
+        self,
+        model_input: str,
+        model_output: str,
+        reader: CalibrationDataReader,
+        nodes_to_exclude: Optional[list[str]] = None,
+    ) -> None:
+        """Quantize with the P2.4 INT8 config, optionally keeping nodes fp32."""
         quantize_static(
-            model_input=source_path,
-            model_output=str(out_path),
+            model_input=model_input,
+            model_output=model_output,
             calibration_data_reader=reader,
             weight_type=QuantType.QInt8,
             # ORT's CPU (MLAS) QLinearConv expects uint8 activations. With
@@ -134,8 +223,8 @@ class Quantizer:
             # and ARM.
             per_channel=True,
             reduce_range=False,
+            nodes_to_exclude=nodes_to_exclude,
         )
-        return str(out_path)
 
     # -----------------------------------------------------------------------
     # TVM methods
