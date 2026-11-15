@@ -387,6 +387,22 @@ graph geometry, and an independent rebuild plus benchmark reproduced the two ext
 features added, no re-seed. The cost model does not beat additive out-of-sample; that is the
 finding. A model that adds a topology term would be a new spec/block, not a patch to this one.
 
+> **── Benchmark-paper scope ends here. ──**
+> The optimization-and-measurement results **through this section** are the scope of the
+> **benchmarking paper** (near-term venue, e.g. PeRConAI; teammate drafting):
+> - **P2.4** — static INT8 runs real integer kernels (−62.6% conv time, 0 top-1 loss);
+> - **P2.6** — the additive per-layer model mispredicts mixed-precision latency by up to **−65%**
+>   (some configs ~2× slower than pure fp32), driven by **precision placement**, not seam count;
+> - **P2.7** — a size-weighted graph-aware cost model (additive + α·seam-bytes + β·stranded-bytes)
+>   **does not beat** the additive baseline out-of-sample (21.2% vs 25.4%, 5-fold CV).
+>
+> The P2.7 negative result appears in the benchmark paper as motivation / future work.
+>
+> **Held back for the long-run contribution (NOT in the benchmark paper):** the **topology-aware
+> cost model** — per-island + boundary-tensor features, where the cost is a placement/topology
+> effect rather than a per-element total. This is a future spec (P2.8) targeting a stronger systems
+> venue (IEEE MCSoC, MLSys, EuroSys). Any future P2.8+ section is beyond the benchmark paper's scope.
+
 **Reproduce** (from the worktree root; `tmp/` is gitignored):
 
 ```bash
