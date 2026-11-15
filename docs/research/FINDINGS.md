@@ -213,10 +213,19 @@ Least-squares fits on measured p50 (all configs): count + seams gives 50 µs per
 seams and no systematic gap. Every config that keeps `conv0` in fp32 pays a large fixed penalty
 that the additive model does not represent: the low-seam head configs (`cfg_002`–`cfg_014`, 1–4
 seams) all measure 5604–5725 µs regardless of whether 2 or 14 fp32 layers are kept. Keeping `conv0`
-fp32 forces a layout conversion around the NCHWc
-conv kernel, which ORT inserts as `ReorderInput`/`ReorderOutput`; the cost is in the reorders, not
-in the layer's own kernel time, so the additive sum cannot see it. Seam count still adds ~30–100 µs
-per boundary, but placement of the head conv dominates the residual.
+fp32 forces an unfused fp32 `Conv` plus a layout conversion (`ReorderInput`/`ReorderOutput`) around
+the int8 neighbours. But the penalty is **not** explained by reorder count: counting ops in the
+saved optimized graphs (`tmp/p2.6-sweep/work-amended/*.optimized.onnx`), `cfg_002` (only `conv0`
+fp32) has **1** reorder and a −65% miss, while `cfg_013` (14 mid-layers fp32, `conv0` int8) has
+**4** reorders and only −3%. The distinguishing factor is that `conv0` sits at the network's
+**highest-resolution feature map**, so its unfused fp32 kernel and the reorder of its large output
+both act on the biggest activations in the net; a reorder deeper in the network is cheap. Seam
+count still adds ~30–100 µs per boundary, but placement of `conv0` at the input resolution — not
+reorder or seam count — dominates the residual.
+
+Op counts backing this (optimized graphs ORT executes): `cfg_000` all-int8 = 26 `QLinearConv`,
+0 reorders; `cfg_002` conv0-fp32 = 1 `Conv` + 25 `QLinearConv` + 1 `ReorderOutput`; `cfg_013`
+= 10 `Conv` + 16 `QLinearConv` + 4 reorders; `cfg_037` all-fp32 = 26 `Conv` + 1 `ReorderOutput`.
 
 **Register.** Every config's row from `tmp/p2.6-sweep/register.jsonl` (gitignored; this table is the
 durable copy). `fp32 layers` is the number of the 39 excludable layers kept in fp32; `seams` is the
