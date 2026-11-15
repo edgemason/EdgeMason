@@ -581,3 +581,52 @@ geometry features. All 150 rows are `status: ok`.
 | `cfg_147` | 22 | yes | 16 | 1,756,240 | 3,049,408 | 5653 | 5742 | 3952 | ok |
 | `cfg_148` | 12 | no | 12 | 1,724,376 | 1,219,768 | 2980 | 3140 | 2860 | ok |
 | `cfg_149` | 11 | yes | 7 | 789,360 | 1,644,416 | 3179 | 3262 | 3941 | ok |
+
+---
+
+## P2.8 exploration (2026-11-15): no simple placement feature beats additive — it is a data problem
+
+*Beyond the benchmark paper (long-run contribution). Exploratory analysis on the P2.7 register; not a shipped block.*
+
+After P2.7's loss, we tested the full space of **physically-motivated placement features** against the
+additive baseline, with 5-fold CV on the 150-config primary sweep **and** confirmation on the
+independent `register_repeat.jsonl` (same configs, independent timings). Each feature is added as a
+correction to additive (fit on the residual `measured − additive`, OLS, no intercept).
+
+| Feature added to additive | CV out-of-sample MAPE (primary) | fit-primary → test-repeat MAPE |
+|---|---:|---:|
+| **additive baseline** | **21.2%** | **20.9%** |
+| sum fp32 elements (P2.7) | 25.3% | 21.2% |
+| max fp32 tensor (max, not sum) | 25.7% | 21.8% |
+| island count (# contiguous fp32 regions) | 25.4% | 21.6% |
+| conv0 fp32 step indicator | 22.6% | 20.6% |
+| **max seam-resolution** (correctly-attributed boundary tensor) | 27.2% | 23.0% |
+| sum seam-resolution | 26.7% | 23.0% |
+
+**Every feature raises held-out error. No simple linear cost model beats additive on this data.**
+
+**Mechanism (confirmed, and why the features still fail).** The non-additive cost is governed by
+whether a precision **seam coincides with a high-resolution activation** — not by how many fp32 layers
+or seams there are:
+
+| config | measured p50 | head precision |
+|---|---:|---|
+| `cfg_019` | **2,142 µs** | conv0 **and** conv1 fp32 (contiguous → seam pushed past the big tensors) |
+| `cfg_126` | **10,570 µs** | conv0 fp32, conv1 **int8** (seam at conv0's 788k-element output → huge reorder) |
+
+Same "conv0 is fp32," opposite cost, decided by the neighbour. But among the ~60 conv0-fp32 configs the
+cost spans **2,142 → 10,570 µs (≈5×)**, driven by the *joint* topology (which seams, at which
+resolutions, interacting). A single linear feature cannot represent a 5× interaction-driven spread, so
+it adds variance and loses; additive wins on *average* precisely because it does not try.
+
+**Conclusion: this is a data problem, not a feature problem.** Accurate graph-aware cost modeling needs
+either (a) **direct microbenchmarks of the layout-conversion / reorder kernels** as a function of tensor
+size × precision context, or (b) **many more models**, so a richer (nonlinear / interaction) model is
+identifiable without overfitting 150 single-model points. **Chosen next step: (b)** — a multi-model
+sweep (MobileNet, ResNet, SqueezeNet, …) to (1) test whether the seam×resolution mechanism generalises
+across architectures and (2) build a dataset large and diverse enough to fit and honestly validate a
+richer cost model. (a) remains complementary future work.
+
+**Integrity.** Pre-declared candidate set (physics-motivated), fit on residual with held-out CV plus an
+independent repeat-sweep confirmation; all features reported, none cherry-picked, none beats additive.
+Reproduced via `scratchpad/explore.py` + `explore2.py` against `tmp/p2.7-sweep/register*.jsonl`.
