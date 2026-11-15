@@ -39,7 +39,7 @@ preprocess = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
 ])
 
-selected_paths = image_paths[:1000]
+selected_paths = image_paths  # use the entire val split
 print(f"Total test images: {len(selected_paths)}")
 
 # Prepare small calibration subset (100 images) to keep RAM usage tiny (<100MB)
@@ -49,13 +49,14 @@ for p in selected_paths[:100]:
     calib_tensors.append(preprocess(img).unsqueeze(0).numpy().astype(np.float32))
 calib_array = np.concatenate(calib_tensors, axis=0)
 
-print("[2/4] Exporting 5 pretrained CNN models to ONNX...")
+print("[2/4] Exporting 6 pretrained CNN models to ONNX...")
 model_constructors = {
     'mobilenetv2': models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT),
     'shufflenetv2': models.shufflenet_v2_x1_0(weights=models.ShuffleNet_V2_X1_0_Weights.DEFAULT),
     'squeezenet': models.squeezenet1_1(weights=models.SqueezeNet1_1_Weights.DEFAULT),
     'resnet18': models.resnet18(weights=models.ResNet18_Weights.DEFAULT),
     'resnet50': models.resnet50(weights=models.ResNet50_Weights.DEFAULT),
+    'resnet152': models.resnet152(weights=models.ResNet152_Weights.DEFAULT),
 }
 dummy_input = torch.randn(1, 3, 224, 224)
 
@@ -100,7 +101,7 @@ for name in model_constructors.keys():
             quantize_dynamic(fp32_p, int8_p, weight_type=QuantType.QInt8)
         print(f"  -> Quantized {name}_int8.onnx")
 
-print("[4/4] Executing benchmark streaming 1,000 images on AWS Graviton2...")
+print(f"[4/4] Executing benchmark streaming {len(selected_paths)} images on AWS Graviton2...")
 results = []
 providers = ['CPUExecutionProvider']
 
@@ -151,7 +152,9 @@ for name in model_constructors.keys():
         gc.collect()
 
 df = pd.DataFrame(results)
-df.to_csv('reports/data/benchmark_aws_graviton_1000images.csv', index=False)
+out_csv = f'reports/data/benchmark_aws_graviton_{len(selected_paths)}images.csv'
+df.to_csv(out_csv, index=False)
+print(f"Saved results to {out_csv}")
 print("\n" + "="*70)
 print("AWS GRAVITON BENCHMARK COMPLETE!")
 print("="*70)
