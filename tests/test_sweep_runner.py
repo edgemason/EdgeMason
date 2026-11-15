@@ -161,7 +161,11 @@ def test_benchmark_failure_is_recorded_as_failed_row(tmp_path, monkeypatch):
     """Spec #3 / B-59: a run that reports failure is kept as a failed row."""
     model_path = _tiny_conv_model(tmp_path)
 
-    def failed_benchmark(*args, **kwargs) -> dict:
+    def failed_benchmark(model_path_arg, *args, **kwargs) -> dict:
+        # The lookup's pure-model measurements must still succeed; only the
+        # per-config runs fail, which is what this test is about.
+        if "model_mixed_int8" not in str(model_path_arg):
+            return {"success": True, "error": None, "latency_ms": {"p50": 1.5, "p90": 1.8}}
         return {
             "success": False,
             "error": "simulated OOM",
@@ -188,6 +192,19 @@ def test_benchmark_failure_is_recorded_as_failed_row(tmp_path, monkeypatch):
 def test_real_benchmark_records_measured_timing(tmp_path):
     """The shared bench protocol produces real p50/p90 values when not stubbed."""
     model_path = _tiny_conv_model(tmp_path)
+    lookup = sweep_runner.build_lookup_table(
+        str(model_path),
+        _calibration(),
+        quantizer=Quantizer(str(tmp_path / "lookup_models")),
+        work_dir=tmp_path / "lookup_work",
+        warmup_runs=1,
+        benchmark_runs=3,
+        time_budget_seconds=1.0,
+        isolated=False,
+    )
+    assert lookup.regime in {"optimized", "calibrated"}
+    assert {item["precision"] for item in lookup.raw_sanity} == {"fp32", "int8"}
+
     rows = sweep_runner.run_sweep(
         str(model_path),
         _calibration(),
@@ -222,6 +239,70 @@ def test_additive_prediction_is_an_exact_hand_sum():
         sweep_runner.compute_additive_prediction(lookup, ["not_a_layer"])
 
 
+def test_sanity_gate_accepts_matching_lookup_and_rejects_mismatch():
+    """Amendment A #3: the gate passes a consistent lookup and raises otherwise."""
+    layers = {
+        "a": sweep_runner.LayerTiming(fp32_us=10.0, int8_us=20.0),
+        "b": sweep_runner.LayerTiming(fp32_us=30.0, int8_us=40.0),
+    }
+    report = sweep_runner.check_lookup_sanity(
+        layers, fp32_measured_us=40.0, int8_measured_us=60.0
+    )
+    assert [item["precision"] for item in report] == ["fp32", "int8"]
+    assert all(item["rel_error"] == pytest.approx(0.0) for item in report)
+
+    # Within tolerance (10% off) is accepted.
+    sweep_runner.check_lookup_sanity(
+        layers, fp32_measured_us=44.0, int8_measured_us=60.0
+    )
+    # A lookup from the wrong execution regime is rejected.
+    with pytest.raises(sweep_runner.LookupSanityError, match="pure fp32"):
+        sweep_runner.check_lookup_sanity(
+            layers, fp32_measured_us=80.0, int8_measured_us=60.0
+        )
+    with pytest.raises(sweep_runner.LookupSanityError, match="pure int8"):
+        sweep_runner.check_lookup_sanity(
+            layers, fp32_measured_us=40.0, int8_measured_us=120.0
+        )
+    with pytest.raises(sweep_runner.LookupSanityError, match="must be positive"):
+        sweep_runner.check_lookup_sanity(
+            layers, fp32_measured_us=0.0, int8_measured_us=60.0
+        )
+
+
+def test_calibration_rescales_each_precision_to_its_measurement():
+    """Amendment A #4: calibration makes both pure predictions exact."""
+    layers = {
+        "a": sweep_runner.LayerTiming(fp32_us=10.0, int8_us=20.0),
+        "b": sweep_runner.LayerTiming(fp32_us=30.0, int8_us=40.0),
+    }
+    calibrated = sweep_runner.calibrate_lookup(
+        layers, fp32_measured_us=50.0, int8_measured_us=90.0
+    )
+    assert sweep_runner.lookup_sums(calibrated) == pytest.approx((50.0, 90.0))
+    report = sweep_runner.check_lookup_sanity(
+        calibrated, fp32_measured_us=50.0, int8_measured_us=90.0
+    )
+    assert all(item["rel_error"] == pytest.approx(0.0) for item in report)
+
+    with pytest.raises(sweep_runner.LookupSanityError, match="non-positive"):
+        sweep_runner.calibrate_lookup(
+            {"zero": sweep_runner.LayerTiming(fp32_us=0.0, int8_us=0.0)},
+            fp32_measured_us=10.0,
+            int8_measured_us=10.0,
+        )
+
+
+def test_lookup_is_profiled_in_the_benchmark_optimization_regime():
+    """Amendment A #1: the lookup must not profile with ORT_DISABLE_ALL."""
+    import onnxruntime as ort
+
+    assert (
+        sweep_runner.BENCHMARK_OPTIMIZATION_LEVEL
+        is ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+    )
+
+
 def test_empty_fp32_list_has_zero_seams_and_stays_all_int8(tmp_path, monkeypatch):
     """Spec #5: the pure-int8 config has no seams and no fp32 conv."""
     model_path = _tiny_conv_model(tmp_path)
@@ -236,6 +317,10 @@ def test_empty_fp32_list_has_zero_seams_and_stays_all_int8(tmp_path, monkeypatch
         _calibration(),
         quantizer=Quantizer(str(tmp_path / "lookup_models")),
         work_dir=tmp_path / "lookup_work",
+        warmup_runs=1,
+        benchmark_runs=3,
+        isolated=False,
     )
     assert table.layers
+    assert table.regime in {"optimized", "calibrated"}
     assert table.int8_boundary  # baseline boundary table is available

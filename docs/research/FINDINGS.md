@@ -157,3 +157,108 @@ optimisations are disabled (the setting the P2.3 fetcher needs to see every node
 meaningful comparison. End-to-end p50 uses `scripts/quantization_analysis.py`'s method (10 warm-up
 + 50 timed runs, 1 thread, one real test image). Accuracy uses `api.optimizer.validation.evaluate_onnx`
 on the same 179-image test split as `reports/data/quantization_analysis.json`.
+
+---
+
+## P2.6 sweep (2026-11-15): 38 mixed-precision configs, additive model with a sanity gate
+
+Host: Intel Core i7-13620H (`x86_64`, `avx2` + `avx_vnni`), ONNX Runtime 1.27.0, CPU EP, 1 intra-op
+and 1 inter-op thread. Model: `squeezenet1.1-13.fp32.onnx` (39 excludable layers). Calibration: 8
+random `224×224` images (`float32`, seed 0), matching the P2.5 generator and P2.3 fetch fixtures.
+Sweep: `seed=0`, `target=40`, 5 warm-up + 30 timed runs, 2 s budget per model, isolated (fresh
+process) measurement.
+
+**Method.** Two pure models (fp32, static int8) are built once. Each is profiled for per-layer
+costs and then measured with the shared benchmark protocol; the lookup is accepted only if each
+pure config's additive sum is within 15% of its measurement. That gate fails a lookup profiled in
+a different optimization regime, which is what happened in the first pass of this spec (see
+Amendment A in `docs/specs/P2.6-sweep-runner.md`). Mixed models are then predicted as
+`sum(fp32_us for layers kept in fp32) + sum(int8_us for the rest)`; nothing per-config is fetched
+except the structural seam count.
+
+| Pure config | Additive sum (µs) | Measured p50 (µs) | Relative error | Gate |
+|---|---:|---:|---:|---|
+| fp32 | 5170.8 | 5141.3 | 0.57% | pass |
+| static int8 | 2096.3 | 2066.3 | 1.45% | pass |
+
+Regime recorded: `optimized` (`ORT_ENABLE_ALL`, ONNX Runtime's default — the level
+`BenchmarkEngine` leaves in place). No calibration rescale was needed on this run.
+
+**Seam count is structural.** The spec's original plan counted boundary nodes from each config's
+own profile. That is not possible under the benchmark regime: optimization renames, folds and
+duplicates Q/DQ nodes (`squeezenet0_relu0_fwd_q`, `/duplicated` DequantizeLinear) and inserts
+layout bookkeeping (`ReorderInput`, `ReorderOutput`), so the P2.3 fetcher cannot attribute them
+against the pre-optimization graph — 35 of 38 configs raised on the first amended run. Since a
+seam is a property of the graph and not of the timing, the count is taken from the **optimized**
+graph the benchmark actually executes, as Q/DQ nodes beyond the all-int8 baseline (which itself
+has 2: the model-input `QuantizeLinear` and model-output `DequantizeLinear`). This is the one
+deviation from the spec's letter; no timing is read from per-config profiles.
+
+**Agreement.** All 38 configs completed (`status: ok`, 0 failed).
+
+| Subset | n | MAPE | Median relative error | Median residual (measured − predicted) | `corr(pred, p50)` |
+|---|---:|---:|---:|---:|---:|
+| All configs | 38 | 24.6% | 11.5% | +410 µs | +0.395 |
+| `conv0` kept fp32 ("head") | 20 | 41.0% | 46.1% | +2724 µs | +0.124 |
+| `conv0` quantized ("no-head") | 18 | 6.4% | 4.9% | +154 µs | +0.920 |
+
+Least-squares fits on measured p50 (all configs): count + seams gives 50 µs per fp32 layer and
+99 µs per seam (R² = 0.419); head alone gives +2638 µs (R² = 0.599); all three give 48 µs/layer,
+31 µs/seam and +2212 µs for head (R² = 0.734). The two extremes bracket correctly: `cfg_000`
+(all int8, 0 seams) measures 2053 µs against 2098 predicted (−2.1%) and `cfg_037` (all fp32,
+0 seams) measures 5407 µs against 5092 predicted (+6.2%).
+
+**Finding: seam count is not the dominant term; placement of `conv0` is.** Every config where
+`squeezenet0_conv0_fwd` is quantized lands within ~6% of the additive prediction, with only 0–4
+seams and no systematic gap. Every config that keeps `conv0` in fp32 pays a large fixed penalty
+that the additive model does not represent: the low-seam head configs (`cfg_002`–`cfg_014`, 1–4
+seams) all measure 5604–5725 µs regardless of whether 2 or 14 fp32 layers are kept. Keeping `conv0`
+fp32 forces a layout conversion around the NCHWc
+conv kernel, which ORT inserts as `ReorderInput`/`ReorderOutput`; the cost is in the reorders, not
+in the layer's own kernel time, so the additive sum cannot see it. Seam count still adds ~30–100 µs
+per boundary, but placement of the head conv dominates the residual.
+
+**Register.** Every config's row from `tmp/p2.6-sweep/register.jsonl` (gitignored; this table is the
+durable copy). `fp32 layers` is the number of the 39 excludable layers kept in fp32; `seams` is the
+extra Q/DQ boundary count over the all-int8 model.
+
+| config | fp32 layers | seams | measured p50 (µs) | measured p90 (µs) | additive pred (µs) | status |
+|---|---:|---:|---:|---:|---:|---|
+| `cfg_000` | 0 | 0 | 2053 | 2094 | 2098 | ok |
+| `cfg_001` | 2 | 3 | 2139 | 2192 | 2144 | ok |
+| `cfg_002` | 2 | 1 | 5638 | 5759 | 1980 | ok |
+| `cfg_003` | 4 | 4 | 2420 | 2477 | 2288 | ok |
+| `cfg_004` | 4 | 1 | 5623 | 5807 | 2244 | ok |
+| `cfg_005` | 6 | 3 | 4197 | 4339 | 2505 | ok |
+| `cfg_006` | 6 | 1 | 5647 | 5807 | 2506 | ok |
+| `cfg_007` | 8 | 3 | 2661 | 2688 | 2544 | ok |
+| `cfg_008` | 8 | 1 | 5604 | 5767 | 2192 | ok |
+| `cfg_009` | 10 | 4 | 2582 | 2626 | 2591 | ok |
+| `cfg_010` | 10 | 1 | 5661 | 5794 | 3458 | ok |
+| `cfg_011` | 12 | 3 | 2811 | 2874 | 2776 | ok |
+| `cfg_012` | 12 | 1 | 5725 | 5865 | 2354 | ok |
+| `cfg_013` | 14 | 4 | 2996 | 3039 | 2920 | ok |
+| `cfg_014` | 14 | 4 | 5699 | 5934 | 2398 | ok |
+| `cfg_015` | 16 | 3 | 3168 | 3252 | 2957 | ok |
+| `cfg_016` | 16 | 17 | 6479 | 6634 | 2890 | ok |
+| `cfg_017` | 18 | 2 | 3298 | 3352 | 3122 | ok |
+| `cfg_018` | 18 | 20 | 3382 | 3609 | 3854 | ok |
+| `cfg_019` | 21 | 2 | 3434 | 3556 | 3370 | ok |
+| `cfg_020` | 21 | 23 | 6572 | 6788 | 4615 | ok |
+| `cfg_021` | 23 | 2 | 3716 | 3929 | 3473 | ok |
+| `cfg_022` | 23 | 27 | 5788 | 5940 | 3610 | ok |
+| `cfg_023` | 25 | 3 | 3998 | 4236 | 3682 | ok |
+| `cfg_024` | 25 | 19 | 6173 | 6268 | 4316 | ok |
+| `cfg_025` | 27 | 2 | 4042 | 4137 | 3779 | ok |
+| `cfg_026` | 27 | 24 | 8918 | 9164 | 3386 | ok |
+| `cfg_027` | 29 | 3 | 4450 | 4544 | 4034 | ok |
+| `cfg_028` | 29 | 22 | 7576 | 7693 | 3511 | ok |
+| `cfg_029` | 31 | 2 | 4433 | 4657 | 4088 | ok |
+| `cfg_030` | 31 | 18 | 8089 | 8205 | 3786 | ok |
+| `cfg_031` | 33 | 1 | 5106 | 5384 | 4886 | ok |
+| `cfg_032` | 33 | 14 | 7199 | 7483 | 4891 | ok |
+| `cfg_033` | 35 | 2 | 4651 | 4867 | 4248 | ok |
+| `cfg_034` | 35 | 11 | 5816 | 5946 | 5026 | ok |
+| `cfg_035` | 37 | 1 | 5309 | 5438 | 5192 | ok |
+| `cfg_036` | 37 | 5 | 6899 | 7043 | 5060 | ok |
+| `cfg_037` | 39 | 0 | 5407 | 5521 | 5092 | ok |
