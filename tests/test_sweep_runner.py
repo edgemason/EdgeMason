@@ -324,3 +324,30 @@ def test_empty_fp32_list_has_zero_seams_and_stays_all_int8(tmp_path, monkeypatch
     assert table.layers
     assert table.regime in {"optimized", "calibrated"}
     assert table.int8_boundary  # baseline boundary table is available
+
+
+def test_decorrelated_sampler_spans_placement_independently_of_seams():
+    """P2.7 §3: sample many-seam/low-res and few-seam/high-res configs."""
+    layers = [f"L{i}" for i in range(12)]
+    sizes = {name: 100_000 for name in layers}
+    sizes["L0"] = 1_000_000  # the high-resolution head
+    sizes["L1"] = 900_000
+
+    first = sweep_runner.generate_decorrelated_configs(layers, sizes, seed=0, target=40)
+    second = sweep_runner.generate_decorrelated_configs(layers, sizes, seed=0, target=40)
+    assert [(c.config_id, c.fp32_nodes) for c in first] == [
+        (c.config_id, c.fp32_nodes) for c in second
+    ]
+    assert first[0].fp32_nodes == ()
+
+    subsets = [set(config.fp32_nodes) for config in first]
+    assert set() in subsets and set(layers) in subsets
+    # A small, high-resolution-only fp32 island (the conv0 effect).
+    assert {"L0"} in subsets
+    # Many low-resolution layers kept fp32: seams without high-res placement.
+    low_only = [
+        subset
+        for subset in subsets
+        if subset and not (subset & {"L0", "L1"}) and len(subset) >= 6
+    ]
+    assert low_only

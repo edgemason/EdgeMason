@@ -271,3 +271,313 @@ extra Q/DQ boundary count over the all-int8 model.
 | `cfg_035` | 37 | 1 | 5309 | 5438 | 5192 | ok |
 | `cfg_036` | 37 | 5 | 6899 | 7043 | 5060 | ok |
 | `cfg_037` | 39 | 0 | 5407 | 5521 | 5092 | ok |
+
+---
+
+## P2.7 cost model (2026-11-15): seam/stranded byte terms do not beat additive out-of-sample
+
+**Result: no-win.** On a 150-config decorrelated sweep, the spec's graph-aware cost model scores
+**25.4%** out-of-sample MAPE against the additive baseline's **21.2%** (5-fold CV, seed 0, all 150
+configs, 0 failed). The two geometry features are real and deterministic, but the measured residual
+is not monotone in either of them, so a positive linear per-element correction cannot model it and
+the fit places `alpha` near zero. This section reports the comparison as required by spec
+§6; no feature was added, no config was dropped, and no seed was changed after seeing it.
+
+Host: Intel Core i7-13620H (`x86_64`), ONNX Runtime 1.27.0, CPU EP, 1 intra-op and 1 inter-op
+thread. Model: `squeezenet1.1-13.fp32.onnx` (65 excludable pre-processed nodes; 39 survive the
+lookup intersection). Calibration: the same 8 random `224×224` images (`float32`, seed 0) as P2.6.
+Sweep: `seed=0`, `target=150`, 10 warm-up + 100 timed runs, 2 s budget per model, isolated (fresh
+process) measurement. (P2.6 used 5 + 30; the longer run was chosen to keep the larger register's
+per-row noise down, and its effect is quantified below.)
+
+**Features.** One `onnx.shape_inference.infer_shapes` pass on the base model gives 121 activation
+shapes and 66 layer-output tensors; all 65 excludable layers resolve, so no shape was fabricated
+(a missing shape would raise). Per config:
+
+| Feature | Source | Definition used |
+|---|---|---|
+| `additive_us` | P2.6 gated lookup | `sum(fp32_us for fp32 layers) + sum(int8_us for the rest)` |
+| `seam_bytes` | P2.3 boundary table, profiled with `ORT_DISABLE_ALL` so Q/DQ keep authored names; timing never read from it | Σ elements of the tensors of the boundary entries a config adds over the all-int8 baseline (model-input `Q` / model-output `DQ` cancel out) |
+| `stranded_fp32_bytes` | base-model shape map + built mixed graph | Σ output elements of configured fp32 layers whose fp32 **region** touches an int8 node. The region (not direct adjacency) is used because ORT leaves `relu0`/`pool0` fp32 after an fp32 `conv0`; without the region, the `conv0` effect would not be counted at all |
+
+Model: `predicted = additive + alpha·seam_bytes + beta·stranded_fp32_bytes`, no intercept; `alpha`,
+`beta` by ordinary least squares on `measured_p50 − additive`. Validation: 5-fold CV, seed 0,
+predictions pooled over held-out folds before computing MAPE.
+
+**Out-of-sample result.** Fitted on all 150 configs: `alpha = −1.83e−5 µs/element`,
+`beta = 4.50e−4 µs/element`.
+
+| Predictor (5-fold CV, seed 0) | Out-of-sample MAPE |
+|---|---:|
+| Additive (P2.6 baseline) | **21.2%** |
+| Spec model: additive + α·seam + β·stranded | 25.4% |
+| Spec model + intercept γ (optional variant, §2) | 25.0% |
+| Seam term only, no intercept | 26.2% |
+| Stranded term only, no intercept | 25.4% |
+
+The two-feature model reduces to the stranded-only model because `alpha` fits at ~0 (and negative
+overall). The intercept variant does not rescue it (`gamma = −183.5 µs`, `alpha = 5.86e−5`,
+`beta = 4.88e−4`). No variant beats additive.
+
+**Fold-to-fold coefficients** (fit on 120, test on 30):
+
+| fold | α (µs/element) | β (µs/element) | additive MAPE | cost-model MAPE |
+|---:|---:|---:|---:|---:|
+| 0 | +5.11e−5 | 4.48e−4 | 19.3% | 24.7% |
+| 1 | +2.95e−6 | 4.10e−4 | 24.7% | 25.4% |
+| 2 | −2.06e−5 | 3.93e−4 | 25.5% | 27.5% |
+| 3 | −5.74e−5 | 4.59e−4 | 18.3% | 22.1% |
+| 4 | −8.86e−5 | 5.70e−4 | 18.2% | 27.5% |
+| **all 150** | **−1.83e−5** | **4.50e−4** | **21.2%** | **25.4%** |
+
+`alpha` changes sign across folds (range −8.86e−5 … +5.11e−5, std 4.83e−5, larger than its full-fit
+magnitude of 1.83e−5); `beta` keeps its sign but moves over 3.93e−4 … 5.70e−4 (std 6.17e−5). Per
+spec §6 that is the "coefficients swing ⇒ features collinear or data too small" flag, reported
+rather than hidden. The cost model loses in **all 5 folds**, from a 0.7-point gap in fold 1 to a
+9.3-point gap in fold 4.
+
+**Why the byte terms fail: the residual is not a function of summed boundary bytes.**
+Across the 150 rows, `corr(measured − additive, seam_bytes) = 0.078` and
+`corr(measured − additive, stranded_fp32_bytes) = 0.324`. The `conv0` penalty is bimodal and
+*anti*-monotone in the features:
+
+- **8 configs keep `conv0` fp32 with ≤4 fp32 layers total** (an isolated high-resolution island
+  ending at `pool0`): every one measures 5,659–6,086 µs, residual **+3,128 … +3,853 µs** — even
+  though their `seam_bytes` span 193,600–1,448,512 (7.5×) and `stranded_fp32_bytes`
+  788,544–1,756,544 (2.2×). Within this family latency is flat while the features vary by an order
+  of magnitude.
+- The **7 configs that keep `conv0` fp32 and still measure < 3,500 µs** have *larger* median
+  features than that slow island family (seam 1,076,568 vs 808,848; stranded 1,644,416 vs
+  1,172,256): more boundary bytes, less latency.
+- The cleanest pair is `cfg_025` vs `cfg_026`: both keep 10 layers fp32 and both include `conv0`,
+  but `cfg_025` also keeps the adjacent `conv1` (the 55×55 squeeze) and stays fast — **2,160 µs**,
+  residual −1,147 — while `cfg_026` does not and **6,341 µs**, residual +3,397. `cfg_025` has the
+  *larger* feature values (seam 1,246,360 vs 1,119,424; stranded 1,563,192 vs 1,521,856), so any
+  positive linear weight ranks them backwards.
+
+This refines P2.6 rather than contradicting it. Placement still dominates, but the operative
+quantity is not a sum of boundary elements: it is whether an fp32 island ends on a large
+high-resolution tensor (`pool0`, 55×55×64) instead of continuing through the adjacent squeeze
+(`conv1`, whose output is 4× smaller). Summed elements across every boundary also add deep,
+low-resolution seams that are nearly free, diluting the one boundary that matters. To carry the
+effect, the model would need the size of the tensor the fp32 region actually ends on (or a
+per-island fixed cost / topology indicator) — a different feature set, which spec §6 forbids adding
+after seeing the result. For scale: the observed `conv0`-only residual of +3,853 µs would require
+`beta ≈ 4.9e−3 µs/element`, **11×** the fitted 4.50e−4; the fitted model corrects `cfg_002` by only
++351 µs.
+
+**Robustness to measurement noise.** The identical sweep (same seed, same sampler output, same
+protocol) was run twice; all 150 configs were reproduced exactly and per-config measured p50
+differed by 3.0% median / 8.3% p90 / 17.6% max, while the re-measured additive prediction differed
+by 8.2% median (per-layer profiling noise accumulates across the sum). Repeating the CV on the
+second register and on the per-config mean of the two gives:
+
+| Register | Additive MAPE | Cost-model MAPE | Full-fit α | Full-fit β |
+|---|---:|---:|---:|---:|
+| Primary (reported above) | 21.2% | 25.4% | −1.83e−5 | 4.50e−4 |
+| Repeat | 20.9% | 24.1% | +8.64e−5 | 5.30e−4 |
+| Mean of the two | 20.4% | 24.5% | +3.41e−5 | 4.91e−4 |
+
+The no-win is stable across all three, and `alpha` even changes sign between sweeps. Noise inflates
+both models' error but does not explain the gap: the `cfg_025`/`cfg_026` difference is deterministic
+graph geometry, and an independent rebuild plus benchmark reproduced the two extremes (`cfg_002`:
+5,545 µs; `cfg_025`: 2,138 µs, against sweep values 6,075 and 2,160).
+
+**Integrity statement.** Single pre-declared analysis: seed 0, `k=5`, all 150 rows, 0 dropped, no
+features added, no re-seed. The cost model does not beat additive out-of-sample; that is the
+finding. A model that adds a topology term would be a new spec/block, not a patch to this one.
+
+> **── Benchmark-paper scope ends here. ──**
+> The optimization-and-measurement results **through this section** are the scope of the
+> **benchmarking paper** (near-term venue, e.g. PeRConAI; teammate drafting):
+> - **P2.4** — static INT8 runs real integer kernels (−62.6% conv time, 0 top-1 loss);
+> - **P2.6** — the additive per-layer model mispredicts mixed-precision latency by up to **−65%**
+>   (some configs ~2× slower than pure fp32), driven by **precision placement**, not seam count;
+> - **P2.7** — a size-weighted graph-aware cost model (additive + α·seam-bytes + β·stranded-bytes)
+>   **does not beat** the additive baseline out-of-sample (21.2% vs 25.4%, 5-fold CV).
+>
+> The P2.7 negative result appears in the benchmark paper as motivation / future work.
+>
+> **Held back for the long-run contribution (NOT in the benchmark paper):** the **topology-aware
+> cost model** — per-island + boundary-tensor features, where the cost is a placement/topology
+> effect rather than a per-element total. This is a future spec (P2.8) targeting a stronger systems
+> venue (IEEE MCSoC, MLSys, EuroSys). Any future P2.8+ section is beyond the benchmark paper's scope.
+
+**Reproduce** (from the worktree root; `tmp/` is gitignored):
+
+```bash
+uv run python - <<'PY'
+import numpy as np
+from api.optimizer import cost_model, sweep_runner
+
+calibration = np.random.default_rng(0).random((8, 3, 224, 224), dtype=np.float32)
+rows = sweep_runner.run_sweep(
+    "tests/fixtures/fetcher/squeezenet1.1-13.fp32.onnx",
+    calibration,
+    register_path="tmp/p2.7-sweep/register.jsonl",
+    seed=0, target=150, work_dir="tmp/p2.7-sweep/work",
+    warmup_runs=10, benchmark_runs=100, time_budget_seconds=2.0, isolated=True,
+)
+report = cost_model.cross_validate(rows, k=5, seed=0)
+cost_model.write_report(report, "tmp/p2.7-sweep/cost_model_report.json")
+print(report["out_of_sample"], report["coefficients"], report["stability"])
+PY
+```
+
+**Register.** Every config's row from `tmp/p2.7-sweep/register.jsonl` (gitignored; this table is the
+durable copy). `fp32 layers` is the number of excludable layers kept fp32; `seams` is the structural
+Q/DQ count over the all-int8 model (P2.6 method); `seam bytes` and `stranded bytes` are the P2.7
+geometry features. All 150 rows are `status: ok`.
+
+| config | fp32 layers | conv0 fp32 | seams | seam bytes | stranded bytes | p50 (µs) | p90 (µs) | additive (µs) | status |
+|---|---:|:---:|---:|---:|---:|---:|---:|---:|---|
+| `cfg_000` | 0 | no | 0 | 0 | 0 | 2264 | 2348 | 2345 | ok |
+| `cfg_001` | 39 | yes | 0 | 0 | 0 | 5713 | 5994 | 5882 | ok |
+| `cfg_002` | 1 | yes | 1 | 193,600 | 788,544 | 6075 | 6327 | 2222 | ok |
+| `cfg_003` | 2 | yes | 1 | 968,000 | 1,175,744 | 5697 | 5830 | 2238 | ok |
+| `cfg_004` | 2 | yes | 1 | 566,848 | 975,168 | 5659 | 5827 | 2226 | ok |
+| `cfg_005` | 3 | yes | 1 | 1,448,512 | 1,562,944 | 5694 | 6091 | 2254 | ok |
+| `cfg_006` | 3 | yes | 1 | 808,848 | 1,168,768 | 5668 | 5983 | 2242 | ok |
+| `cfg_007` | 4 | yes | 1 | 1,448,512 | 1,756,544 | 5846 | 6022 | 2298 | ok |
+| `cfg_008` | 4 | yes | 1 | 808,848 | 1,362,368 | 5666 | 5794 | 2538 | ok |
+| `cfg_009` | 8 | no | 0 | 665,560 | 387,448 | 2335 | 2394 | 3414 | ok |
+| `cfg_010` | 8 | no | 3 | 18,928 | 278,512 | 2560 | 2666 | 2756 | ok |
+| `cfg_011` | 15 | no | 12 | 1,947,904 | 746,096 | 4180 | 4348 | 4645 | ok |
+| `cfg_012` | 15 | no | 3 | 209,560 | 771,992 | 4335 | 4477 | 4397 | ok |
+| `cfg_013` | 22 | no | 19 | 1,805,704 | 960,784 | 4424 | 4640 | 3818 | ok |
+| `cfg_014` | 22 | no | 6 | 1,524,576 | 1,213,056 | 3857 | 3997 | 3990 | ok |
+| `cfg_015` | 30 | no | 4 | 1,438,048 | 1,654,456 | 5280 | 5528 | 5349 | ok |
+| `cfg_016` | 8 | no | 3 | 18,928 | 324,480 | 2675 | 2776 | 2916 | ok |
+| `cfg_017` | 15 | no | 1 | 64,896 | 676,648 | 4007 | 4154 | 4255 | ok |
+| `cfg_018` | 22 | no | 2 | 355,624 | 1,252,392 | 4489 | 4618 | 4826 | ok |
+| `cfg_019` | 9 | yes | 1 | 471,960 | 1,175,992 | 2142 | 2184 | 3291 | ok |
+| `cfg_020` | 9 | yes | 5 | 420,784 | 1,196,896 | 5905 | 6154 | 2478 | ok |
+| `cfg_021` | 16 | yes | 13 | 1,754,304 | 1,534,640 | 4278 | 4521 | 4522 | ok |
+| `cfg_022` | 16 | yes | 2 | 258,496 | 1,465,192 | 7738 | 7966 | 4132 | ok |
+| `cfg_023` | 23 | yes | 20 | 1,612,104 | 1,749,328 | 4356 | 4579 | 3695 | ok |
+| `cfg_024` | 23 | yes | 3 | 496,864 | 1,965,248 | 7504 | 7723 | 4003 | ok |
+| `cfg_025` | 10 | yes | 1 | 1,246,360 | 1,563,192 | 2160 | 2212 | 3307 | ok |
+| `cfg_026` | 10 | yes | 5 | 1,119,424 | 1,521,856 | 6341 | 6609 | 2944 | ok |
+| `cfg_027` | 17 | yes | 13 | 2,528,704 | 1,921,840 | 4092 | 4180 | 4538 | ok |
+| `cfg_028` | 17 | yes | 4 | 1,208,704 | 1,945,472 | 6474 | 6591 | 3092 | ok |
+| `cfg_029` | 24 | yes | 23 | 1,612,104 | 2,136,528 | 4500 | 4595 | 3710 | ok |
+| `cfg_030` | 24 | yes | 3 | 1,084,640 | 2,313,496 | 7982 | 8511 | 4636 | ok |
+| `cfg_031` | 11 | yes | 1 | 1,726,872 | 1,950,392 | 2208 | 2301 | 3323 | ok |
+| `cfg_032` | 11 | yes | 3 | 1,853,200 | 2,197,520 | 6295 | 6724 | 2986 | ok |
+| `cfg_033` | 18 | yes | 13 | 2,528,704 | 2,309,040 | 4090 | 4240 | 4554 | ok |
+| `cfg_034` | 18 | yes | 4 | 1,645,952 | 2,263,328 | 6793 | 7112 | 3066 | ok |
+| `cfg_035` | 25 | yes | 24 | 1,905,992 | 2,523,728 | 4613 | 4936 | 3726 | ok |
+| `cfg_036` | 25 | yes | 7 | 1,739,264 | 2,776,544 | 7362 | 7695 | 3814 | ok |
+| `cfg_037` | 9 | no | 7 | 1,352,808 | 1,151,336 | 2960 | 3112 | 3874 | ok |
+| `cfg_038` | 7 | no | 5 | 1,291,280 | 840,192 | 2665 | 2767 | 2984 | ok |
+| `cfg_039` | 24 | no | 19 | 2,344,032 | 1,946,768 | 4659 | 4823 | 5011 | ok |
+| `cfg_040` | 37 | yes | 5 | 246,432 | 4,213,816 | 5574 | 5949 | 5858 | ok |
+| `cfg_041` | 26 | no | 5 | 1,405,488 | 1,366,408 | 4724 | 4835 | 4988 | ok |
+| `cfg_042` | 19 | no | 21 | 1,294,608 | 1,064,560 | 4136 | 4250 | 4020 | ok |
+| `cfg_043` | 11 | yes | 7 | 1,216,144 | 1,382,384 | 6351 | 6587 | 3518 | ok |
+| `cfg_044` | 23 | no | 14 | 1,746,304 | 1,383,056 | 4905 | 5271 | 4863 | ok |
+| `cfg_045` | 7 | no | 6 | 300,144 | 367,744 | 2839 | 2930 | 2810 | ok |
+| `cfg_046` | 27 | no | 13 | 1,630,032 | 1,567,928 | 4818 | 5007 | 5246 | ok |
+| `cfg_047` | 7 | no | 3 | 446,304 | 1,036,736 | 4384 | 4512 | 3146 | ok |
+| `cfg_048` | 2 | no | 0 | 358,640 | 141,712 | 2304 | 2353 | 2680 | ok |
+| `cfg_049` | 35 | yes | 5 | 173,056 | 4,081,080 | 5457 | 5591 | 5488 | ok |
+| `cfg_050` | 3 | no | 0 | 286,992 | 112,240 | 2250 | 2322 | 2473 | ok |
+| `cfg_051` | 19 | no | 15 | 1,633,456 | 1,269,440 | 4463 | 4644 | 3965 | ok |
+| `cfg_052` | 9 | no | 3 | 848,144 | 467,840 | 2381 | 2439 | 3075 | ok |
+| `cfg_053` | 25 | no | 12 | 1,799,032 | 1,304,288 | 4609 | 4837 | 4048 | ok |
+| `cfg_054` | 26 | no | 10 | 1,567,840 | 1,492,216 | 4905 | 5160 | 5272 | ok |
+| `cfg_055` | 12 | no | 7 | 930,616 | 390,368 | 2965 | 3041 | 3356 | ok |
+| `cfg_056` | 14 | yes | 6 | 1,292,440 | 2,151,976 | 2880 | 3079 | 3836 | ok |
+| `cfg_057` | 22 | no | 11 | 1,630,720 | 1,354,952 | 5020 | 5200 | 4720 | ok |
+| `cfg_058` | 33 | yes | 9 | 890,704 | 3,856,928 | 5926 | 6174 | 5644 | ok |
+| `cfg_059` | 29 | no | 4 | 1,368,064 | 1,561,144 | 4700 | 4978 | 5056 | ok |
+| `cfg_060` | 6 | no | 0 | 731,792 | 500,528 | 2354 | 2465 | 2575 | ok |
+| `cfg_061` | 28 | no | 7 | 1,535,392 | 1,600,376 | 4900 | 5054 | 5281 | ok |
+| `cfg_062` | 26 | no | 13 | 1,779,120 | 1,420,536 | 4986 | 5231 | 5022 | ok |
+| `cfg_063` | 15 | no | 12 | 1,144,416 | 931,288 | 3798 | 3886 | 4004 | ok |
+| `cfg_064` | 14 | yes | 13 | 1,426,072 | 1,834,904 | 6379 | 6590 | 3880 | ok |
+| `cfg_065` | 22 | no | 9 | 1,351,632 | 1,301,512 | 3994 | 4090 | 4612 | ok |
+| `cfg_066` | 18 | yes | 14 | 1,616,104 | 1,810,952 | 3744 | 3847 | 3794 | ok |
+| `cfg_067` | 14 | yes | 4 | 1,025,512 | 2,204,728 | 3166 | 3227 | 4401 | ok |
+| `cfg_068` | 23 | no | 12 | 1,558,720 | 1,288,640 | 5213 | 5468 | 4954 | ok |
+| `cfg_069` | 36 | yes | 6 | 339,344 | 4,119,208 | 8868 | 9111 | 5734 | ok |
+| `cfg_070` | 23 | no | 11 | 1,843,008 | 1,212,280 | 3777 | 3847 | 4382 | ok |
+| `cfg_071` | 18 | no | 10 | 1,838,928 | 1,207,472 | 3278 | 3361 | 3948 | ok |
+| `cfg_072` | 6 | no | 6 | 320,440 | 243,032 | 2378 | 2438 | 2952 | ok |
+| `cfg_073` | 15 | no | 13 | 1,979,216 | 875,888 | 4352 | 4690 | 4491 | ok |
+| `cfg_074` | 20 | no | 8 | 1,592,872 | 1,334,296 | 4088 | 4269 | 4670 | ok |
+| `cfg_075` | 8 | no | 4 | 1,212,056 | 430,112 | 2524 | 2950 | 2849 | ok |
+| `cfg_076` | 2 | no | 0 | 94,640 | 75,712 | 2236 | 2315 | 2767 | ok |
+| `cfg_077` | 38 | yes | 3 | 73,008 | 4,363,912 | 5684 | 5960 | 5842 | ok |
+| `cfg_078` | 4 | yes | 7 | 399,104 | 929,152 | 6086 | 6317 | 2294 | ok |
+| `cfg_079` | 25 | no | 12 | 1,684,080 | 1,476,320 | 5549 | 5730 | 4844 | ok |
+| `cfg_080` | 20 | yes | 20 | 1,894,872 | 2,604,968 | 9896 | 10244 | 4373 | ok |
+| `cfg_081` | 13 | no | 6 | 1,524,736 | 693,792 | 3109 | 3267 | 3279 | ok |
+| `cfg_082` | 7 | no | 3 | 704,480 | 642,288 | 2334 | 2375 | 3833 | ok |
+| `cfg_083` | 9 | no | 3 | 541,536 | 584,160 | 2451 | 2493 | 3044 | ok |
+| `cfg_084` | 20 | no | 9 | 2,497,688 | 1,841,768 | 3684 | 3812 | 4012 | ok |
+| `cfg_085` | 22 | yes | 16 | 1,164,768 | 3,097,448 | 7108 | 7258 | 4513 | ok |
+| `cfg_086` | 12 | no | 8 | 1,049,824 | 814,696 | 4129 | 4256 | 3832 | ok |
+| `cfg_087` | 14 | no | 5 | 1,104,192 | 915,528 | 3813 | 3925 | 4614 | ok |
+| `cfg_088` | 9 | yes | 3 | 1,076,568 | 1,561,048 | 2768 | 3089 | 2562 | ok |
+| `cfg_089` | 20 | yes | 18 | 1,449,552 | 2,936,080 | 9058 | 9402 | 4462 | ok |
+| `cfg_090` | 34 | yes | 9 | 702,464 | 3,772,728 | 5800 | 6366 | 5267 | ok |
+| `cfg_091` | 4 | no | 0 | 857,840 | 195,792 | 2413 | 2473 | 2786 | ok |
+| `cfg_092` | 24 | yes | 20 | 1,660,200 | 3,315,112 | 5274 | 5945 | 4129 | ok |
+| `cfg_093` | 34 | yes | 10 | 813,648 | 4,065,424 | 5628 | 5776 | 5542 | ok |
+| `cfg_094` | 22 | yes | 13 | 2,098,856 | 3,022,304 | 7818 | 8448 | 3511 | ok |
+| `cfg_095` | 10 | no | 9 | 1,359,368 | 375,624 | 3996 | 4443 | 3455 | ok |
+| `cfg_096` | 27 | yes | 17 | 1,504,304 | 3,124,648 | 8996 | 9426 | 4965 | ok |
+| `cfg_097` | 9 | no | 4 | 1,655,368 | 769,672 | 2635 | 2721 | 3678 | ok |
+| `cfg_098` | 10 | no | 11 | 1,803,616 | 640,496 | 3629 | 3717 | 3535 | ok |
+| `cfg_099` | 4 | no | 0 | 552,008 | 213,960 | 2190 | 2242 | 3508 | ok |
+| `cfg_100` | 6 | no | 3 | 890,528 | 488,384 | 2271 | 2302 | 2714 | ok |
+| `cfg_101` | 16 | yes | 19 | 1,739,896 | 2,286,040 | 8911 | 9262 | 4620 | ok |
+| `cfg_102` | 24 | yes | 20 | 1,786,128 | 2,687,368 | 6802 | 6968 | 4806 | ok |
+| `cfg_103` | 26 | no | 10 | 1,524,896 | 1,512,472 | 5195 | 5291 | 4838 | ok |
+| `cfg_104` | 22 | no | 25 | 3,094,464 | 2,187,288 | 4408 | 4618 | 4604 | ok |
+| `cfg_105` | 2 | no | 0 | 293,376 | 201,712 | 2298 | 2332 | 2639 | ok |
+| `cfg_106` | 25 | no | 14 | 2,247,992 | 1,139,296 | 5118 | 5341 | 4332 | ok |
+| `cfg_107` | 12 | no | 10 | 865,392 | 612,576 | 2845 | 2921 | 2898 | ok |
+| `cfg_108` | 12 | no | 7 | 1,462,736 | 759,160 | 3810 | 3911 | 4096 | ok |
+| `cfg_109` | 11 | no | 15 | 724,056 | 634,832 | 3718 | 3783 | 3433 | ok |
+| `cfg_110` | 25 | no | 14 | 2,184,096 | 1,337,040 | 4648 | 4871 | 5146 | ok |
+| `cfg_111` | 16 | no | 9 | 2,339,840 | 1,795,088 | 3255 | 3364 | 4351 | ok |
+| `cfg_112` | 10 | no | 3 | 562,840 | 572,968 | 2703 | 2767 | 3446 | ok |
+| `cfg_113` | 24 | no | 28 | 2,704,248 | 2,079,528 | 5525 | 5744 | 4499 | ok |
+| `cfg_114` | 15 | no | 8 | 1,538,416 | 739,072 | 3013 | 3083 | 3409 | ok |
+| `cfg_115` | 25 | no | 14 | 2,483,920 | 2,386,352 | 5700 | 6183 | 4986 | ok |
+| `cfg_116` | 4 | no | 0 | 232,544 | 102,752 | 2300 | 2407 | 2468 | ok |
+| `cfg_117` | 3 | no | 3 | 326,592 | 209,952 | 2632 | 2762 | 2427 | ok |
+| `cfg_118` | 20 | yes | 19 | 969,200 | 2,587,328 | 4921 | 5129 | 4826 | ok |
+| `cfg_119` | 29 | yes | 9 | 573,984 | 3,767,368 | 6032 | 6375 | 5111 | ok |
+| `cfg_120` | 28 | no | 7 | 1,315,312 | 1,598,680 | 5328 | 5632 | 5134 | ok |
+| `cfg_121` | 1 | no | 0 | 242,000 | 48,400 | 2511 | 2624 | 2387 | ok |
+| `cfg_122` | 11 | no | 6 | 1,037,768 | 615,528 | 3480 | 3628 | 4062 | ok |
+| `cfg_123` | 14 | no | 7 | 3,029,304 | 944,672 | 2694 | 3017 | 3261 | ok |
+| `cfg_124` | 21 | no | 10 | 1,548,224 | 1,340,104 | 5249 | 5376 | 4576 | ok |
+| `cfg_125` | 26 | no | 7 | 1,325,840 | 1,496,896 | 5544 | 5770 | 5300 | ok |
+| `cfg_126` | 18 | yes | 23 | 2,094,528 | 2,401,568 | 10570 | 10934 | 3728 | ok |
+| `cfg_127` | 35 | yes | 4 | 274,456 | 4,329,464 | 5900 | 6002 | 5819 | ok |
+| `cfg_128` | 16 | no | 10 | 299,504 | 1,015,440 | 4388 | 4594 | 4248 | ok |
+| `cfg_129` | 14 | no | 11 | 1,049,640 | 780,520 | 2966 | 3012 | 3902 | ok |
+| `cfg_130` | 36 | yes | 5 | 159,536 | 4,231,416 | 5791 | 5902 | 5840 | ok |
+| `cfg_131` | 19 | no | 13 | 1,453,376 | 930,968 | 5064 | 5168 | 4581 | ok |
+| `cfg_132` | 27 | yes | 15 | 1,016,104 | 3,837,736 | 5662 | 5789 | 4979 | ok |
+| `cfg_133` | 16 | no | 14 | 1,044,256 | 845,032 | 4221 | 4371 | 4272 | ok |
+| `cfg_134` | 2 | no | 5 | 105,456 | 97,344 | 2194 | 2230 | 2356 | ok |
+| `cfg_135` | 26 | no | 7 | 986,544 | 1,446,152 | 4687 | 5299 | 4866 | ok |
+| `cfg_136` | 9 | no | 10 | 1,366,120 | 1,435,752 | 4304 | 4489 | 2491 | ok |
+| `cfg_137` | 27 | no | 11 | 1,364,064 | 1,504,632 | 6113 | 6232 | 5253 | ok |
+| `cfg_138` | 36 | yes | 5 | 278,160 | 4,284,496 | 5752 | 5921 | 5576 | ok |
+| `cfg_139` | 7 | no | 8 | 543,544 | 344,776 | 2547 | 2629 | 2443 | ok |
+| `cfg_140` | 23 | yes | 22 | 2,256,392 | 2,780,088 | 4688 | 4811 | 3935 | ok |
+| `cfg_141` | 19 | no | 10 | 1,627,968 | 1,138,632 | 4309 | 4387 | 4446 | ok |
+| `cfg_142` | 14 | no | 12 | 1,948,280 | 1,337,784 | 3102 | 3612 | 2930 | ok |
+| `cfg_143` | 16 | no | 10 | 1,319,000 | 678,472 | 2930 | 3026 | 3118 | ok |
+| `cfg_144` | 16 | yes | 8 | 1,645,488 | 2,403,264 | 7099 | 7403 | 3228 | ok |
+| `cfg_145` | 11 | no | 3 | 685,000 | 470,536 | 2440 | 2519 | 3342 | ok |
+| `cfg_146` | 18 | no | 14 | 1,678,728 | 788,376 | 3880 | 4034 | 3527 | ok |
+| `cfg_147` | 22 | yes | 16 | 1,756,240 | 3,049,408 | 5653 | 5742 | 3952 | ok |
+| `cfg_148` | 12 | no | 12 | 1,724,376 | 1,219,768 | 2980 | 3140 | 2860 | ok |
+| `cfg_149` | 11 | yes | 7 | 789,360 | 1,644,416 | 3179 | 3262 | 3941 | ok |

@@ -10,6 +10,8 @@ Register schema (one JSON object per line, in config order):
     config_id          str    deterministic id, e.g. "cfg_003"
     fp32_nodes         list   pre-processed node names kept in fp32
     seam_count         int    Q/DQ boundary nodes added over the all-int8 model
+    seam_bytes         int    activation elements crossing those seams (P2.7)
+    stranded_fp32_bytes int   output elements of fp32 layers whose region borders int8
     measured_p50_us    float  end-to-end p50 latency in microseconds
     measured_p90_us    float  end-to-end p90 latency in microseconds
     additive_pred_us   float  sum of per-layer fp32/int8 lookup costs
@@ -35,28 +37,35 @@ DEFAULT_SANITY_TOLERANCE. If they do not, the lookup is rescaled per precision
 (regime ``calibrated``) so both pure configs match exactly; a lookup that still
 fails the gate stops the sweep. Per-config per-layer timings no longer exist, so
 the only timing in the additive model is the gated lookup.
+
+P2.7 raises the default target to 150 and samples placements so seam count and
+high-resolution fp32 placement vary independently: low-resolution-only fp32
+subsets produce many seams with little stranded fp32, while high-resolution-only
+subsets (``conv0``) produce the opposite. Each row also records the two
+geometry features the cost model fits.
 """
 
 import json
 import random
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 import onnx
 import onnxruntime as ort
 
+from api.optimizer import cost_model
 from api.optimizer.benchmark_engine import benchmark
-from api.optimizer.fetcher import ComputeEntry, ProfileTable, fetch_profile
+from api.optimizer.fetcher import BoundaryEntry, ComputeEntry, ProfileTable, fetch_profile
 from api.optimizer.quantizer import CalibrationData, Quantizer
 
 # ONNX Runtime's quantizer names QLinear nodes by appending this suffix.
 _QUANT_SUFFIX = "_quant"
 _QDQ_OPS = frozenset({"QuantizeLinear", "DequantizeLinear"})
 
-DEFAULT_TARGET_CONFIGS = 40
+DEFAULT_TARGET_CONFIGS = 150
 
 # BenchmarkEngine leaves SessionOptions at ONNX Runtime's default, which is
 # ORT_ENABLE_ALL. Profiling the lookup with ORT_DISABLE_ALL puts the per-layer
@@ -90,6 +99,9 @@ class LookupTable:
     int8_boundary: Counter[tuple[str, str]]
     regime: str = "optimized"
     raw_sanity: tuple[dict, ...] = ()
+    # Raw (unoptimized) boundary table, used to cancel the model input/output
+    # conversions when extracting P2.7 seam features.
+    int8_raw_boundary: dict[str, BoundaryEntry] = field(default_factory=dict)
 
 
 class LookupSanityError(RuntimeError):
@@ -146,6 +158,100 @@ def generate_configs(
         if 1 < count < total:
             indices = [round(i * (total - 1) / (count - 1)) for i in range(count)]
             add([ordered[index] for index in indices])
+
+    return configs
+
+
+def _spread(layers: Sequence[str], count: int) -> list[str]:
+    """Take `count` layers at even intervals, maximising fp32 islands."""
+    if count <= 0:
+        return []
+    if count >= len(layers):
+        return list(layers)
+    if count == 1:
+        return [layers[0]]
+    step = (len(layers) - 1) / (count - 1)
+    return [layers[round(index * step)] for index in range(count)]
+
+
+def generate_decorrelated_configs(
+    layers: Sequence[str],
+    layer_sizes: Mapping[str, int],
+    seed: int = 0,
+    target: int = DEFAULT_TARGET_CONFIGS,
+) -> list[SweepConfig]:
+    """Generate configs that separate seam count from high-resolution placement.
+
+    P2.7 needs alpha and beta to be separately identifiable. Keeping only
+    low-resolution layers fp32 gives many seams with little stranded fp32;
+    keeping only the high-resolution head (``conv0``) gives the opposite. Both
+    families are built explicitly, then seeded random subsets fill the target.
+
+    `layers` must be in graph order and `layer_sizes` maps each name to its
+    output activation elements (from `cost_model.build_geometry`).
+    """
+    ordered = list(layers)
+    total = len(ordered)
+    if total == 0:
+        return [SweepConfig("cfg_000", ())]
+    target = max(target, 1)
+
+    sizes = {name: int(layer_sizes.get(name, 0)) for name in ordered}
+    ranked = sorted(
+        ordered, key=lambda name: (-sizes[name], ordered.index(name))
+    )
+    high = ranked[: max(1, total // 4)]
+    high_set = set(high)
+    low = [name for name in ordered if name not in high_set]
+
+    rng = random.Random(seed)
+    configs: list[SweepConfig] = []
+    seen: set[frozenset[str]] = set()
+
+    def add(nodes: Sequence[str]) -> bool:
+        if len(configs) >= target:
+            return False
+        key = frozenset(nodes)
+        if key not in seen:
+            seen.add(key)
+            configs.append(SweepConfig(f"cfg_{len(configs):03d}", tuple(nodes)))
+        return len(configs) < target
+
+    add(())
+    add(ordered)
+
+    # Few seams, high-resolution placement: the conv0 effect.
+    for count in range(1, min(len(high), 4) + 1):
+        add(high[:count])
+        add(_spread(high, count))
+
+    # Many seams, low-resolution placement: no stranded high-resolution layer.
+    for fraction in (0.25, 0.5, 0.75, 1.0):
+        count = max(1, min(len(low), round(len(low) * fraction)))
+        add(_spread(low, count))
+        start = rng.randrange(0, len(low) - count + 1)
+        add(low[start : start + count])
+
+    # Explicit grid: hold high-resolution placement fixed while low-resolution
+    # islands grow, so the two features are not collinear.
+    for high_count in range(0, min(len(high), 3) + 1):
+        for fraction in (0.25, 0.5, 0.75):
+            count = round(len(low) * fraction)
+            if count == 0:
+                add(high[:high_count])
+                continue
+            add(high[:high_count] + _spread(low, count))
+            start = rng.randrange(0, len(low) - count + 1)
+            add(high[:high_count] + low[start : start + count])
+
+    # Seeded fill: half low-resolution-only, half anywhere.
+    attempts = 0
+    while len(configs) < target and attempts < target * 20:
+        attempts += 1
+        pool = low if rng.random() < 0.5 else ordered
+        count = rng.randrange(0, len(pool) + 1)
+        picked = set(rng.sample(pool, count))
+        add([name for name in ordered if name in picked])
 
     return configs
 
@@ -353,6 +459,9 @@ def build_lookup_table(
         int8_boundary=_optimized_boundary(int8_path, work, "lookup_int8"),
         regime=regime,
         raw_sanity=tuple(raw_sanity),
+        int8_raw_boundary=cost_model.fetch_raw_boundary(
+            int8_path, work / "features", "lookup_int8"
+        ),
     )
 
 
@@ -412,6 +521,7 @@ def run_config(
     lookup: LookupTable,
     quantizer: Quantizer,
     work_dir: str | Path,
+    geometry: cost_model.GraphGeometry,
     warmup_runs: int = 10,
     benchmark_runs: int = 100,
     time_budget_seconds: float | None = None,
@@ -425,6 +535,8 @@ def run_config(
         "config_id": config.config_id,
         "fp32_nodes": list(config.fp32_nodes),
         "seam_count": None,
+        "seam_bytes": None,
+        "stranded_fp32_bytes": None,
         "measured_p50_us": None,
         "measured_p90_us": None,
         # Deliberately outside the try: a lookup mismatch must stop the sweep.
@@ -433,6 +545,7 @@ def run_config(
         "error": None,
     }
 
+    mixed_path: str | None = None
     try:
         mixed_path = quantizer.create_mixed_int8(
             model_path,
@@ -459,6 +572,22 @@ def run_config(
     except Exception as exc:
         row["status"] = "failed"
         row["error"] = f"{type(exc).__name__}: {exc}"
+
+    # Feature extraction is outside the try on purpose: a missing activation
+    # shape is an integrity failure (P2.7 spec #6), not a failed config.
+    if mixed_path is not None:
+        raw_boundary = cost_model.fetch_raw_boundary(
+            mixed_path, work / "features", f"mixed_{config.config_id}"
+        )
+        features = cost_model.extract_features(
+            geometry,
+            list(config.fp32_nodes),
+            raw_boundary,
+            lookup.int8_raw_boundary,
+            mixed_path,
+        )
+        row["seam_bytes"] = features.seam_bytes
+        row["stranded_fp32_bytes"] = features.stranded_fp32_bytes
 
     return row
 
@@ -502,7 +631,13 @@ def run_sweep(
             "no excludable layer has a lookup entry; cannot build mixed configs"
         )
 
-    configs = generate_configs(vocabulary, seed=seed, target=target)
+    geometry = cost_model.build_geometry(model_path)
+    configs = generate_decorrelated_configs(
+        vocabulary,
+        cost_model.layer_output_elements(geometry, vocabulary),
+        seed=seed,
+        target=target,
+    )
     register = Path(register_path)
     register.parent.mkdir(parents=True, exist_ok=True)
 
@@ -516,6 +651,7 @@ def run_sweep(
                 lookup=lookup,
                 quantizer=quantizer,
                 work_dir=work,
+                geometry=geometry,
                 warmup_runs=warmup_runs,
                 benchmark_runs=benchmark_runs,
                 time_budget_seconds=time_budget_seconds,
